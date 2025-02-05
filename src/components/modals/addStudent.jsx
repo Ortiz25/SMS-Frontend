@@ -217,7 +217,7 @@ const AddStudentModal = ({
         </div>
 
         {/* Form Actions */}
-        <div className="border-t px-6 py-4 bg-gray-50 flex justify-end space-x-4 rounded-b-lg">
+        <div className="border-t px-6 py-4 bg-gray-50 flex justify-between space-x-4 rounded-b-lg">
           <button
             type="button"
             onClick={() => setShowAddModal(false)}

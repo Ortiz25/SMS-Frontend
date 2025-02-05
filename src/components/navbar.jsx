@@ -24,7 +24,7 @@ import { useStore } from "../store/store";
 
 const Navbar = ({ children }) => {
   const { activeModule } = useStore();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState("overview");
  
 

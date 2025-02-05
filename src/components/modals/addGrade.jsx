@@ -197,11 +197,11 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
+            <div className="px-6 py-4 bg-gray-50 border-t ">
               {errors.form && (
                 <p className="text-sm text-red-600">{errors.form}</p>
               )}
-              <div className="flex space-x-4">
+              <div className=" flex justify-between items-center">
                 <button
                   type="button"
                   onClick={onClose}

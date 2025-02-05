@@ -3,8 +3,15 @@ import { X, User, GraduationCap, Heart, Phone } from "lucide-react";
 import PersonalInfoForm from "../forms/personalInfoForm";
 import AcademicInfoForm from "../forms/academicInfoForm";
 import MedicalInfoForm from "../forms/medicalInfoForm";
+import AnimatedModal from "./animateModal";
 
-const EditStudentModal = ({ isOpen, student, onClose, onSave, handleValidationChange }) => {
+const EditStudentModal = ({
+  isOpen,
+  student,
+  onClose,
+  onSave,
+  handleValidationChange,
+}) => {
   const [activeTab, setActiveTab] = useState("personal");
   const [formData, setFormData] = useState({
     personal: {
@@ -38,7 +45,6 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave, handleValidationCh
       medications: "",
     },
   });
-
 
   useEffect(() => {
     if (student) {
