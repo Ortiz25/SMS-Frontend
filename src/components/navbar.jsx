@@ -55,68 +55,65 @@ const Navbar = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
-      >
-        <div className="h-full w-64 bg-white border-r border-gray-200 px-3 py-4">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between mb-6 px-2">
-            <div className="flex items-center space-x-3">
-              <Building2 className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold">Teqova SMS</span>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+    {/* Sidebar */}
+    <div
+      className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}
+    >
+      <div className="h-full w-64 bg-white border-r border-gray-200 px-3 py-4">
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center space-x-3">
+            <Building2 className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold">Teqova SMS</span>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+  
+        {/* Navigation Items */}
+        <nav className="space-y-1">
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.id}
+              to={item.route}
+              onClick={() => setSelectedModule(item.id)}
+              className={`w-full flex items-center space-x-3 px-4 py-3 text-sm rounded-lg transition-colors ${
+                activeModule === item.id
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
             >
-              <X className="h-6 w-6" />
+              <item.icon className="h-5 w-5" />
+              <span>{item.name}</span>
+            </NavLink>
+          ))}
+        </nav>
+  
+        {/* Bottom Actions */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="space-y-2">
+            <NavLink to={"/settings"} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+              <Settings className="h-5 w-5" />
+              <span>Settings</span>
+            </NavLink>
+            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 rounded-lg">
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
             </button>
           </div>
-
-          {/* Navigation Items */}
-          <nav className="space-y-1">
-            {navigationItems.map((item) => (
-              <NavLink
-                key={item.id}
-                to={item.route}
-                onClick={() => setSelectedModule(item.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 text-sm rounded-lg transition-colors ${
-                  activeModule === item.id
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.name}</span>
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Bottom Actions */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-            <div className="space-y-2">
-              <NavLink to={"/settings"} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </NavLink>
-              <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 rounded-lg">
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <div
-        className={`${
-          sidebarOpen ? "lg:ml-64" : ""
-        } transition-margin duration-200 ease-in-out`}
-      >
+      </div>
+    </div>
+  
+    {/* Main Content */}
+    <div className="lg:pl-64">
+      <div className="min-h-screen">
         {/* Top Navigation */}
         <nav className="bg-white shadow-sm px-6 py-4">
           <div className="flex items-center justify-between">
@@ -134,10 +131,11 @@ const Navbar = ({ children }) => {
             </div>
           </div>
         </nav>
-
+  
         {children}
       </div>
     </div>
+  </div>
   );
 };
 
