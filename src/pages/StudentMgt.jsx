@@ -35,9 +35,14 @@ const sampleStudents = [
     class: "Form 4",
     stream: "A",
     gender: "Male",
+    dateOfBirth: "2006-03-15",
     attendance: "95%",
     performance: "A",
     status: "active",
+    address: "Rongai",
+    studentType: "Boarder",
+    hostel: "Block A",
+    busRoute: null,
     guardian: {
       name: "Jane Kamau",
       phone: "+254 712 345 678",
@@ -52,9 +57,14 @@ const sampleStudents = [
     class: "Form 4",
     stream: "B",
     gender: "Female",
+    dateOfBirth: "2006-07-22",
     attendance: "92%",
     performance: "A-",
     status: "active",
+    studentType: "Boarder",
+    hostel: "Block A",
+    busRoute: null,
+    address: "Langata",
     guardian: {
       name: "Peter Wanjiku",
       phone: "+254 713 456 789",
@@ -69,9 +79,14 @@ const sampleStudents = [
     class: "Form 3",
     stream: "A",
     gender: "Male",
+    dateOfBirth: "2007-01-10",
     attendance: "88%",
     performance: "B+",
     status: "active",
+    studentType: "Day Scholar",
+    hostel: null,
+    busRoute: "Route 2",
+    address: "Roysambu",
     guardian: {
       name: "Alice Ochieng",
       phone: "+254 714 567 890",
@@ -86,9 +101,14 @@ const sampleStudents = [
     class: "Form 3",
     stream: "C",
     gender: "Female",
+    dateOfBirth: "2007-05-05",
     attendance: "90%",
     performance: "B",
     status: "active",
+    studentType: "Day Scholar",
+    hostel: null,
+    busRoute: "Route 1",
+    address: "Karen",
     guardian: {
       name: "James Muthoni",
       phone: "+254 715 678 901",
@@ -99,13 +119,18 @@ const sampleStudents = [
   {
     id: 5,
     name: "Rhoda Muthoni",
-    admissionNo: "KPS2024004",
+    admissionNo: "KPS2024005",
     class: "Form 3",
     stream: "C",
     gender: "Female",
+    dateOfBirth: "2007-09-18",
     attendance: "90%",
     performance: "B",
     status: "suspended",
+    studentType: "Boarder",
+    hostel: "Block A",
+    busRoute: null,
+    address: "South B",
     guardian: {
       name: "James Muthoni",
       phone: "+254 715 678 901",
@@ -114,6 +139,7 @@ const sampleStudents = [
     },
   },
 ];
+
 
 const StudentManagement = () => {
   const { activeModule, updateActiveModule } = useStore();
@@ -145,6 +171,9 @@ const StudentManagement = () => {
     guardianEmail: "",
     guardianRelation: "",
     address: "",
+    studentType: "",
+    busRoute: "",
+    hostel: "",
   });
 
   const handleValidationChange = (section, isValid) => {
@@ -210,9 +239,13 @@ const StudentManagement = () => {
     }
   }, [activeTab]);
 
-  // Pass this down to your forms
-  const handleInputChange = (section, field, value) => {
-    // Your input change logic here
+ 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (

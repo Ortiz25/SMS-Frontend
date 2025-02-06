@@ -9,6 +9,64 @@ const AddStudentModal = ({
   handleInputChange,
   formData,
 }) => {
+
+  const allRoutes = [
+    {
+      id: 'route-1',
+      name: 'Route 1',
+      areas: 'Karen, Langata',
+      matches: ['karen', 'langata', 'lang\'ata'],
+      pickupPoints: ['Karen Shopping Center', 'Langata Mall', 'Galleria']
+    },
+    {
+      id: 'route-2',
+      name: 'Route 2',
+      areas: 'Westlands, Parklands',
+      matches: ['westlands', 'parklands'],
+      pickupPoints: ['Westlands Mall', 'Parklands Plaza', 'Sarit Center']
+    },
+    {
+      id: 'route-3',
+      name: 'Route 3',
+      areas: 'Kileleshwa, Lavington',
+      matches: ['kileleshwa', 'lavington'],
+      pickupPoints: ['Lavington Mall', 'Kileleshwa Ring Road', 'Valley Arcade']
+    },
+    {
+      id: 'route-4',
+      name: 'Route 4',
+      areas: 'South B, South C',
+      matches: ['south b', 'south c', 'southb', 'southc'],
+      pickupPoints: ['South B Shopping Center', 'Capital Center', 'City Stadium']
+    }
+  ];
+  
+  /**
+   * Function to determine available bus routes based on address
+   * @param {string} address - The student's home address
+   * @returns {Array} Array of matching bus routes
+   */
+  const getAvailableBusRoutes = (address) => {
+    // If no address provided, return empty array
+    if (!address) return [];
+    
+    // Convert address to lowercase for case-insensitive matching
+    const lowerAddress = address.toLowerCase();
+    
+    // Filter routes based on address matching
+    const matchingRoutes = allRoutes.filter(route => 
+      route.matches.some(area => lowerAddress.includes(area))
+    );
+  
+    // If no matches found, return all routes as options
+    if (matchingRoutes.length === 0) {
+      console.log('No direct route matches found for address:', address);
+      return allRoutes;
+    }
+  
+    console.log(`Found ${matchingRoutes.length} matching routes for address:`, address);
+    return matchingRoutes;
+  };
   return (
     <AnimatedModal isOpen={showAddModal}>
       <form onSubmit={handleSubmit} className="">
@@ -119,6 +177,98 @@ const AddStudentModal = ({
                   <option value="Female">Female</option>
                 </select>
               </div>
+            </div>
+          </div>
+
+          {/* Boarding Status */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Boarding Status
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Student Type*
+                </label>
+                <select
+                  name="studentType"
+                  value={formData.studentType}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select student type</option>
+                  <option value="Day Scholar">Day Scholar</option>
+                  <option value="Boarder">Boarder</option>
+                </select>
+              </div>
+
+              {/* Conditional Fields based on Student Type */}
+              {formData.studentType === "Day Scholar" && (
+                <>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Home Address*
+                    </label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      rows="2"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter physical address"
+                      required
+                    ></textarea>
+                    <p className="mt-1 text-sm text-gray-500">
+                      This will help determine available bus routes
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Available Bus Routes
+                    </label>
+                    {formData.address ? (
+                      <select
+                        name="busRoute"
+                        value={formData.busRoute}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Select bus route</option>
+                        {getAvailableBusRoutes(formData.address).map((route) => (
+                          <option key={route.id} value={route.id}>
+                            {route.name} - {route.areas}
+                          </option>
+                        ))}
+                        <option value="None">No Bus Required</option>
+                      </select>
+                    ) : (
+                      <div className="text-sm text-gray-500 p-2 border rounded-lg bg-gray-50">
+                        Please enter your address to see available bus routes
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {formData.studentType === "Boarder" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hostel Assignment
+                  </label>
+                  <select
+                    name="hostel"
+                    value={formData.hostel}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select hostel</option>
+                    <option value="Block A">Block A</option>
+                    <option value="Block B">Block B</option>
+                    <option value="Block C">Block C</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 

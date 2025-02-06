@@ -21,6 +21,126 @@ import LeaveManagement from "../components/leaveMgt";
 import AddTeacherModal from "../components/modals/addTeacher";
 import { useStore } from "../store/store";
 
+const teachers = [
+  {
+    id: 1,
+    name: "John Doe",
+    photo: "/path/to/photo.jpg",
+    gender: "Male",
+    dateOfBirth: "1985-06-15",
+    position: "Senior Teacher",
+    department: "Mathematics",
+    employmentStatus: "Full Time",
+    email: "john.doe@school.com",
+    phone: "+254 712 345 678",
+    address: "Nairobi, Kenya",
+    subjects: ["Mathematics", "Physics"],
+    qualifications: ["B.Ed Mathematics", "M.Ed Education"],
+    yearsOfExperience: 10,
+    joinDate: "2020-01-15",
+    currentLoad: 24,
+    maxLoad: 30,
+    schedule: [
+      { day: "Monday", classes: ["Form 1A", "Form 2B", "Form 4A"] },
+      { day: "Tuesday", classes: ["Form 3A", "Form 4B", "Form 1B"] },
+    ],
+  },
+  {
+    id: 2,
+    name: "Sarah Wanjiru",
+    photo: "/path/to/photo.jpg",
+    gender: "Female",
+    dateOfBirth: "1990-09-25",
+    position: "Assistant Teacher",
+    department: "Languages",
+    employmentStatus: "Part Time",
+    email: "sarah.wanjiru@school.com",
+    phone: "+254 713 456 789",
+    address: "Mombasa, Kenya",
+    subjects: ["English", "Literature", "Kiswahili"],
+    qualifications: ["B.Ed English", "Diploma in Linguistics"],
+    yearsOfExperience: 5,
+    joinDate: "2022-03-10",
+    currentLoad: 28,
+    maxLoad: 30,
+    schedule: [
+      { day: "Monday", classes: ["Form 2A", "Form 3B", "Form 4C"] },
+      { day: "Wednesday", classes: ["Form 1C", "Form 2B", "Form 3A"] },
+    ],
+  },
+  {
+    id: 3,
+    name: "Michael Ochieng",
+    photo: "/path/to/photo.jpg",
+    gender: "Male",
+    dateOfBirth: "1980-12-10",
+    position: "Head of Science Department",
+    department: "Sciences",
+    employmentStatus: "Full Time",
+    email: "michael.ochieng@school.com",
+    phone: "+254 714 567 890",
+    address: "Kisumu, Kenya",
+    subjects: ["Biology", "Chemistry"],
+    qualifications: ["B.Sc Chemistry", "M.Sc Biochemistry"],
+    yearsOfExperience: 15,
+    joinDate: "2015-06-20",
+    currentLoad: 20,
+    maxLoad: 30,
+    schedule: [
+      { day: "Tuesday", classes: ["Form 3C", "Form 4A", "Form 2A"] },
+      { day: "Thursday", classes: ["Form 1B", "Form 2C", "Form 4B"] },
+    ],
+  },
+  {
+    id: 4,
+    name: "Grace Muthoni",
+    photo: "/path/to/photo.jpg",
+    gender: "Female",
+    dateOfBirth: "1992-03-05",
+    position: "Class Teacher",
+    department: "Humanities",
+    employmentStatus: "Full Time",
+    email: "grace.muthoni@school.com",
+    phone: "+254 715 678 901",
+    address: "Nakuru, Kenya",
+    subjects: ["History", "Geography", "CRE"],
+    qualifications: ["B.Ed Arts", "PGDE"],
+    yearsOfExperience: 7,
+    joinDate: "2018-09-12",
+    currentLoad: 26,
+    maxLoad: 30,
+    schedule: [
+      { day: "Monday", classes: ["Form 1A", "Form 3B", "Form 4C"] },
+      { day: "Friday", classes: ["Form 2C", "Form 3A", "Form 4B"] },
+    ],
+  },
+  {
+    id: 5,
+    name: "Paul Kamau",
+    photo: "/path/to/photo.jpg",
+    gender: "Male",
+    dateOfBirth: "1987-11-20",
+    position: "Sports Coordinator",
+    department: "Physical Education",
+    employmentStatus: "Full Time",
+    email: "paul.kamau@school.com",
+    phone: "+254 716 789 012",
+    address: "Thika, Kenya",
+    subjects: ["Physical Education", "Health Education"],
+    qualifications: ["B.Ed Physical Education"],
+    yearsOfExperience: 9,
+    joinDate: "2016-04-25",
+    currentLoad: 22,
+    maxLoad: 30,
+    schedule: [
+      { day: "Wednesday", classes: ["Form 2B", "Form 3A", "Form 4C"] },
+      { day: "Friday", classes: ["Form 1A", "Form 2C", "Form 3B"] },
+    ],
+  },
+];
+
+
+
 const TeacherManagement = () => {
   const { activeModule, updateActiveModule } = useStore();
   const [activeTab, setActiveTab] = useState("profiles");
@@ -147,8 +267,8 @@ const TeacherManagement = () => {
 
         {/* Content area - will be replaced with specific tab content */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          {activeTab === "profiles" && <TeacherProfiles />}
-          {activeTab === "workload" && <WorkloadSchedule />}
+          {activeTab === "profiles" && <TeacherProfiles teachers={teachers} />}
+          {activeTab === "workload" && <WorkloadSchedule teachers={teachers} />}
           {/* {activeTab === "payroll" && <PayrollTable />} */}
           {activeTab === "leave" && <LeaveManagement />}
         </div>

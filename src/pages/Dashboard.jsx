@@ -131,11 +131,7 @@ const Dashboard = () => {
                     text: "New student admission - John Doe",
                     time: "2 hours ago",
                   },
-                  {
-                    icon: CreditCard,
-                    text: "Fee payment received - KES 45,000",
-                    time: "3 hours ago",
-                  },
+                  
                   {
                     icon: Bell,
                     text: "Parent meeting scheduled for Form 4",

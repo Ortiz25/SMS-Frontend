@@ -1,23 +1,46 @@
-import React from 'react';
-import { Briefcase, Users, BookOpen, Award, Edit, Trash2, MoreVertical } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  Briefcase,
+  Users,
+  BookOpen,
+  Award,
+  Edit,
+  Trash2,
+  MoreVertical,
+  Eye
+} from "lucide-react";
+import EditTeacherModal , { ViewTeacherModal, DeleteConfirmationModal } from "./modals/teacherProfileModal";
 
-const TeacherProfiles = () => {
-  const teachers = [
-    {
-      id: 1,
-      name: 'John Doe',
-      photo: '/path/to/photo.jpg',
-      position: 'Senior Teacher',
-      department: 'Mathematics',
-      employmentStatus: 'Full Time',
-      email: 'john.doe@school.com',
-      phone: '+254 712 345 678',
-      subjects: ['Mathematics', 'Physics'],
-      qualifications: ['B.Ed Mathematics', 'M.Ed Education'],
-      joinDate: '2020-01-15'
-    },
-    // Add more teachers...
-  ];
+const TeacherProfiles = ({ teachers }) => {
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+
+
+
+  const handleSave = (updatedTeacher) => {
+    console.log('Saving updated teacher:', updatedTeacher);
+    // Add your save logic here
+    setShowEditModal(false);
+    setSelectedTeacher(null);
+  };
+
+
+  const handleEdit = (teacher) => {
+    setSelectedTeacher(teacher);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = (teacher) => {
+    setSelectedTeacher(teacher);
+    setShowDeleteModal(true);
+  };
+
+  const handleView = (teacher) => {
+    setSelectedTeacher(teacher);
+    setShowViewModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -25,7 +48,9 @@ const TeacherProfiles = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Total Teachers</h3>
+            <h3 className="text-sm font-medium text-gray-600">
+              Total Teachers
+            </h3>
             <Users className="h-5 w-5 text-blue-600" />
           </div>
           <div className="text-2xl font-bold">42</div>
@@ -43,7 +68,9 @@ const TeacherProfiles = () => {
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Subject Coverage</h3>
+            <h3 className="text-sm font-medium text-gray-600">
+              Subject Coverage
+            </h3>
             <BookOpen className="h-5 w-5 text-blue-600" />
           </div>
           <div className="text-2xl font-bold">98%</div>
@@ -52,7 +79,9 @@ const TeacherProfiles = () => {
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Average Experience</h3>
+            <h3 className="text-sm font-medium text-gray-600">
+              Average Experience
+            </h3>
             <Award className="h-5 w-5 text-blue-600" />
           </div>
           <div className="text-2xl font-bold">7.5 yrs</div>
@@ -94,13 +123,19 @@ const TeacherProfiles = () => {
                         </span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{teacher.name}</div>
-                        <div className="text-sm text-gray-500">{teacher.position}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {teacher.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {teacher.position}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{teacher.department}</div>
+                    <div className="text-sm text-gray-900">
+                      {teacher.department}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-wrap gap-2">
@@ -121,14 +156,23 @@ const TeacherProfiles = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center space-x-3">
-                      <button className="text-gray-400 hover:text-blue-600">
+                      <button
+                        onClick={() => handleView(teacher)}
+                        className="text-gray-400 hover:text-blue-600"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleEdit(teacher)}
+                        className="text-gray-400 hover:text-blue-600"
+                      >
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-red-600">
+                      <button
+                        onClick={() => handleDelete(teacher)}
+                        className="text-gray-400 hover:text-red-600"
+                      >
                         <Trash2 className="h-4 w-4" />
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -155,6 +199,60 @@ const TeacherProfiles = () => {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+    <DeleteConfirmationModal
+      isOpen={showDeleteModal}
+      teacher={selectedTeacher}
+      onClose={() => setShowDeleteModal(false)}
+      onConfirm={(teacherId) => {
+        console.log('Deleting teacher:', teacherId);
+        // Add your delete logic here
+        setShowDeleteModal(false);
+        setSelectedTeacher(null);
+      }}
+    />
+  )}
+  
+      {/* Modals */}
+      {showEditModal && (
+        <EditTeacherModal
+          teacher={selectedTeacher}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTeacher(null);
+          }}
+          onSave={handleSave}
+        />
+      )}
+
+  {showViewModal && (
+    <ViewTeacherModal
+      isOpen={showViewModal}
+      teacher={selectedTeacher}
+      onClose={() => {
+        setShowViewModal(false);
+        setSelectedTeacher(null);
+      }}
+    />
+  )}
+
+  {showEditModal && (
+    <EditTeacherModal
+      isOpen={showEditModal}
+      teacher={selectedTeacher}
+      onClose={() => {
+        setShowEditModal(false);
+        setSelectedTeacher(null);
+      }}
+      onSave={(updatedTeacher) => {
+        console.log('Saving teacher:', updatedTeacher);
+        // Add your save logic here
+        setShowEditModal(false);
+        setSelectedTeacher(null);
+      }}
+    />
+  )}
     </div>
   );
 };
