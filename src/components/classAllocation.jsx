@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Filter, Search, Edit, Trash2 } from 'lucide-react';
+import AllocationModal from './modals/addAllocation';
 
 // Helper function to generate sample data
 const getAllocations = () => [
@@ -28,6 +29,17 @@ const getAllocations = () => [
 const ClassAllocation = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAllocation, setSelectedAllocation] = useState(null);
+
+  
+  // Handler for new allocation submission
+  const handleSaveAllocation = (allocationData) => {
+    console.log('New allocation:', allocationData);
+    // Add your API call or state update logic here
+    setShowModal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +62,13 @@ const ClassAllocation = () => {
           </button>
         </div>
         
-        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button 
+          onClick={() => {
+            setSelectedAllocation(null); // Reset selected allocation
+            setShowModal(true);
+          }}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
           <Plus className="h-5 w-5" />
           <span>New Allocation</span>
         </button>
@@ -116,6 +134,12 @@ const ClassAllocation = () => {
           </table>
         </div>
       </div>
+      <AllocationModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleSaveAllocation}
+        allocation={selectedAllocation}
+      />
     </div>
   );
 };

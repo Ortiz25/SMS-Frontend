@@ -14,6 +14,10 @@ import InventoryManagement from './pages/InventoryMgt';
 import CommunicationHub from './pages/CommunicationMgt';
 import HostelTransportManagement from './pages/HostelTransportMgt';
 import SettingsModule from './pages/SettingsMgt';
+import ErrorPage from './pages/ErrorPage';
+import AlumniManagement from './pages/AlumniPages';
+import LoginPage from './pages/LoginPage';
+import ForgotPass from './pages/ForgotPassPage';
 
 
 
@@ -64,6 +68,24 @@ const router = createBrowserRouter([
     path: "/settings",
     element: <SettingsModule/>,
   },
+  {
+    path: "/error",
+    element: <ErrorPage/>,
+  },
+  {
+    path: "/alumni",
+    element: <AlumniManagement/>,
+  },
+  {
+    path: "/login",
+    element: <LoginPage/>,
+  },
+  {
+    path: "/forgotpassword",
+    element: <ForgotPass/>,
+  },
+  
+  
   
 ]);
 

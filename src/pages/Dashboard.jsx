@@ -51,52 +51,64 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Stat Card 1 */}
+          {/* Total Students */}
           <div className="bg-white rounded-lg border shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
-                Total Students
-              </h3>
+              <h3 className="text-sm font-medium text-gray-600">Total Students</h3>
               <GraduationCap className="h-4 w-4 text-blue-600" />
             </div>
             <div className="text-2xl font-bold">1,234</div>
             <p className="text-xs text-green-600">+15% from last term</p>
           </div>
 
-          {/* Stat Card 2 */}
+          {/* Total Teachers */}
           <div className="bg-white rounded-lg border shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
-                Total Teachers
-              </h3>
+              <h3 className="text-sm font-medium text-gray-600">Total Teachers</h3>
               <Users className="h-4 w-4 text-blue-600" />
             </div>
             <div className="text-2xl font-bold">89</div>
             <p className="text-xs text-green-600">+3 new this month</p>
           </div>
 
-          {/* Stat Card 3 */}
+          {/* Upcoming Events */}
           <div className="bg-white rounded-lg border shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
-                Fee Collection
-              </h3>
-              <CreditCard className="h-4 w-4 text-blue-600" />
+              <h3 className="text-sm font-medium text-gray-600">Upcoming Events</h3>
+              <Calendar className="h-4 w-4 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">KES 2.4M</div>
-            <p className="text-xs text-green-600">80% collected</p>
+            <div className="text-sm text-gray-700">Sports Day - March 10</div>
+            <div className="text-sm text-gray-700">Science Fair - March 15</div>
           </div>
 
-          {/* Stat Card 4 */}
+          {/* Average Student Performance */}
           <div className="bg-white rounded-lg border shadow-sm p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
-                Attendance Rate
-              </h3>
+              <h3 className="text-sm font-medium text-gray-600">Avg Student Performance</h3>
               <Activity className="h-4 w-4 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">95%</div>
-            <p className="text-xs text-green-600">Above target</p>
+            <div className="text-2xl font-bold">88%</div>
+            <p className="text-xs text-green-600">Above school average</p>
+          </div>
+
+          {/* Books Borrowed */}
+          <div className="bg-white rounded-lg border shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-medium text-gray-600">Library Books Borrowed</h3>
+              <BookOpen className="h-4 w-4 text-blue-600" />
+            </div>
+            <div className="text-2xl font-bold">350</div>
+            <p className="text-xs text-green-600">This month</p>
+          </div>
+
+          {/* Transport Usage */}
+          <div className="bg-white rounded-lg border shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-medium text-gray-600">Transport Usage</h3>
+              <BusIcon className="h-4 w-4 text-blue-600" />
+            </div>
+            <div className="text-2xl font-bold">72%</div>
+            <p className="text-xs text-green-600">Students using school buses</p>
           </div>
         </div>
 
@@ -131,7 +143,6 @@ const Dashboard = () => {
                     text: "New student admission - John Doe",
                     time: "2 hours ago",
                   },
-                  
                   {
                     icon: Bell,
                     text: "Parent meeting scheduled for Form 4",

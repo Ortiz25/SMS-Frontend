@@ -138,39 +138,38 @@ const SettingsModule = () => {
 
 const SidebarContent = ({ activeSection, setActiveSection, onItemClick }) => (
     <>
-      <div className="px-4 pb-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mt-4">
-          <NavLink to={"/"}>
-            <ArrowLeftToLine className="inline-block border-2 rounded-sm mr-12 border-gray-500 w-6 h-6" />
-          </NavLink>
-          Settings
-        </h2>
-        <p className="text-sm text-gray-500 mt-4">
-          Manage your system preferences
-        </p>
+  <div className="px-6 pb-6 border-b border-gray-300 bg-gray-50">
+    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-4 mt-4">
+      <NavLink to={"/"} className="text-gray-600 hover:text-gray-900">
+        <ArrowLeftToLine className="w-6 h-6 border-2 border-gray-500 rounded-sm p-1" />
+      </NavLink>
+      Settings
+    </h2>
+    <p className="text-sm text-gray-500 mt-2">Manage your system preferences</p>
+  </div>
+
+  <nav className="mt-6 p-4 space-y-2">
+    {menuItems.map((item) => (
+      <div key={item.id} className="px-2">
+        <button
+          onClick={() => {
+            setActiveSection(item.id);
+            onItemClick && onItemClick();
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-3 text-base font-medium rounded-lg transition-colors duration-200 ${
+            activeSection === item.id
+              ? "bg-blue-100 text-blue-700 shadow-sm"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          <item.icon className="w-6 h-6 text-gray-500" />
+          {item.label}
+        </button>
       </div>
-  
-      <nav className="mt-4 p-4">
-        {menuItems.map((item) => (
-          <div key={item.id} className="px-2 mb-4">
-            <button
-              onClick={() => {
-                setActiveSection(item.id);
-                onItemClick && onItemClick();
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm lg:text-lg font-medium rounded-md ${
-                activeSection === item.id
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <item.icon className="w-8 h-8" />
-              {item.label}
-            </button>
-          </div>
-        ))}
-      </nav>
-    </>
+    ))}
+  </nav>
+</>
+
   );
 
 export default SettingsModule;

@@ -1,5 +1,6 @@
 import React from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
+import { AlertCircle, RefreshCw, Home, AlertTriangle } from 'lucide-react';
+import Navbar from '../components/navbar';
 
 const ErrorPage = ({ 
   errorCode = 404, 
@@ -9,11 +10,12 @@ const ErrorPage = ({
   onHomeClick = () => window.location.href = '/'
 }) => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+    <Navbar>
+           <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="max-w-md w-full space-y-8 text-center">
         <div className="bg-white shadow-xl rounded-xl p-8">
           <div className="flex justify-center mb-6">
-            <AlertCircle className="text-red-500 w-16 h-16" strokeWidth={1.5} />
+            <AlertTriangle className="text-red-500 w-16 h-16" strokeWidth={1.5} />
           </div>
           
           <h1 className="text-6xl font-bold text-gray-800 mb-4">
@@ -28,7 +30,7 @@ const ErrorPage = ({
             {supportMessage}
           </p>
           
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
+          {/* <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
             <div className="flex items-center mb-2">
               <AlertCircle className="h-5 w-5 mr-2" />
               <span className="font-semibold">Error Details</span>
@@ -37,8 +39,8 @@ const ErrorPage = ({
               Unable to load the requested page. Please try again or contact support.
             </p>
           </div>
-          
-          <div className="flex justify-center gap-4">
+           */}
+          <div className="flex justify-between gap-4">
             <button 
               onClick={onRetry}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
@@ -57,6 +59,8 @@ const ErrorPage = ({
         </div>
       </div>
     </div>
+    </Navbar>
+   
   );
 };
 

@@ -13,7 +13,6 @@ import {
   ChartLine,
   Scale,
   Send,
-  Heart,
   Menu,
   X,
   Settings,
@@ -49,7 +48,7 @@ const Navbar = ({ children }) => {
     { id: "inventory", name: "Inventory & Asset Management", icon: Layers,route: "/inventory" },
     { id: "communications", name: "Communication & Notifications", icon: Send, route: "/communications"  },
     { id: "transport", name: "Hostel & Transport", icon: BusIcon,route: "/transport" },
-    // { id: "elearning", name: "E-Learning", icon: BookMarked, route: "/" },
+     { id: "alumni", name: "Alumni", icon: GraduationCap, route: "/alumni" },
     // { id: "health", name: "Health Records", icon: Heart, route: "/" },
   ];
 
