@@ -35,7 +35,8 @@ const LibraryManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
-  const [borrowerName, setBorrowerName] = useState("");
+  const [borrowerDetails, setBorrowerDetails] = useState({adminNo:"", name:""});
+
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [bookFormData, setBookFormData] = useState({
     title: "",
@@ -81,7 +82,7 @@ const LibraryManagement = () => {
         )
       );
       setShowBorrowDialog(false);
-      setBorrowerName("");
+      setBorrowerDetails({adminNo:"", name:""})
       setSelectedBook(null);
     }
   };
@@ -383,10 +384,17 @@ const LibraryManagement = () => {
               <div className="mt-4 space-y-4">
                 <input
                   type="text"
+                  placeholder="Borrower's Admission No:"
+                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={borrowerDetails.adminNo}
+                  onChange={(e) => setBorrowerDetails({...borrowerDetails, adminNo:e.target.value})}
+                />
+                <input
+                  type="text"
                   placeholder="Borrower's name"
                   className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  value={borrowerName}
-                  onChange={(e) => setBorrowerName(e.target.value)}
+                  value={borrowerDetails.name}
+                  onChange={(e) => setBorrowerDetails({...borrowerDetails, name:e.target.value})}
                 />
                 <div className="flex justify-end space-x-3">
                   <button
@@ -401,7 +409,7 @@ const LibraryManagement = () => {
                   </button>
                   <button
                     onClick={handleBorrow}
-                    disabled={!borrowerName}
+                    disabled={!borrowerDetails}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Confirm Borrow

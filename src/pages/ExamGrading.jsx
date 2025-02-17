@@ -48,11 +48,10 @@ const ExamGrading = () => {
   const [showAddGrades, setShowAddGrades] = useState(false);
 
   const handleSaveGrades = (gradeData) => {
-    console.log('Saving grades:', gradeData);
+    console.log("Saving grades:", gradeData);
     // Add your grade saving logic here
     setShowAddGrades(false);
   };
-
 
   const handleViewReport = (student) => {
     setSelectedStudent(student);
@@ -156,12 +155,12 @@ const ExamGrading = () => {
               <span>Export</span>
             </button>
             <button
-        onClick={() => setShowAddGrades(true)}
-        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        <Plus className="h-5 w-5" />
-        <span>Add Grades</span>
-      </button>
+              onClick={() => setShowAddGrades(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Add Grades</span>
+            </button>
           </div>
         </div>
 
@@ -187,51 +186,50 @@ const ExamGrading = () => {
           </div>
         </div>
 
+        {/* Content based on active tab */}
+        {activeTab === "grading" && <GradeEntry />}
 
-      {/* Content based on active tab */}
-      {activeTab === 'grading' && <GradeEntry />}
-      
-      {activeTab === 'reports' && (
-        <div className="space-y-6">
-          {/* Batch Report Generator */}
-          <BatchReportGenerator 
-            classes={[
-              { id: 'form1', name: 'Form 1' },
-              { id: 'form2', name: 'Form 2' },
-              { id: 'form3', name: 'Form 3' },
-              { id: 'form4', name: 'Form 4' }
-            ]}
-            onGenerate={(results) => {
-              console.log('Generated reports:', results);
-              // Handle batch generation results
-            }}
-          />
+        {activeTab === "reports" && (
+          <div className="space-y-6">
+            {/* Batch Report Generator */}
+            <BatchReportGenerator
+              classes={[
+                { id: "form1", name: "Form 1" },
+                { id: "form2", name: "Form 2" },
+                { id: "form3", name: "Form 3" },
+                { id: "form4", name: "Form 4" },
+              ]}
+              onGenerate={(results) => {
+                console.log("Generated reports:", results);
+                // Handle batch generation results
+              }}
+            />
 
-          {/* Individual Reports List */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <table className="min-w-full divide-y divide-gray-200">
-              {/* Your existing table headers */}
-              <tbody>
-                {students.map(student => (
-                  <tr key={student.id}>
-                    <td>{student.name}</td>
-                    <td>{student.class}</td>
-                    <td>
-                      <button
-                        onClick={() => handleViewReport(student)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        View Report
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Individual Reports List */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <table className="min-w-full divide-y divide-gray-200">
+                {/* Your existing table headers */}
+                <tbody>
+                  {students.map((student) => (
+                    <tr key={student.id}>
+                      <td>{student.name}</td>
+                      <td>{student.class}</td>
+                      <td>
+                        <button
+                          onClick={() => handleViewReport(student)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          View Report
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
-      {activeTab === 'analytics' && <Analytics />}
+        )}
+        {activeTab === "analytics" && <Analytics />}
         <ReportPreviewModal
           isOpen={showReportPreview}
           onClose={() => {
@@ -241,10 +239,10 @@ const ExamGrading = () => {
           studentData={selectedStudent}
         />
         <AddGradesModal
-        isOpen={showAddGrades}
-        onClose={() => setShowAddGrades(false)}
-        onSave={handleSaveGrades}
-      />
+          isOpen={showAddGrades}
+          onClose={() => setShowAddGrades(false)}
+          onSave={handleSaveGrades}
+        />
       </div>
     </Navbar>
   );

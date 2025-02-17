@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { GraduationCap, Users } from "lucide-react";
 import StudentsTable from "../components/studentsTable";
@@ -7,8 +6,6 @@ import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
 import { useEffect } from "react";
 
-
-
 const AlumniManagement = () => {
   const [activeTab, setActiveTab] = useState("records");
   const { updateActiveModule, activeModule } = useStore();
@@ -16,7 +13,6 @@ const AlumniManagement = () => {
   useEffect(() => {
     updateActiveModule("alumni");
   }, [activeModule]);
-
 
   return (
     <Navbar>

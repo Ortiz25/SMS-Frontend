@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { validateMedicalInfo } from '../../util/formValidation';
 
 const MedicalInfoForm = ({ formData, onChange, onValidationChange }) => {
   const [errors, setErrors] = useState({});

@@ -1,122 +1,138 @@
 // AlumniAssociations.jsx
-import React, { useState } from 'react';
-import { Plus, Search,Users, Calendar, GraduationCap, Mail, ChevronDown, ChevronUp  } from 'lucide-react';
-import CreateAssociationModal from './modals/createAssociation';
-
-
+import React, { useState } from "react";
+import {
+  Plus,
+  Search,
+  Users,
+  Calendar,
+  GraduationCap,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import CreateAssociationModal from "./modals/createAssociation";
 
 const AssociationCard = ({ association }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-  
-    return (
-      <div className="border rounded-lg hover:shadow-lg transition-shadow duration-200">
-        {/* Card Header */}
-        <div className="p-6 space-y-4">
-          <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold">{association.name}</h3>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              association.status === 'Active' 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {association.status}
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="border rounded-lg hover:shadow-lg transition-shadow duration-200">
+      {/* Card Header */}
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-semibold">{association.name}</h3>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              association.status === "Active"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {association.status}
+          </span>
+        </div>
+
+        {/* Basic Info */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-gray-400" />
+            <span>{association.members} Members</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-gray-400" />
+            <span>
+              Next Meeting:{" "}
+              {new Date(association.nextMeeting).toLocaleDateString()}
             </span>
           </div>
-  
-          {/* Basic Info */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-400" />
-              <span>{association.members} Members</span>
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-gray-400" />
+            <span>Chair: {association.chair}</span>
+          </div>
+        </div>
+
+        {/* Expand/Collapse Button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+        >
+          {isExpanded ? (
+            <>
+              Show Less <ChevronUp className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Show More <ChevronDown className="h-4 w-4" />
+            </>
+          )}
+        </button>
+
+        {/* Expanded Content */}
+        {isExpanded && (
+          <div className="space-y-4 pt-4 border-t">
+            {/* Upcoming Events */}
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">
+                Upcoming Events
+              </h4>
+              <div className="space-y-2">
+                {association.upcomingEvents.map((event) => (
+                  <div key={event.id} className="text-sm">
+                    <p className="font-medium">{event.name}</p>
+                    <p className="text-gray-500">
+                      {new Date(event.date).toLocaleDateString()} -{" "}
+                      {event.location}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span>Next Meeting: {new Date(association.nextMeeting).toLocaleDateString()}</span>
+
+            {/* Recent Updates */}
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Recent Updates</h4>
+              <div className="space-y-2">
+                {association.recentUpdates.map((update) => (
+                  <div key={update.id} className="text-sm">
+                    <p>{update.content}</p>
+                    <p className="text-gray-500">
+                      {new Date(update.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-gray-400" />
-              <span>Chair: {association.chair}</span>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <Mail className="h-4 w-4" />
+                Contact
+              </button>
+              <button className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                View Details
+              </button>
             </div>
           </div>
-  
-          {/* Expand/Collapse Button */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            {isExpanded ? (
-              <>
-                Show Less <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                Show More <ChevronDown className="h-4 w-4" />
-              </>
-            )}
-          </button>
-  
-          {/* Expanded Content */}
-          {isExpanded && (
-            <div className="space-y-4 pt-4 border-t">
-              {/* Upcoming Events */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Upcoming Events</h4>
-                <div className="space-y-2">
-                  {association.upcomingEvents.map(event => (
-                    <div key={event.id} className="text-sm">
-                      <p className="font-medium">{event.name}</p>
-                      <p className="text-gray-500">
-                        {new Date(event.date).toLocaleDateString()} - {event.location}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-  
-              {/* Recent Updates */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Recent Updates</h4>
-                <div className="space-y-2">
-                  {association.recentUpdates.map(update => (
-                    <div key={update.id} className="text-sm">
-                      <p>{update.content}</p>
-                      <p className="text-gray-500">{new Date(update.date).toLocaleDateString()}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-  
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  <Mail className="h-4 w-4" />
-                  Contact
-                </button>
-                <button className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                  View Details
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    );
-  };
-
+    </div>
+  );
+};
 
 const AlumniAssociations = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateAssociation = (formData) => {
     // Here you would typically make an API call to create the association
-    console.log('Creating new association:', formData);
-    
+    console.log("Creating new association:", formData);
+
     // Close the modal after submission
     setIsCreateModalOpen(false);
   };
-  
+
   // Mock data
   const associations = [
     {
@@ -127,21 +143,38 @@ const AlumniAssociations = () => {
       chair: "Jane Smith",
       status: "Active",
       upcomingEvents: [
-        { id: 1, name: "Career Fair", date: "2025-04-01", location: "Main Hall" },
-        { id: 2, name: "Alumni Mixer", date: "2025-05-15", location: "Garden Area" }
+        {
+          id: 1,
+          name: "Career Fair",
+          date: "2025-04-01",
+          location: "Main Hall",
+        },
+        {
+          id: 2,
+          name: "Alumni Mixer",
+          date: "2025-05-15",
+          location: "Garden Area",
+        },
       ],
       recentUpdates: [
-        { id: 1, date: "2025-02-01", content: "New mentorship program launched" },
-        { id: 2, date: "2025-01-15", content: "Scholarship fund raised" }
-      ]
+        {
+          id: 1,
+          date: "2025-02-01",
+          content: "New mentorship program launched",
+        },
+        { id: 2, date: "2025-01-15", content: "Scholarship fund raised" },
+      ],
     },
     // Add more mock data here
   ];
 
   // Filter associations based on search and status
-  const filteredAssociations = associations.filter(assoc => {
-    const matchesSearch = assoc.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || assoc.status === filterStatus;
+  const filteredAssociations = associations.filter((assoc) => {
+    const matchesSearch = assoc.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      filterStatus === "all" || assoc.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -150,7 +183,9 @@ const AlumniAssociations = () => {
       {/* Header Section */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Alumni Associations</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Alumni Associations
+          </h2>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -187,11 +222,8 @@ const AlumniAssociations = () => {
       {/* Associations Grid */}
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAssociations.map(association => (
-            <AssociationCard 
-              key={association.id} 
-              association={association} 
-            />
+          {filteredAssociations.map((association) => (
+            <AssociationCard key={association.id} association={association} />
           ))}
         </div>
       </div>

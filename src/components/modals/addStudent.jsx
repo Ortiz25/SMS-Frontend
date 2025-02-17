@@ -72,7 +72,7 @@ const AddStudentModal = ({
       <form onSubmit={handleSubmit} className="">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b pb-3">
-            <h2 className="text-xl font-bold text-gray-900">Add New Student</h2>
+            <h2 className="text-xl font-extrabold text-gray-900">Add New Student</h2>
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
@@ -84,12 +84,12 @@ const AddStudentModal = ({
 
           {/* Personal Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               Personal Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Full Name*
                 </label>
                 <input
@@ -182,12 +182,12 @@ const AddStudentModal = ({
 
           {/* Boarding Status */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               Boarding Status
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Student Type*
                 </label>
                 <select
@@ -207,7 +207,7 @@ const AddStudentModal = ({
               {formData.studentType === "Day Scholar" && (
                 <>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Home Address*
                     </label>
                     <textarea
@@ -274,7 +274,7 @@ const AddStudentModal = ({
 
           {/* Medical Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               Medical Information
             </h3>
             <textarea
@@ -289,7 +289,7 @@ const AddStudentModal = ({
 
           {/* Guardian Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               Guardian Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

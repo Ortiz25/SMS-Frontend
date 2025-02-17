@@ -7,9 +7,12 @@ import {
   Edit,
   Trash2,
   MoreVertical,
-  Eye
+  Eye,
 } from "lucide-react";
-import EditTeacherModal , { ViewTeacherModal, DeleteConfirmationModal } from "./modals/teacherProfileModal";
+import EditTeacherModal, {
+  ViewTeacherModal,
+  DeleteConfirmationModal,
+} from "./modals/teacherProfileModal";
 
 const TeacherProfiles = ({ teachers }) => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
@@ -17,15 +20,12 @@ const TeacherProfiles = ({ teachers }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
-
-
   const handleSave = (updatedTeacher) => {
-    console.log('Saving updated teacher:', updatedTeacher);
+    console.log("Saving updated teacher:", updatedTeacher);
     // Add your save logic here
     setShowEditModal(false);
     setSelectedTeacher(null);
   };
-
 
   const handleEdit = (teacher) => {
     setSelectedTeacher(teacher);
@@ -200,19 +200,19 @@ const TeacherProfiles = ({ teachers }) => {
         </div>
       </div>
       {showDeleteModal && (
-    <DeleteConfirmationModal
-      isOpen={showDeleteModal}
-      teacher={selectedTeacher}
-      onClose={() => setShowDeleteModal(false)}
-      onConfirm={(teacherId) => {
-        console.log('Deleting teacher:', teacherId);
-        // Add your delete logic here
-        setShowDeleteModal(false);
-        setSelectedTeacher(null);
-      }}
-    />
-  )}
-  
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          teacher={selectedTeacher}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={(teacherId) => {
+            console.log("Deleting teacher:", teacherId);
+            // Add your delete logic here
+            setShowDeleteModal(false);
+            setSelectedTeacher(null);
+          }}
+        />
+      )}
+
       {/* Modals */}
       {showEditModal && (
         <EditTeacherModal
@@ -226,33 +226,33 @@ const TeacherProfiles = ({ teachers }) => {
         />
       )}
 
-  {showViewModal && (
-    <ViewTeacherModal
-      isOpen={showViewModal}
-      teacher={selectedTeacher}
-      onClose={() => {
-        setShowViewModal(false);
-        setSelectedTeacher(null);
-      }}
-    />
-  )}
+      {showViewModal && (
+        <ViewTeacherModal
+          isOpen={showViewModal}
+          teacher={selectedTeacher}
+          onClose={() => {
+            setShowViewModal(false);
+            setSelectedTeacher(null);
+          }}
+        />
+      )}
 
-  {showEditModal && (
-    <EditTeacherModal
-      isOpen={showEditModal}
-      teacher={selectedTeacher}
-      onClose={() => {
-        setShowEditModal(false);
-        setSelectedTeacher(null);
-      }}
-      onSave={(updatedTeacher) => {
-        console.log('Saving teacher:', updatedTeacher);
-        // Add your save logic here
-        setShowEditModal(false);
-        setSelectedTeacher(null);
-      }}
-    />
-  )}
+      {showEditModal && (
+        <EditTeacherModal
+          isOpen={showEditModal}
+          teacher={selectedTeacher}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTeacher(null);
+          }}
+          onSave={(updatedTeacher) => {
+            console.log("Saving teacher:", updatedTeacher);
+            // Add your save logic here
+            setShowEditModal(false);
+            setSelectedTeacher(null);
+          }}
+        />
+      )}
     </div>
   );
 };

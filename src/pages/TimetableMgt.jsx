@@ -44,9 +44,7 @@ const TimetableManagement = () => {
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedClass, setSelectedClass] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState(null);
-
+ 
   useEffect(() => {
     updateActiveModule("timetable");
   }, [activeModule]);

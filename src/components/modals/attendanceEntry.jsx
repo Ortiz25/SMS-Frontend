@@ -1,37 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { X, Calendar, Clock, Check, AlertCircle } from "lucide-react";
 
 const AttendanceEntryModal = ({ isOpen, onClose, onSave }) => {
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [attendance, setAttendance] = useState({});
   const [errors, setErrors] = useState({});
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+    }
+  }, [isOpen]);
 
   // Sample students - in real app, fetch based on selected class
   const students = [
-    { id: 1, name: 'John Doe', admissionNo: 'KPS2024001' },
-    { id: 2, name: 'Jane Smith', admissionNo: 'KPS2024002' },
-    { id: 3, name: 'Mike Johnson', admissionNo: 'KPS2024003' },
+    { id: 1, name: "John Doe", admissionNo: "KPS2024001" },
+    { id: 2, name: "Jane Smith", admissionNo: "KPS2024002" },
+    { id: 3, name: "Mike Johnson", admissionNo: "KPS2024003" },
   ];
 
-  const handleAttendanceChange = (studentId, status, reason = '') => {
-    setAttendance(prev => ({
+  const handleAttendanceChange = (studentId, status, reason = "") => {
+    setAttendance((prev) => ({
       ...prev,
-      [studentId]: { status, reason }
+      [studentId]: { status, reason },
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedClass || !selectedDate) {
-      setErrors({ form: 'Please fill in all required fields' });
+      setErrors({ form: "Please fill in all required fields" });
       return;
     }
 
     onSave({
       class: selectedClass,
       date: selectedDate,
-      attendance
+      attendance,
     });
     onClose();
   };
@@ -41,14 +48,23 @@ const AttendanceEntryModal = ({ isOpen, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="fixed inset-0 bg-black opacity-75" onClick={onClose} />
+        <div
+          className={`fixed inset-0 bg-black transition-opacity duration-300 ${
+            isAnimating ? "opacity-50" : "opacity-0"
+          }`}
+          onClick={onClose}
+        />
 
         <div className="relative bg-white rounded-lg w-full max-w-4xl">
           <form onSubmit={handleSubmit}>
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <h3 className="text-lg font-medium">Mark Attendance</h3>
-              <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500">
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-500"
+              >
                 <X className="h-6 w-6" />
               </button>
             </div>
@@ -82,7 +98,7 @@ const AttendanceEntryModal = ({ isOpen, onClose, onSave }) => {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
+                    max={new Date().toISOString().split("T")[0]}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -119,8 +135,10 @@ const AttendanceEntryModal = ({ isOpen, onClose, onSave }) => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <select
-                            value={attendance[student.id]?.status || 'present'}
-                            onChange={(e) => handleAttendanceChange(student.id, e.target.value)}
+                            value={attendance[student.id]?.status || "present"}
+                            onChange={(e) =>
+                              handleAttendanceChange(student.id, e.target.value)
+                            }
                             className="px-3 py-2 border rounded-lg"
                           >
                             <option value="present">Present</option>
@@ -129,16 +147,18 @@ const AttendanceEntryModal = ({ isOpen, onClose, onSave }) => {
                           </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {(attendance[student.id]?.status === 'absent' || 
-                            attendance[student.id]?.status === 'late') && (
+                          {(attendance[student.id]?.status === "absent" ||
+                            attendance[student.id]?.status === "late") && (
                             <input
                               type="text"
-                              value={attendance[student.id]?.reason || ''}
-                              onChange={(e) => handleAttendanceChange(
-                                student.id,
-                                attendance[student.id]?.status,
-                                e.target.value
-                              )}
+                              value={attendance[student.id]?.reason || ""}
+                              onChange={(e) =>
+                                handleAttendanceChange(
+                                  student.id,
+                                  attendance[student.id]?.status,
+                                  e.target.value
+                                )
+                              }
                               className="w-full px-3 py-2 border rounded-lg"
                               placeholder="Enter reason"
                             />

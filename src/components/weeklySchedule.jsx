@@ -4,6 +4,7 @@ import { generateFullSchedule, teachers } from "../store/scheduleData";
 import { useState } from "react";
 import { useEffect } from "react";
 import EditScheduleModal from "./modals/editSchedule";
+import DeleteConfirmationModal from "./modals/deleteSchedule";
 
 const WeeklySchedule = ({ teachers }) => {
   const [schedule, setSchedule] = useState({});
@@ -11,6 +12,7 @@ const WeeklySchedule = ({ teachers }) => {
   const [selectedClass, setSelectedClass] = useState("all");
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   //Add this handler function
   const handleEdit = (scheduleItem, day, time) => {
@@ -78,6 +80,41 @@ const WeeklySchedule = ({ teachers }) => {
     });
     setSchedule(initialSchedule);
   }, []);
+
+  const handleDeleteClick = (schedule) => {
+    setSelectedSchedule(schedule);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      // Add your API call here to delete from backend
+      // await deleteSchedule(selectedSchedule.id);
+
+      // Update local state
+      setSchedule((prevSchedules) =>
+        prevSchedules.filter((schedule) => schedule.id !== selectedSchedule.id)
+      );
+
+      // Show success notification
+      setNotification({
+        type: "success",
+        message: "Schedule deleted successfully",
+      });
+
+      // Close modal
+      setShowDeleteModal(false);
+      setSelectedSchedule(null);
+
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      setNotification({
+        type: "error",
+        message: "Error deleting schedule",
+      });
+    }
+  };
 
   // Helper function to generate classes for a time slot
   const generateClassesForTimeSlot = () => {
@@ -203,6 +240,20 @@ const WeeklySchedule = ({ teachers }) => {
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteClick({
+                                    id: `${day}-${time}`,
+                                    day,
+                                    time,
+                                    subject: cls.subject,
+                                    class: cls.class,
+                                  })
+                                }
+                                className="text-gray-400 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -215,15 +266,24 @@ const WeeklySchedule = ({ teachers }) => {
         </table>
       </div>
       <EditScheduleModal
-  isOpen={showEditModal}
-  onClose={() => {
-    setShowEditModal(false);
-    setSelectedSchedule(null);
-  }}
-  onSave={handleEditSave}
-  scheduleData={selectedSchedule}
-  teachers={teachers}
-/>
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedSchedule(null);
+        }}
+        onSave={handleEditSave}
+        scheduleData={selectedSchedule}
+        teachers={teachers}
+      />
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedSchedule(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        schedule={selectedSchedule}
+      />
 
       {/* Legend */}
       <div className="border-t pt-4">
