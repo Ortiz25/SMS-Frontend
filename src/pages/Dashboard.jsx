@@ -1,31 +1,18 @@
+
 import {
-  BarChart as RechartsBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  BarChart,
+
   Calendar,
   GraduationCap,
   Users,
   BookOpen,
-  CreditCard,
   BusIcon,
-  Building2,
   Bell,
-  BookMarked,
   Activity,
-  Box,
   UserPlus,
-  Heart,
-  Menu,
+  
   X,
   Clock,
-  LogOut,
+  
   TrendingUp,
   TrendingDown,
 } from "lucide-react";

@@ -70,7 +70,7 @@ const SettingsModule = () => {
     )}
 
     {/* Sidebar - Desktop */}
-    <div className="hidden lg:block w-64 bg-white border-r border-gray-200 pt-6">
+    <div className="hidden lg:block w-64 bg-white border-r border-gray-200 pt-2">
       <SidebarContent 
         activeSection={activeSection} 
         setActiveSection={setActiveSection} 
@@ -94,14 +94,14 @@ const SettingsModule = () => {
     {/* Main Content */}
     <div className="flex-1 px-4 py-6 lg:px-8">
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center mb-4">
+      <div className="lg:hidden flex items-center justify-between mb-4 border-b">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
           className="mr-4 p-2 text-gray-600 hover:bg-gray-100 rounded"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-6 w-6" 
+            className="h-9 w-9" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
@@ -114,7 +114,7 @@ const SettingsModule = () => {
             />
           </svg>
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Settings</h1>
+       
       </div>
 
       {/* Content Area */}
@@ -138,7 +138,7 @@ const SettingsModule = () => {
 
 const SidebarContent = ({ activeSection, setActiveSection, onItemClick }) => (
     <>
-  <div className="px-6 pb-6 border-b border-gray-300 bg-gray-50">
+  <div className="px-6 pb-6 border-b border-gray-300 ">
     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-4 mt-4">
       <NavLink to={"/"} className="text-gray-600 hover:text-gray-900">
         <ArrowLeftToLine className="w-6 h-6 border-2 border-gray-500 rounded-sm p-1" />

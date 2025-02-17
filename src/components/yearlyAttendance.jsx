@@ -59,6 +59,7 @@ const YearlyAttendanceChart = () => {
         students: Math.round(attendance),
         term: currentTerm,
         description: termConfigs[currentTerm].description,
+        fill: `url(#${termConfigs[currentTerm].gradientId})`, // Assign fill color here
       });
     }
     return data;
@@ -71,7 +72,9 @@ const YearlyAttendanceChart = () => {
       <div className="bg-white rounded-xl border border-gray-100 shadow-lg p-6">
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 justify-between items-start sm:items-center mb-8">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">School Attendance</h3>
+            <h3 className="text-xl font-bold text-gray-900">
+              School Attendance
+            </h3>
             <p className="text-sm text-gray-500 mt-1">
               Weekly attendance tracking
             </p>
@@ -83,7 +86,9 @@ const YearlyAttendanceChart = () => {
                   className="w-2.5 h-2.5 rounded-full mr-2"
                   style={{ backgroundColor: config.color }}
                 ></div>
-                <span className="text-xs font-medium text-gray-700">{term}</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {term}
+                </span>
                 <span className="text-xs text-gray-400 ml-1">
                   ({config.description})
                 </span>
@@ -107,8 +112,16 @@ const YearlyAttendanceChart = () => {
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="0%" stopColor={config.color} stopOpacity={0.8} />
-                    <stop offset="95%" stopColor={config.color} stopOpacity={0.1} />
+                    <stop
+                      offset="0%"
+                      stopColor={config.color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={config.color}
+                      stopOpacity={0.1}
+                    />
                   </linearGradient>
                 ))}
               </defs>
@@ -144,7 +157,9 @@ const YearlyAttendanceChart = () => {
                           {payload[0].value.toLocaleString()}
                         </p>
                         <div className="flex items-center mt-2 text-sm">
-                          <span className="font-medium text-gray-700">{term}</span>
+                          <span className="font-medium text-gray-700">
+                            {term}
+                          </span>
                           <span className="mx-2 text-gray-300">•</span>
                           <span className="text-gray-500">{description}</span>
                         </div>
@@ -168,9 +183,7 @@ const YearlyAttendanceChart = () => {
               <Bar
                 dataKey="students"
                 radius={[6, 6, 0, 0]}
-                {...{
-                  fill: (data) => `url(#${termConfigs[data.term].gradientId})`,
-                }}
+                fill={(entry) => entry.fill}
               />
             </BarChart>
           </ResponsiveContainer>
