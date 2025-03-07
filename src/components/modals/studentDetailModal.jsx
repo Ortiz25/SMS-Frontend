@@ -13,7 +13,7 @@ import AttendanceInfo from '../attendanceInfo';
 
 const ViewDetailsModal = ({ isOpen, student, onClose }) => {
   const [activeTab, setActiveTab] = useState('personal');
-
+  console.log(student)
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'academic', label: 'Academic', icon: GraduationCap },
@@ -46,11 +46,11 @@ const ViewDetailsModal = ({ isOpen, student, onClose }) => {
             <div className="flex items-center space-x-4">
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
                 <span className="text-lg font-medium text-blue-600">
-                  {student?.name?.charAt(0)}
+                  {student?.first_name?.charAt(0)}
                 </span>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{student?.name}</h2>
+                <h2 className="text-xl font-bold text-gray-900">{student?.first_name + " " + student?.last_name}</h2>
                 <p className="text-sm text-gray-500">{student?.admissionNo}</p>
               </div>
             </div>

@@ -20,126 +20,7 @@ import PayrollTable from "../components/payrollTable";
 import LeaveManagement from "../components/leaveMgt";
 import AddTeacherModal from "../components/modals/addTeacher";
 import { useStore } from "../store/store";
-
-const teachers = [
-  {
-    id: 1,
-    name: "John Doe",
-    photo: "/path/to/photo.jpg",
-    gender: "Male",
-    dateOfBirth: "1985-06-15",
-    position: "Senior Teacher",
-    department: "Mathematics",
-    employmentStatus: "Full Time",
-    email: "john.doe@school.com",
-    phone: "+254 712 345 678",
-    address: "Nairobi, Kenya",
-    subjects: ["Mathematics", "Physics"],
-    qualifications: ["B.Ed Mathematics", "M.Ed Education"],
-    yearsOfExperience: 10,
-    joinDate: "2020-01-15",
-    currentLoad: 24,
-    maxLoad: 30,
-    schedule: [
-      { day: "Monday", classes: ["Form 1A", "Form 2B", "Form 4A"] },
-      { day: "Tuesday", classes: ["Form 3A", "Form 4B", "Form 1B"] },
-    ],
-  },
-  {
-    id: 2,
-    name: "Sarah Wanjiru",
-    photo: "/path/to/photo.jpg",
-    gender: "Female",
-    dateOfBirth: "1990-09-25",
-    position: "Assistant Teacher",
-    department: "Languages",
-    employmentStatus: "Part Time",
-    email: "sarah.wanjiru@school.com",
-    phone: "+254 713 456 789",
-    address: "Mombasa, Kenya",
-    subjects: ["English", "Literature", "Kiswahili"],
-    qualifications: ["B.Ed English", "Diploma in Linguistics"],
-    yearsOfExperience: 5,
-    joinDate: "2022-03-10",
-    currentLoad: 28,
-    maxLoad: 30,
-    schedule: [
-      { day: "Monday", classes: ["Form 2A", "Form 3B", "Form 4C"] },
-      { day: "Wednesday", classes: ["Form 1C", "Form 2B", "Form 3A"] },
-    ],
-  },
-  {
-    id: 3,
-    name: "Michael Ochieng",
-    photo: "/path/to/photo.jpg",
-    gender: "Male",
-    dateOfBirth: "1980-12-10",
-    position: "Head of Science Department",
-    department: "Sciences",
-    employmentStatus: "Full Time",
-    email: "michael.ochieng@school.com",
-    phone: "+254 714 567 890",
-    address: "Kisumu, Kenya",
-    subjects: ["Biology", "Chemistry"],
-    qualifications: ["B.Sc Chemistry", "M.Sc Biochemistry"],
-    yearsOfExperience: 15,
-    joinDate: "2015-06-20",
-    currentLoad: 20,
-    maxLoad: 30,
-    schedule: [
-      { day: "Tuesday", classes: ["Form 3C", "Form 4A", "Form 2A"] },
-      { day: "Thursday", classes: ["Form 1B", "Form 2C", "Form 4B"] },
-    ],
-  },
-  {
-    id: 4,
-    name: "Grace Muthoni",
-    photo: "/path/to/photo.jpg",
-    gender: "Female",
-    dateOfBirth: "1992-03-05",
-    position: "Class Teacher",
-    department: "Humanities",
-    employmentStatus: "Full Time",
-    email: "grace.muthoni@school.com",
-    phone: "+254 715 678 901",
-    address: "Nakuru, Kenya",
-    subjects: ["History", "Geography", "CRE"],
-    qualifications: ["B.Ed Arts", "PGDE"],
-    yearsOfExperience: 7,
-    joinDate: "2018-09-12",
-    currentLoad: 26,
-    maxLoad: 30,
-    schedule: [
-      { day: "Monday", classes: ["Form 1A", "Form 3B", "Form 4C"] },
-      { day: "Friday", classes: ["Form 2C", "Form 3A", "Form 4B"] },
-    ],
-  },
-  {
-    id: 5,
-    name: "Paul Kamau",
-    photo: "/path/to/photo.jpg",
-    gender: "Male",
-    dateOfBirth: "1987-11-20",
-    position: "Sports Coordinator",
-    department: "Physical Education",
-    employmentStatus: "Full Time",
-    email: "paul.kamau@school.com",
-    phone: "+254 716 789 012",
-    address: "Thika, Kenya",
-    subjects: ["Physical Education", "Health Education"],
-    qualifications: ["B.Ed Physical Education"],
-    yearsOfExperience: 9,
-    joinDate: "2016-04-25",
-    currentLoad: 22,
-    maxLoad: 30,
-    schedule: [
-      { day: "Wednesday", classes: ["Form 2B", "Form 3A", "Form 4C"] },
-      { day: "Friday", classes: ["Form 1A", "Form 2C", "Form 3B"] },
-    ],
-  },
-];
-
-
+import { redirect, useLoaderData } from "react-router-dom";
 
 const TeacherManagement = () => {
   const { activeModule, updateActiveModule } = useStore();
@@ -147,16 +28,37 @@ const TeacherManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  
+  const [filteredData, setFilteredData] = useState([]);
+  const data = useLoaderData();
   useEffect(() => {
     updateActiveModule("teachers");
-  }, [activeModule]);
+    let filtered = [...data.teachers];
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      console.log("Search term:", term);
+
+      filtered = filtered?.filter(
+        (teacher) =>
+          teacher.name.toLowerCase().includes(term) ||
+          teacher.department.toLowerCase().includes(term)
+      );
+
+      console.log("Filtered results:", filtered);
+    }
+
+    setFilteredData(filtered);
+    // Calculate the slice of data to display based on pagination
+    // const start = (currentPage - 1) * itemsPerPage;
+    // const end = Math.min(start + itemsPerPage, filtered?.length);
+    // setDisplayedData(filtered?.slice(start, end));
+  }, [data, , searchTerm, searchTerm]);
 
   const handleAddTeacher = (teacherData) => {
     console.log("New teacher data:", teacherData);
     // Add your API call or data handling logic here
     setShowAddModal(false);
   };
+  
 
   const tabs = [
     { id: "profiles", label: "Teacher Profiles", icon: Users },
@@ -171,7 +73,7 @@ const TeacherManagement = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Teacher & Staff Management
+            Teacher Management
           </h1>
           <p className="text-gray-600">
             Manage teaching staff, workload, payroll, and leave requests
@@ -193,13 +95,13 @@ const TeacherManagement = () => {
                 />
                 <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
-              <button
+              {/* <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50"
               >
                 <Filter className="h-5 w-5" />
                 <span>Filters</span>
-              </button>
+              </button> */}
             </div>
 
             {/* Actions */}
@@ -267,8 +169,12 @@ const TeacherManagement = () => {
 
         {/* Content area - will be replaced with specific tab content */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          {activeTab === "profiles" && <TeacherProfiles teachers={teachers} />}
-          {activeTab === "workload" && <WorkloadSchedule teachers={teachers} />}
+          {activeTab === "profiles" && (
+            <TeacherProfiles teachers={filteredData} />
+          )}
+          {activeTab === "workload" && (
+            <WorkloadSchedule teachers={filteredData} />
+          )}
           {/* {activeTab === "payroll" && <PayrollTable />} */}
           {activeTab === "leave" && <LeaveManagement />}
         </div>
@@ -283,3 +189,66 @@ const TeacherManagement = () => {
 };
 
 export default TeacherManagement;
+
+export async function loader({ params, request }) {
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+
+  // If no token exists, redirect to login
+  if (!token) {
+    return redirect("/");
+  }
+
+  try {
+    // Determine if we're fetching all teachers or a specific teacher
+    const url = new URL(request.url);
+    const teacherId = params.teacherId;
+
+    // API endpoint
+    const apiUrl = `http://localhost:5000/api/teachers`;
+
+    // Fetch teachers or teacher details with authentication
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Log response status for debugging
+    console.log("Response Status:", response.status);
+
+    // Handle authentication failure
+    if (response.status === 401 || response.status === 403) {
+      // Clear stored credentials
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
+    // Parse the response data
+    const data = await response.json();
+
+    // Log API response for debugging
+    console.log("API Response:", data);
+
+    // Validate response
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to fetch teachers");
+    }
+
+    // Return data based on whether it's a list or single teacher
+    return teacherId
+      ? data.data // Single teacher details
+      : {
+          teachers: data.data,
+          count: data.count,
+        };
+  } catch (error) {
+    console.error("Error fetching teachers:", error);
+
+    // Return error information
+    return redirect("/");
+  }
+}

@@ -1,26 +1,65 @@
 import React, { useState } from "react";
 import { X, Upload } from "lucide-react";
-
+import axios from "axios";
 
 const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    personalInfo: {},
-    employmentInfo: {},
-    qualifications: {},
+    // Personal Information
+    first_name: "",
+    last_name: "",
+    id_number: "",
+    email: "",
+    phone_primary: "",
+    phone_secondary: "",
+
+    // Employment Details
+    staff_id: "", // Auto-generated
+    tsc_number: "",
+    joining_date: "",
+    employment_type: "",
+    department: "",
+
+    // New Fields
+    subject_specialization: [],
+    education: "",
+    certifications: "",
+    experience: "",
+    status: "active",
+    photo_url: "",
+
+    // Documents handling
+    documents: [],
   });
+
   const [files, setFiles] = useState([]);
 
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
-    setFiles([...files, ...newFiles]);
-    handleChange("documents", [...files, ...newFiles]);
+    const updatedFiles = [...files, ...newFiles];
+
+    setFiles(updatedFiles);
+
+    // Prepare documents with file details
+    const documentDetails = updatedFiles.map((file) => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      documents: documentDetails,
+    }));
   };
 
   const removeFile = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
-    handleChange("documents", updatedFiles);
+    setFormData((prev) => ({
+      ...prev,
+      documents: updatedFiles,
+    }));
   };
 
   const steps = [
@@ -48,14 +87,18 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
   ];
 
   const handleSubjectChange = (subject) => {
-    const currentSubjects = formData.subjects || [];
+    const currentSubjects = formData.subject_specialization || [];
     const updatedSubjects = currentSubjects.includes(subject)
       ? currentSubjects.filter((s) => s !== subject)
       : [...currentSubjects, subject];
-    handleChange("subjects", updatedSubjects);
+    handleChange("subject_specialization", updatedSubjects);
   };
+
   const handleChange = (field, value) => {
-    onChange({ ...formData, [field]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleNext = () => {
@@ -66,21 +109,50 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
-  };
 
+    const formDataUpload = new FormData();
+
+    // Append other form fields
+    Object.keys(formData).forEach((key) => {
+      if (key === "subject_specialization") {
+        formDataUpload.append(key, formData[key].join(","));
+      } else if (key === "documents") {
+        // Skip documents field, we'll handle files separately
+        return;
+      } else if (formData[key] !== null && formData[key] !== undefined) {
+        formDataUpload.append(key, formData[key]);
+      }
+    });
+
+    // Append files to 'documents' field
+    files.forEach((file) => {
+      formDataUpload.append("documents", file);
+    });
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post("http://localhost:5000/api/teachers", formDataUpload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      onSubmit(response.data);
+      onClose();
+    } catch (error) {
+      console.error("Error adding teacher:", error);
+      // Handle error (show error message, etc.)
+    }
+  };
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
-        <div
-          className="fixed inset-0 bg-black opacity-75"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black opacity-75" onClick={onClose} />
 
         <div className="relative bg-white rounded-lg max-w-2xl w-full">
           {/* Header */}
@@ -134,9 +206,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.firstName || ""}
+                        value={formData.first_name || ""}
                         onChange={(e) =>
-                          handleChange("firstName", e.target.value)
+                          handleChange("first_name", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -149,9 +221,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.lastName || ""}
+                        value={formData.last_name || ""}
                         onChange={(e) =>
-                          handleChange("lastName", e.target.value)
+                          handleChange("last_name", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -177,8 +249,10 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="tel"
-                        value={formData.phone || ""}
-                        onChange={(e) => handleChange("phone", e.target.value)}
+                        value={formData.phone_primary || ""}
+                        onChange={(e) =>
+                          handleChange("phone_primary", e.target.value)
+                        }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
@@ -190,9 +264,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.nationalId || ""}
+                        value={formData.id_number || ""}
                         onChange={(e) =>
-                          handleChange("nationalId", e.target.value)
+                          handleChange("id_number", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -205,9 +279,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="date"
-                        value={formData.dateOfBirth || ""}
+                        value={formData.date_of_birth || ""}
                         onChange={(e) =>
-                          handleChange("dateOfBirth", e.target.value)
+                          handleChange("date_of_birth", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -238,9 +312,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="date"
-                        value={formData.employmentDate || ""}
+                        value={formData.joining_date || ""}
                         onChange={(e) =>
-                          handleChange("employmentDate", e.target.value)
+                          handleChange("joining_date", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -296,9 +370,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.tscNumber || ""}
+                        value={formData.tsc_number || ""}
                         onChange={(e) =>
-                          handleChange("tscNumber", e.target.value)
+                          handleChange("tsc_number", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -311,9 +385,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                         Employment Type*
                       </label>
                       <select
-                        value={formData.employmentType || ""}
+                        value={formData.employment_type || ""}
                         onChange={(e) =>
-                          handleChange("employmentType", e.target.value)
+                          handleChange("employment_type", e.target.value)
                         }
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
@@ -326,7 +400,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                     </div>
 
                     {/* Salary Scale */}
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Salary Scale
                       </label>
@@ -339,7 +413,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         placeholder="e.g., T-Scale 10"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Teaching Subjects */}
@@ -355,9 +429,9 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                         >
                           <input
                             type="checkbox"
-                            checked={(formData.subjects || []).includes(
-                              subject
-                            )}
+                            checked={(
+                              formData.subject_specialization || []
+                            ).includes(subject)}
                             onChange={() => handleSubjectChange(subject)}
                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           />

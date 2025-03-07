@@ -1,12 +1,308 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, Clock, Plus, X, Users, BookOpen } from "lucide-react";
 
-const WorkloadSchedule = ({teachers}) => {
+const WorkloadSchedule = ({ teachers }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [rooms, setRooms] = useState([]);
 
- 
+  // New state for form data
+  const [classes, setClasses] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [currentSession, setCurrentSession] = useState(null);
+  const [formData, setFormData] = useState({
+    class_id: "",
+    subject_id: "",
+    day_of_week: "",
+    start_time: "",
+    end_time: "",
+    room_number: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [conflicts, setConflicts] = useState([]);
+
+  // Convert day name to day number
+  const dayToNumber = {
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+    Sunday: 7,
+  };
+
+  // Get time slots for dropdown
+  const timeSlots = [
+    { label: "8:00 AM - 9:00 AM", start: "08:00", end: "09:00" },
+    { label: "9:00 AM - 10:00 AM", start: "09:00", end: "10:00" },
+    { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
+    { label: "11:00 AM - 12:00 PM", start: "11:00", end: "12:00" },
+    { label: "12:00 PM - 1:00 PM", start: "12:00", end: "13:00" },
+    { label: "2:00 PM - 3:00 PM", start: "14:00", end: "15:00" },
+    { label: "3:00 PM - 4:00 PM", start: "15:00", end: "16:00" },
+  ];
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+
+  // Fetch rooms when component mounts
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/rooms", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch rooms");
+        const data = await response.json();
+        setRooms(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  // Fetch classes and current academic session when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current academic session
+        const sessionResponse = await fetch(
+          "http://localhost:5000/api/academic/current",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!sessionResponse.ok)
+          throw new Error("Failed to fetch current academic session");
+        const sessionData = await sessionResponse.json();
+        setCurrentSession(sessionData);
+
+        // Get classes for current session
+        const classesResponse = await fetch(
+          `http://localhost:5000/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!classesResponse.ok) throw new Error("Failed to fetch classes");
+        const classesData = await classesResponse.json();
+
+        setClasses(classesData);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fetch subjects when a teacher is selected
+  useEffect(() => {
+    if (selectedTeacher && selectedTeacher.subjects) {
+      const fetchSubjects = async () => {
+        try {
+          // Use the teacher_id to get subjects based on their specialization in the database
+          const response = await fetch(
+            `http://localhost:5000/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) throw new Error("Failed to fetch subjects");
+          const data = await response.json();
+          console.log(data);
+          setSubjects(data);
+        } catch (err) {
+          setError(err.message);
+        }
+      };
+
+      fetchSubjects();
+    }
+  }, [selectedTeacher]);
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+
+    // Clear conflicts when form inputs change
+    setConflicts([]);
+  };
+  // Handle time slot selection
+  const handleTimeSlotChange = (e) => {
+    const selectedSlot = timeSlots.find(
+      (slot) => `${slot.start}-${slot.end}` === e.target.value
+    );
+
+    if (selectedSlot) {
+      setFormData({
+        ...formData,
+        start_time: selectedSlot.start,
+        end_time: selectedSlot.end,
+      });
+    }
+  };
+
+  // Check for conflicts
+  const checkConflicts = async () => {
+    if (
+      !formData.class_id ||
+      !formData.day_of_week ||
+      !formData.start_time ||
+      !formData.end_time
+    ) {
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        "http://localhost:5000/api/timetable/check-conflicts",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            teacher_id: selectedTeacher.id,
+            class_id: formData.class_id,
+            day_of_week: dayToNumber[formData.day_of_week],
+            start_time: formData.start_time,
+            end_time: formData.end_time,
+            room_number: formData.room_number,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setConflicts(data.conflicts || []);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle assignment submission
+  const handleAssign = async () => {
+    // Validate form
+    if (
+      !formData.class_id ||
+      !formData.subject_id ||
+      !formData.day_of_week ||
+      !formData.start_time ||
+      !formData.end_time
+    ) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    // Check for conflicts first
+    const noConflicts = await checkConflicts();
+    if (!noConflicts) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // First, assign the teacher to the subject and class
+      const teacherSubjectResponse = await fetch(
+        "http://localhost:5000/api/subjects/teacher-subjects",
+        {
+          method: "POST",
+          headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            teacher_id: selectedTeacher.id,
+            subject_id: formData.subject_id,
+            class_id: formData.class_id,
+            academic_session_id: currentSession.id,
+          }),
+        }
+      );
+
+      if (!teacherSubjectResponse.ok) {
+        throw new Error("Failed to assign teacher to subject");
+      }
+
+      // Then, create the timetable entry
+      const timetableResponse = await fetch(
+        "http://localhost:5000/api/timetable/entry",
+        {
+          method: "POST",
+          headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            class_id: formData.class_id,
+            subject_id: formData.subject_id,
+            teacher_id: selectedTeacher.id,
+            day_of_week: dayToNumber[formData.day_of_week],
+            start_time: formData.start_time,
+            end_time: formData.end_time,
+            room_number: formData.room_number,
+            academic_session_id: currentSession.id,
+          }),
+        }
+      );
+
+      if (!timetableResponse.ok) {
+        throw new Error("Failed to create timetable entry");
+      }
+
+      // Close modal and reset form
+      setShowAssignModal(false);
+      setFormData({
+        class_id: "",
+        subject_id: "",
+        day_of_week: "",
+        start_time: "",
+        end_time: "",
+        room_number: "",
+      });
+
+      // Refresh teacher data - this would typically be handled by your app's state management
+      // For this example, we'll just show a success message
+      alert("Class successfully assigned to teacher");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -183,33 +479,47 @@ const WorkloadSchedule = ({teachers}) => {
               {/* Schedule Grid */}
               <div className="grid grid-cols-5 gap-4">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(
-                  (day) => (
-                    <div key={day} className="space-y-3">
-                      <div className="text-sm font-medium text-gray-900 bg-gray-100 p-2 rounded-t-lg">
-                        {day}
-                      </div>
-                      {selectedTeacher.schedule
-                        .find((s) => s.day === day)
-                        ?.classes.map((className, index) => (
-                          <div
-                            key={index}
-                            className="bg-blue-50 border border-blue-100 p-2 rounded-lg text-sm"
-                          >
-                            <div className="font-medium text-blue-700">
-                              {className}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {selectedTeacher.subjects[0]}{" "}
-                              {/* You might want to map this to specific classes */}
-                            </div>
-                          </div>
-                        )) || (
-                        <div className="text-sm text-gray-400 italic p-2">
-                          No classes
+                  (day) => {
+                    // Ensure `schedule` is always an array to prevent errors
+                    const schedule = selectedTeacher?.schedule ?? [];
+
+                    // Find the day's schedule or default to an empty object
+                    const daySchedule = schedule.find((s) => s.day === day) || {
+                      classes: [],
+                    };
+
+                    return (
+                      <div key={day} className="space-y-3">
+                        <div className="text-sm font-medium text-gray-900 bg-gray-100 p-2 rounded-t-lg">
+                          {day}
                         </div>
-                      )}
-                    </div>
-                  )
+
+                        {daySchedule.classes.length > 0 ? (
+                          daySchedule.classes.map((cls, index) => (
+                            <div
+                              key={index}
+                              className="bg-blue-50 border border-blue-100 p-2 rounded-lg text-sm"
+                            >
+                              <div className="font-medium text-blue-700">
+                                {cls.class || "No Class"} -{" "}
+                                {cls.subject || "No Subject"}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {cls.start_time || "--:--"} -{" "}
+                                {cls.end_time || "--:--"} | Room:{" "}
+                                {cls.room || "Not Assigned"}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          // Show this when no classes exist for the day
+                          <div className="text-sm text-gray-400 italic p-2">
+                            No scheduled classes
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
                 )}
               </div>
 
@@ -255,44 +565,88 @@ const WorkloadSchedule = ({teachers}) => {
         </div>
       )}
 
-      {/* Assign Class Modal */}
-      {showAssignModal && (
+      {/* Assign Class Modal - UPDATED */}
+      {showAssignModal && selectedTeacher && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
-          <div className="bg-black opacity-50 w-full h-full absolute z-40"></div>{" "}
+          <div className="bg-black opacity-50 w-full h-full absolute z-40"></div>
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto z-50">
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between border-b pb-3">
                 <h2 className="text-xl font-bold">Assign Classes</h2>
                 <button
-                  onClick={() => setShowAssignModal(false)}
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setFormData({
+                      class_id: "",
+                      subject_id: "",
+                      day_of_week: "",
+                      start_time: "",
+                      end_time: "",
+                      room_number: "",
+                    });
+                    setError(null);
+                    setConflicts([]);
+                  }}
                   className="text-gray-400 hover:text-gray-500"
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              {conflicts.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
+                  <p className="font-medium">Scheduling conflicts detected:</p>
+                  <ul className="list-disc pl-5 mt-2 text-sm">
+                    {conflicts.map((conflict, index) => (
+                      <li key={index}>{conflict.message}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Class
+                    Class <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option>Select class</option>
-                    <option>Form 1A</option>
-                    <option>Form 1B</option>
-                    <option>Form 2A</option>
-                    <option>Form 2B</option>
+                  <select
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    name="class_id"
+                    value={formData.class_id}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select class</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>
+                        {cls.level} {cls.stream} - {cls.curriculum_type}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject
+                    Subject <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option>Select subject</option>
-                    {selectedTeacher?.subjects.map((subject, index) => (
-                      <option key={index}>{subject}</option>
+                  <select
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    name="subject_id"
+                    value={formData.subject_id}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select subject</option>
+                    {subjects.map((subject) => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.name} ({subject.code})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -300,10 +654,16 @@ const WorkloadSchedule = ({teachers}) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Day
+                      Day <span className="text-red-500">*</span>
                     </label>
-                    <select className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                      <option>Select day</option>
+                    <select
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      name="day_of_week"
+                      value={formData.day_of_week}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select day</option>
                       <option>Monday</option>
                       <option>Tuesday</option>
                       <option>Wednesday</option>
@@ -313,37 +673,93 @@ const WorkloadSchedule = ({teachers}) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Time Slot
+                      Time Slot <span className="text-red-500">*</span>
                     </label>
-                    <select className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                      <option>Select time</option>
-                      <option>8:00 AM - 9:00 AM</option>
-                      <option>9:00 AM - 10:00 AM</option>
-                      <option>10:00 AM - 11:00 AM</option>
-                      <option>11:00 AM - 12:00 PM</option>
+                    <select
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      value={`${formData.start_time}-${formData.end_time}`}
+                      onChange={handleTimeSlotChange}
+                      required
+                    >
+                      <option value="">Select time</option>
+                      {timeSlots.map((slot, index) => (
+                        <option key={index} value={`${slot.start}-${slot.end}`}>
+                          {slot.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Room
+                  </label>
+                  <select
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                      conflicts.some((c) => c.type === "room_conflict")
+                        ? "border-red-500"
+                        : ""
+                    }`}
+                    name="room_number"
+                    value={formData.room_number}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select room</option>
+                    {rooms.map((room) => (
+                      <option key={room.id} value={room.room_number}>
+                        {room.room_number} - {room.name}
+                      </option>
+                    ))}
+                  </select>
+                  {conflicts.some((c) => c.type === "room_conflict") && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {
+                        conflicts.find((c) => c.type === "room_conflict")
+                          .message
+                      }
+                    </p>
+                  )}
+                </div>
                 {/* Current Schedule */}
                 <div className="mt-6">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">
                     Current Schedule
                   </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    {selectedTeacher?.schedule.map((day, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="font-medium">{day.day}</span>
-                        <div className="flex gap-2">
-                          {day.classes.map((cls, idx) => (
-                            <span key={idx} className="text-sm text-gray-600">
-                              {cls}
-                            </span>
-                          ))}
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 max-h-64 overflow-y-auto">
+                    {[
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                    ].map((day) => (
+                      <div key={day} className="space-y-3">
+                        <div className="text-sm font-medium text-gray-900 bg-gray-100 p-2 rounded-t-lg">
+                          {day}
                         </div>
+                        {selectedTeacher.schedule
+                          ?.find((s) => s.day === day)
+                          ?.classes.map((cls, index) => (
+                            <div
+                              key={index}
+                              className="bg-blue-50 border border-blue-100 p-2 rounded-lg text-sm"
+                            >
+                              <div className="font-medium text-blue-700">
+                                {cls.class_name || cls.class} -{" "}
+                                {cls.subject_name || cls.subject}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                {cls.start_time} - {cls.end_time} | Room:{" "}
+                                {cls.room || "Not Assigned"}
+                              </div>
+                            </div>
+                          )) || (
+                          <div className="text-sm text-gray-400 italic p-2">
+                            No classes
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -354,17 +770,42 @@ const WorkloadSchedule = ({teachers}) => {
                 <button
                   onClick={() => setShowAssignModal(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
+                  disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    // Handle assignment logic here
-                    setShowAssignModal(false);
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                  onClick={handleAssign}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
+                  disabled={loading}
                 >
-                  Assign Class
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "Assign Class"
+                  )}
                 </button>
               </div>
             </div>

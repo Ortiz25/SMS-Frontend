@@ -91,7 +91,7 @@ const ForgotPass = () => {
               </button>
               <Link
                 className="inline-block align-baseline font-bold text-md text-blue-500 hover:text-blue-800"
-                to="/login"
+                to="/"
               >
                 Sign in?
               </Link>

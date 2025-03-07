@@ -5,6 +5,7 @@ import InventoryList from "../components/inventoryList";
 import { useStore } from "../store/store";
 import Navbar from "../components/navbar";
 import { useEffect } from "react";
+import { redirect } from "react-router-dom";
 
 const InventoryManagement = () => {
   // State for active tab
@@ -77,3 +78,45 @@ const InventoryManagement = () => {
 };
 
 export default InventoryManagement;
+
+export async function loader({ params }) {
+  try {
+    // Get token from localStorage
+    const token = localStorage.getItem("token");
+
+    // If no token exists, redirect to login
+    if (!token) {
+      return redirect("/");
+    }
+
+    const tokenUrl = "http://localhost:5000/api/auth/verify-token";
+
+    const tokenResponse = await fetch(tokenUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    // If token is invalid or expired
+    if (!tokenResponse.ok || tokenData.error) {
+      // Clear invalid token
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
+    return null
+  } catch (error) {
+    console.error("Error loading timetable:", error);
+    return {
+      error: {
+        message: error.message,
+        status: error.status || 500,
+      },
+    };
+  }
+}

@@ -1,106 +1,156 @@
 import React from "react";
-import { MoreVertical, Check, X, Eye } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Clock } from "lucide-react";
 
 const LeaveRequestsTable = ({
+  requests,
+  loading,
   handleViewDetails,
   setShowApprovalModal,
   setSelectedLeave,
   setApprovalAction,
+  isAdmin
 }) => {
-  const requests = [
-    {
-      id: 1,
-      teacher: "John Doe",
-      type: "Annual Leave",
-      startDate: "2024-02-15",
-      endDate: "2024-02-20",
-      days: 5,
-      status: "pending",
-      reason: "Family vacation",
-    },
-    // Add more sample data
-  ];
+  // Status badge component
+  const StatusBadge = ({ status }) => {
+    switch (status) {
+      case "pending":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending
+          </span>
+        );
+      case "approved":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Approved
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <XCircle className="w-3 h-3 mr-1" />
+            Rejected
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-800",
-      approved: "bg-green-100 text-green-800",
-      rejected: "bg-red-100 text-red-800",
-    };
-
-    return (
-      <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}
-      >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
+  // Format date for display
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Teacher
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Leave Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Date Range
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Days
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {requests.map((request) => (
-              <tr key={request.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-sm font-medium text-blue-600">
-                        {request.teacher.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {request.teacher}
+    <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+      {loading ? (
+        <div className="p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading leave requests...</p>
+        </div>
+      ) : requests.length === 0 ? (
+        <div className="p-8 text-center">
+          <p className="text-gray-500">No leave requests found.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {isAdmin && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Teacher
+                  </th>
+                )}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Leave Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Duration
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Days
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Submitted
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {requests.map((request) => (
+                <tr key={request.id} className="hover:bg-gray-50">
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {!request.teacher_photo ? (
+                          <img
+                            className="h-8 w-8 rounded-full object-cover"
+                            src={request.teacher_photo}
+                            alt={request.teacher_name}
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span className="text-gray-500 text-sm">
+                              {request.teacher_name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">
+                            {request.teacher_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {request.teacher_staff_id}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {request.type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {request.startDate} to {request.endDate}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {request.days}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(request.status)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex items-center space-x-3">
+                    </td>
+                  )}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {request.leave_type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {formatDate(request.start_date)} - {formatDate(request.end_date)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {request.days_count}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={request.status} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-500">
+                      {formatDate(request.created_at)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleViewDetails(request)}
-                      className="text-gray-400 hover:text-blue-600"
+                      className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       <Eye className="h-4 w-4" />
                     </button>
-                    {request.status === "pending" && (
+                    
+                    {isAdmin && request.status === "pending" && (
                       <>
                         <button
                           onClick={() => {
@@ -108,9 +158,9 @@ const LeaveRequestsTable = ({
                             setApprovalAction("approve");
                             setShowApprovalModal(true);
                           }}
-                          className="text-gray-400 hover:text-green-600"
+                          className="text-green-600 hover:text-green-900 mr-3"
                         >
-                          <Check className="h-4 w-4" />
+                          <CheckCircle className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => {
@@ -118,39 +168,19 @@ const LeaveRequestsTable = ({
                             setApprovalAction("reject");
                             setShowApprovalModal(true);
                           }}
-                          className="text-gray-400 hover:text-red-600"
+                          className="text-red-600 hover:text-red-900"
                         >
-                          <X className="h-4 w-4" />
+                          <XCircle className="h-4 w-4" />
                         </button>
                       </>
                     )}
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="px-6 py-3 border-t">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-700">
-            Showing 1 to 10 of 20 requests
-          </span>
-          <div className="space-x-2">
-            <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
-              Next
-            </button>
-          </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
+      )}
     </div>
   );
 };

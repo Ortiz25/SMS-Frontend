@@ -1,163 +1,266 @@
-import React, { useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
-import AnnouncementFormModal from "./modals/announcementForm";
+// components/announcementSection.js
+import React, { useState, useEffect } from 'react';
+import { PlusCircle, Filter, ChevronDown, PenSquare, UserCheck, Users } from 'lucide-react';
+import { getAnnouncements, createAnnouncement, getClasses, getDepartments } from '../util/communicationServices';
+import { format } from 'date-fns';
 
 const AnnouncementSection = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [formData, setFormData] = useState({
+    message: '',
+    recipientType: 'all',
+    recipientGroupId: '',
+  });
+  const [classes, setClasses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [filter, setFilter] = useState('all');
 
-  // State for announcements
-  const [announcements, setAnnouncements] = useState([
-    {
-      id: 1,
-      title: "Annual Sports Day",
-      content: "Annual Sports Day will be held on March 15th, 2025.",
-      category: "Event",
-      priority: "High",
-      publishDate: "2025-02-04",
-      audience: ["Students", "Parents", "Teachers"],
-      status: "Published",
-    },
-  ]);
-
-  // UI states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [showAddModal, setShowAddModal] = useState(false);
-
-  // Handle create new
-  const handleCreateNew = () => {
-    setCurrentAnnouncement(null);
-    setShowModal(true);
-  };
-
-  // Handle edit
-  const handleEdit = (announcement) => {
-    setCurrentAnnouncement(announcement);
-    setShowModal(true);
-  };
-
-  // Handle save
-  const handleSave = (formData) => {
-    if (currentAnnouncement) {
-      // Update existing announcement
-      setAnnouncements(
-        announcements.map((announcement) =>
-          announcement.id === currentAnnouncement.id
-            ? { ...formData, id: currentAnnouncement.id }
-            : announcement
-        )
-      );
-    } else {
-      // Create new announcement
-      const newAnnouncement = {
-        ...formData,
-        id: Math.max(...announcements.map((a) => a.id), 0) + 1,
-      };
-      setAnnouncements([...announcements, newAnnouncement]);
+  // Fetch announcements
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const data = await getAnnouncements();
+      setAnnouncements(data);
+      setError(null);
+    } catch (error) {
+      setError('Failed to load announcements');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle delete
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this announcement?")) {
-      setAnnouncements(announcements.filter((a) => a.id !== id));
+  // Fetch recipient options (classes, departments)
+  const fetchRecipientOptions = async () => {
+    try {
+      const [classesData, departmentsData] = await Promise.all([
+        getClasses(),
+        getDepartments()
+      ]);
+      setClasses(classesData);
+      setDepartments(departmentsData);
+    } catch (error) {
+      console.error('Error fetching recipient options:', error);
     }
   };
+
+  useEffect(() => {
+    fetchAnnouncements();
+    fetchRecipientOptions();
+  }, []);
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createAnnouncement(formData);
+      // Clear form and hide it
+      setFormData({
+        message: '',
+        recipientType: 'all',
+        recipientGroupId: '',
+      });
+      setShowNewForm(false);
+      // Refresh announcements list
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      setError('Failed to create announcement');
+    }
+  };
+
+  // Filter announcements
+  const filteredAnnouncements = filter === 'all' 
+    ? announcements 
+    : announcements.filter(announcement => announcement.audience.toLowerCase().includes(filter.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex gap-4 justify-between">
-        <div className="flex gap-4 flex-1 max-w-2xl">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search announcements..."
-              className="pl-10 w-full rounded-md border border-gray-300 py-2 px-3"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      {/* Header with actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-xl font-semibold text-gray-800">Announcements</h2>
+        <div className="flex space-x-2">
+          <div className="relative">
+            <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </button>
+            {/* Filter dropdown would go here */}
           </div>
-          <select
-            className="rounded-md border border-gray-300 py-2 px-3"
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+          <button 
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
-            <option value="all">All Categories</option>
-            <option value="Event">Event</option>
-            <option value="Academic">Academic</option>
-            <option value="Administrative">Administrative</option>
-          </select>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            New Announcement
+          </button>
         </div>
-        <button
-          onClick={handleCreateNew}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          New Announcement
-        </button>
       </div>
 
-      {/* Announcements List */}
-      <div className="space-y-4">
-        {announcements.map((announcement) => (
-          <div
-            key={announcement.id}
-            className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
-          >
-            <div className="flex justify-between items-start">
+      {/* New Announcement Form */}
+      {showNewForm && (
+        <div className="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-medium mb-4">New Announcement</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {announcement.title}
-                </h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  {announcement.content}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {announcement.category}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      announcement.priority === "High"
-                        ? "bg-red-100 text-red-800"
-                        : announcement.priority === "Urgent"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {announcement.priority}
-                  </span>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Recipient
+                </label>
+                <select 
+                  name="recipientType"
+                  value={formData.recipientType}
+                  onChange={handleChange}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                >
+                  <option value="all">All Users</option>
+                  <option value="class">Specific Class</option>
+                  <option value="department">Specific Department</option>
+                </select>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(announcement)}
-                  className="p-2 hover:bg-gray-100 rounded-md"
+
+              {formData.recipientType === 'class' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Class
+                  </label>
+                  <select 
+                    name="recipientGroupId"
+                    value={formData.recipientGroupId}
+                    onChange={handleChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    <option value="">Select a class...</option>
+                    {classes.map(classItem => (
+                      <option key={classItem.id} value={classItem.id}>
+                        {classItem.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {formData.recipientType === 'department' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Department
+                  </label>
+                  <select 
+                    name="recipientGroupId"
+                    value={formData.recipientGroupId}
+                    onChange={handleChange}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    <option value="">Select a department...</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+                <textarea
+                  name="message"
+                  rows={4}
+                  value={formData.message}
+                  onChange={handleChange}
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Enter your announcement message..."
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowNewForm(false)}
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
-                  <Pencil className="w-4 h-4" />
+                  Cancel
                 </button>
-                <button
-                  onClick={() => handleDelete(announcement.id)}
-                  className="p-2 hover:bg-gray-100 rounded-md"
+                <button 
+                  type="submit"
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  Post Announcement
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          </form>
+        </div>
+      )}
 
-      {/* Announcement Form Modal */}
-      <AnnouncementFormModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={handleSave}
-        announcement={currentAnnouncement}
-      />
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        /* Announcements list */
+        <div className="space-y-4">
+          {filteredAnnouncements.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No announcements found
+            </div>
+          ) : (
+            filteredAnnouncements.map((announcement) => (
+              <div key={announcement.id} className="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-md font-medium text-gray-900">
+                      {announcement.sender_name}
+                    </h3>
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <span>
+                        {format(new Date(announcement.created_at), 'MMM d, yyyy • h:mm a')}
+                      </span>
+                      <span>•</span>
+                      <div className="flex items-center">
+                        <Users className="h-3 w-3 mr-1" />
+                        <span>{announcement.audience}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {announcement.status}
+                  </div>
+                </div>
+                <p className="text-gray-700 whitespace-pre-line">{announcement.message}</p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };

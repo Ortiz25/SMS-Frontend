@@ -7,9 +7,13 @@ import {
     X,
     AlertTriangle,
   } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { extractDate } from "../../util/helperFunctions";
 
   const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
+    
+    const token = localStorage.getItem('token');
+    console.log(teacher)
     const [formData, setFormData] = useState({
       name: teacher?.name || '',
       email: teacher?.email || '',
@@ -20,7 +24,36 @@ import { useState } from "react";
       subjects: teacher?.subjects || [],
       qualifications: teacher?.qualifications || []
     });
-    
+
+    const[subjects, updatedSubjects] = useState()
+
+    useEffect(() => {
+      const url = "http://localhost:5000/api/subjects/subjects"
+      const fetchData = async () => {
+        try {
+          const response = await fetch(url,{
+            method:"GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+          const result = await response.json();
+          console.log(result);
+        } catch (err) {
+          console.error(err.message);
+        } finally {
+          
+        }
+      };
+  
+      fetchData();
+    }, [subjects]); // Runs when `url` changes
+  
+   
     const handleChange = (field, value) => {
       setFormData(prev => ({
         ...prev,
@@ -280,7 +313,7 @@ export const DeleteConfirmationModal = ({ teacher, isOpen, onClose, onConfirm })
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Join Date</label>
-                  <p className="mt-1">{teacher?.joinDate}</p>
+                  <p className="mt-1">{extractDate(teacher?.joinDate) }</p>
                 </div>
               </div>
             </div>

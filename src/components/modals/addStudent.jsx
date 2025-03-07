@@ -1,78 +1,222 @@
-import React, { useState } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Loader, AlertCircle, Check } from "lucide-react";
 import AnimatedModal from "./animateModal";
+import axios from "axios";
 
-const AddStudentModal = ({
-  showAddModal,
-  setShowAddModal,
-  handleSubmit,
-  handleInputChange,
-  formData,
-}) => {
+const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    otherName: "",
+    admissionNo: "",
+    class: "",
+    stream: "",
+    dateOfBirth: "",
+    gender: "",
+    studentType: "",
+    address: "",
+    busRoute: "",
+    hostel: "",
+    medicalInfo: "",
+    guardianFirstName: "",
+    guardianLastName: "",
+    guardianPhone: "",
+    guardianEmail: "",
+    guardianRelation: "",
+    guardianAddress: "",
+  });
 
-  const allRoutes = [
-    {
-      id: 'route-1',
-      name: 'Route 1',
-      areas: 'Karen, Langata',
-      matches: ['karen', 'langata', 'lang\'ata'],
-      pickupPoints: ['Karen Shopping Center', 'Langata Mall', 'Galleria']
-    },
-    {
-      id: 'route-2',
-      name: 'Route 2',
-      areas: 'Westlands, Parklands',
-      matches: ['westlands', 'parklands'],
-      pickupPoints: ['Westlands Mall', 'Parklands Plaza', 'Sarit Center']
-    },
-    {
-      id: 'route-3',
-      name: 'Route 3',
-      areas: 'Kileleshwa, Lavington',
-      matches: ['kileleshwa', 'lavington'],
-      pickupPoints: ['Lavington Mall', 'Kileleshwa Ring Road', 'Valley Arcade']
-    },
-    {
-      id: 'route-4',
-      name: 'Route 4',
-      areas: 'South B, South C',
-      matches: ['south b', 'south c', 'southb', 'southc'],
-      pickupPoints: ['South B Shopping Center', 'Capital Center', 'City Stadium']
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [hostels, setHostels] = useState([]);
+  const [busRoutes, setBusRoutes] = useState([]);
+
+  // Fetch classes, hostels, and bus routes on component mount
+  useEffect(() => {
+    if (showAddModal) {
+      fetchClasses();
+      fetchHostels();
+      fetchBusRoutes();
     }
-  ];
-  
+  }, [showAddModal]);
+
+  const fetchClasses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/api/classes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log(response.data);
+
+      if (response.data.success) {
+        setClasses(response.data.data);
+        console.log(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    }
+  };
+
+  const fetchHostels = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:5000/api/hostels", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        setHostels(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching hostels:", error);
+    }
+  };
+
+  const fetchBusRoutes = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:5000/api/hostel-transport/routes",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setBusRoutes(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching bus routes:", error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:5000/api/students/add",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        // Clear form data
+        setFormData({
+          firstName: "",
+          lastName: "",
+          otherName: "",
+          admissionNo: "",
+          class: "",
+          stream: "",
+          dateOfBirth: "",
+          gender: "",
+          studentType: "",
+          address: "",
+          busRoute: "",
+          hostel: "",
+          medicalInfo: "",
+          guardianFirstName: "",
+          guardianLastName: "",
+          guardianPhone: "",
+          guardianEmail: "",
+          guardianRelation: "",
+          guardianAddress: "",
+        });
+
+        // Close modal and notify parent component
+        setShowAddModal(false);
+        if (onSuccess) {
+          onSuccess(response.data.data);
+        }
+      } else {
+        setError(response.data.error || "Failed to add student");
+      }
+    } catch (error) {
+      console.error("Error adding student:", error);
+      setError(
+        error.response?.data?.error ||
+          "Failed to add student. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /**
    * Function to determine available bus routes based on address
    * @param {string} address - The student's home address
    * @returns {Array} Array of matching bus routes
    */
   const getAvailableBusRoutes = (address) => {
-    // If no address provided, return empty array
-    if (!address) return [];
-    
+    if (!address || busRoutes.length === 0) return [];
+
+    // If we have fetched bus routes from API, use those
+    if (busRoutes.length > 0) {
+      return busRoutes;
+    }
+
+    // Fallback to the static routes if API fetch failed
+    const allRoutes = [
+      {
+        id: "route-1",
+        route_name: "Route 1",
+        areas: "Karen, Langata",
+        matches: ["karen", "langata", "lang'ata"],
+        pickupPoints: ["Karen Shopping Center", "Langata Mall", "Galleria"],
+      },
+      // Other routes...
+    ];
+
     // Convert address to lowercase for case-insensitive matching
     const lowerAddress = address.toLowerCase();
-    
+
     // Filter routes based on address matching
-    const matchingRoutes = allRoutes.filter(route => 
-      route.matches.some(area => lowerAddress.includes(area))
+    const matchingRoutes = allRoutes.filter((route) =>
+      route.matches.some((area) => lowerAddress.includes(area))
     );
-  
+
     // If no matches found, return all routes as options
     if (matchingRoutes.length === 0) {
-      console.log('No direct route matches found for address:', address);
       return allRoutes;
     }
-  
-    console.log(`Found ${matchingRoutes.length} matching routes for address:`, address);
+
     return matchingRoutes;
   };
+
+  console.log(classes);
+
   return (
     <AnimatedModal isOpen={showAddModal}>
       <form onSubmit={handleSubmit} className="">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b pb-3">
-            <h2 className="text-xl font-extrabold text-gray-900">Add New Student</h2>
+            <h2 className="text-xl font-extrabold text-gray-900">
+              Add New Student
+            </h2>
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
@@ -82,6 +226,14 @@ const AddStudentModal = ({
             </button>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          )}
+
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -90,15 +242,44 @@ const AddStudentModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name*
+                  First Name*
                 </label>
                 <input
                   type="text"
-                  name="fullName"
-                  value={formData.fullName}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Last Name*
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Other Name*
+                </label>
+                <input
+                  type="text"
+                  name="otherName"
+                  value={formData.otherName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -112,6 +293,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -124,12 +306,14 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select class</option>
-                  <option value="Form 1">Form 1</option>
-                  <option value="Form 2">Form 2</option>
-                  <option value="Form 3">Form 3</option>
-                  <option value="Form 4">Form 4</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -141,11 +325,16 @@ const AddStudentModal = ({
                   value={formData.stream}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 >
                   <option value="">Select stream</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
+                  {formData.class ? (
+                    <>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </>
+                  ) : null}
                 </select>
               </div>
               <div>
@@ -159,6 +348,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -171,6 +361,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
@@ -196,6 +387,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select student type</option>
                   <option value="Day Scholar">Day Scholar</option>
@@ -218,6 +410,7 @@ const AddStudentModal = ({
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter physical address"
                       required
+                      disabled={loading}
                     ></textarea>
                     <p className="mt-1 text-sm text-gray-500">
                       This will help determine available bus routes
@@ -233,11 +426,12 @@ const AddStudentModal = ({
                         value={formData.busRoute}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        disabled={loading}
                       >
                         <option value="">Select bus route</option>
-                        {getAvailableBusRoutes(formData.address).map((route) => (
+                        {busRoutes.map((route) => (
                           <option key={route.id} value={route.id}>
-                            {route.name} - {route.areas}
+                            {route.route_name} - {route.description}
                           </option>
                         ))}
                         <option value="None">No Bus Required</option>
@@ -261,11 +455,14 @@ const AddStudentModal = ({
                     value={formData.hostel}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loading}
                   >
                     <option value="">Select hostel</option>
-                    <option value="Block A">Block A</option>
-                    <option value="Block B">Block B</option>
-                    <option value="Block C">Block C</option>
+                    {hostels.map((hostel) => (
+                      <option key={hostel.id} value={hostel.name}>
+                        {hostel.name} ({hostel.occupied}/{hostel.capacity})
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -284,6 +481,7 @@ const AddStudentModal = ({
               rows="3"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter any medical conditions, allergies, or special needs"
+              disabled={loading}
             ></textarea>
           </div>
 
@@ -295,15 +493,30 @@ const AddStudentModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Guardian Name*
+                  Guardian First Name*
                 </label>
                 <input
                   type="text"
-                  name="guardianName"
-                  value={formData.guardianName}
+                  name="guardianFirstName"
+                  value={formData.guardianFirstName}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Guardian Last Name*
+                </label>
+                <input
+                  type="text"
+                  name="guardianLastName"
+                  value={formData.guardianLastName}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -317,6 +530,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -329,8 +543,27 @@ const AddStudentModal = ({
                   value={formData.guardianEmail}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 />
               </div>
+              <div className="col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Guardian Address*
+                    </label>
+                    <textarea
+                      name="guardianAddress"
+                      value={formData.guardianAddress}
+                      onChange={handleInputChange}
+                      rows="2"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter physical address"
+                      required
+                      disabled={loading}
+                    ></textarea>
+                    <p className="mt-1 text-sm text-gray-500">
+                      This will help determine available bus routes
+                    </p>
+                  </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Relationship*
@@ -341,6 +574,7 @@ const AddStudentModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select relationship</option>
                   <option value="Parent">Parent</option>
@@ -351,19 +585,6 @@ const AddStudentModal = ({
               </div>
             </div>
           </div>
-
-          {/* Address Information */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Address</h3>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              rows="2"
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter physical address"
-            ></textarea>
-          </div>
         </div>
 
         {/* Form Actions */}
@@ -372,14 +593,26 @@ const AddStudentModal = ({
             type="button"
             onClick={() => setShowAddModal(false)}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
+            disabled={loading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
+            disabled={loading}
           >
-            Save Student
+            {loading ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Save Student
+              </>
+            )}
           </button>
         </div>
       </form>

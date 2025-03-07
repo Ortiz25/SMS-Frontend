@@ -3,7 +3,7 @@ import { X, Clock, Download, MessageCircle, CheckCircle, XCircle } from 'lucide-
 
 const ViewLeaveDetailsModal = ({ isOpen, onClose, leaveRequest }) => {
   if (!isOpen || !leaveRequest) return null;
-
+   console.log(leaveRequest)
   const getStatusStyles = (status) => {
     const styles = {
       approved: {
@@ -27,6 +27,11 @@ const ViewLeaveDetailsModal = ({ isOpen, onClose, leaveRequest }) => {
     };
     return styles[status] || styles.pending;
   };
+
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  }
 
   const statusStyle = getStatusStyles(leaveRequest.status);
 
@@ -66,19 +71,19 @@ const ViewLeaveDetailsModal = ({ isOpen, onClose, leaveRequest }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Type</label>
-                  <p className="mt-1 text-sm">{leaveRequest.type}</p>
+                  <p className="mt-1 text-sm">{leaveRequest.leave_type}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Duration</label>
-                  <p className="mt-1 text-sm">{leaveRequest.days} days</p>
+                  <p className="mt-1 text-sm">{leaveRequest.days_count} days</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">From</label>
-                  <p className="mt-1 text-sm">{leaveRequest.startDate}</p>
+                  <p className="mt-1 text-sm">{formatDate(leaveRequest.start_date) }</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">To</label>
-                  <p className="mt-1 text-sm">{leaveRequest.endDate}</p>
+                  <p className="mt-1 text-sm">{formatDate(leaveRequest.end_date) }</p>
                 </div>
               </div>
 

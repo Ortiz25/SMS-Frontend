@@ -1,20 +1,30 @@
-import React from "react";
-import { Clock, Edit, Trash2 } from "lucide-react";
-import { generateFullSchedule, teachers } from "../store/scheduleData";
-import { useState } from "react";
-import { useEffect } from "react";
+import React, { useState } from "react";
+import { Edit, Trash2 } from "lucide-react";
 import EditScheduleModal from "./modals/editSchedule";
 import DeleteConfirmationModal from "./modals/deleteSchedule";
+import { redirect } from "react-router-dom";
 
-const WeeklySchedule = ({ teachers }) => {
-  const [schedule, setSchedule] = useState({});
-  const [selectedTeacher, setSelectedTeacher] = useState("all");
-  const [selectedClass, setSelectedClass] = useState("all");
+const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selectedRoom }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [notification, setNotification] = useState(null);
 
-  //Add this handler function
+  // Define time slots and days
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const timeSlots = [
+    "8:00 AM",
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+  ];
+
+  // Handler for edit button click
   const handleEdit = (scheduleItem, day, time) => {
     setSelectedSchedule({
       ...scheduleItem,
@@ -24,77 +34,74 @@ const WeeklySchedule = ({ teachers }) => {
     setShowEditModal(true);
   };
 
-  //Add this save handler
-  const handleEditSave = (editedData) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [editedData.day]: prev[editedData.day].map((timeSlot) => {
-        if (timeSlot.time === editedData.time) {
-          return {
-            ...timeSlot,
-            classes: timeSlot.classes.map((cls) => {
-              if (
-                cls.class === editedData.originalData.class &&
-                cls.teacher === editedData.originalData.teacher
-              ) {
-                const teacherData = teachers.find(
-                  (t) => t.name === editedData.teacher
-                );
-                return {
-                  ...cls,
-                  subject: editedData.subject,
-                  teacher: editedData.teacher,
-                  room: editedData.room,
-                  color: teacherData.color,
-                };
-              }
-              return cls;
-            }),
-          };
-        }
-        return timeSlot;
-      }),
-    }));
+  // Handler for saving edited schedule
+  const handleEditSave = async (editedData) => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      // API call to update the schedule
+      const response = await fetch(`http://localhost:5000/api/timetable/${editedData.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          subject_id: editedData.subjectId,
+          teacher_id: editedData.teacherId,
+          start_time: editedData.startTime,
+          end_time: editedData.endTime,
+          room_number: editedData.room,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update schedule");
+      }
+
+      // Show success notification
+      setNotification({
+        type: "success",
+        message: "Schedule updated successfully",
+      });
+
+      // Close modal
+      setShowEditModal(false);
+      setSelectedSchedule(null);
+
+      // Reload the page to refresh data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      setNotification({
+        type: "error",
+        message: "Error updating schedule",
+      });
+    }
   };
 
-  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const timeSlots = [
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-  ];
-
-  // Generate initial schedule data
-  useEffect(() => {
-    const initialSchedule = {};
-    weekDays.forEach((day) => {
-      initialSchedule[day] = timeSlots.map((time) => ({
-        time,
-        classes: generateClassesForTimeSlot(),
-      }));
-    });
-    setSchedule(initialSchedule);
-  }, []);
-
+  // Handler for delete button click
   const handleDeleteClick = (schedule) => {
     setSelectedSchedule(schedule);
     setShowDeleteModal(true);
   };
 
+  // Handler for confirming deletion
   const handleConfirmDelete = async () => {
     try {
-      // Add your API call here to delete from backend
-      // await deleteSchedule(selectedSchedule.id);
+      const token = localStorage.getItem("token");
+      
+      // API call to delete the schedule
+      const response = await fetch(`http://localhost:5000/api/timetable/${selectedSchedule.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      // Update local state
-      setSchedule((prevSchedules) =>
-        prevSchedules.filter((schedule) => schedule.id !== selectedSchedule.id)
-      );
+      if (!response.ok) {
+        throw new Error("Failed to delete schedule");
+      }
 
       // Show success notification
       setNotification({
@@ -106,9 +113,10 @@ const WeeklySchedule = ({ teachers }) => {
       setShowDeleteModal(false);
       setSelectedSchedule(null);
 
-      // Clear notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000);
+      // Reload the page to refresh data
+        redirect("/timetable")
     } catch (error) {
+      console.error("Error deleting schedule:", error);
       setNotification({
         type: "error",
         message: "Error deleting schedule",
@@ -116,71 +124,169 @@ const WeeklySchedule = ({ teachers }) => {
     }
   };
 
-  // Helper function to generate classes for a time slot
-  const generateClassesForTimeSlot = () => {
-    const possibleClasses = ["Form 1", "Form 2", "Form 3", "Form 4"];
-    const classAssignments = [];
-
-    possibleClasses.forEach((classGroup) => {
-      // 70% chance of having a class in this slot
-      if (Math.random() < 0.7) {
-        const teacher = teachers[Math.floor(Math.random() * teachers.length)];
-        const subject =
-          teacher.subjects[Math.floor(Math.random() * teacher.subjects.length)];
-
-        classAssignments.push({
-          class: classGroup,
-          subject,
-          teacher: teacher.name,
-          room: `Room ${101 + Math.floor(Math.random() * 4)}`,
-          color: teacher.color,
-        });
-      }
-    });
-
-    return classAssignments;
+  // Helper function to generate teacher color based on teacher ID
+  const generateTeacherColor = (teacherId) => {
+    const colors = [
+      'bg-blue-50 border-blue-100 text-blue-700',
+      'bg-green-50 border-green-100 text-green-700',
+      'bg-purple-50 border-purple-100 text-purple-700',
+      'bg-red-50 border-red-100 text-red-700',
+      'bg-yellow-50 border-yellow-100 text-yellow-700',
+      'bg-indigo-50 border-indigo-100 text-indigo-700',
+      'bg-pink-50 border-pink-100 text-pink-700',
+      'bg-teal-50 border-teal-100 text-teal-700'
+    ];
+    return colors[teacherId % colors.length];
   };
 
-  const filterSchedule = (classes = []) => {
-    if (selectedTeacher === "all" && selectedClass === "all") return classes;
+  // Function to get schedule data for a specific day, time slot and filter type
+  const getScheduleForTimeSlot = (day, timeSlot) => {
+    if (!timetableData) return [];
 
-    return classes.filter((cls) => {
-      const teacherMatch =
-        selectedTeacher === "all" || cls.teacher === selectedTeacher;
-      const classMatch = selectedClass === "all" || cls.class === selectedClass;
-      return teacherMatch && classMatch;
-    });
+    let scheduleItems = [];
+    
+    // Get the day details based on filter type
+    if (selectedTeacher !== "all" && timetableData.teachers?.length > 0) {
+      // Teacher filter
+      const teacher = timetableData.teachers.find(t => t.id.toString() === selectedTeacher);
+      if (teacher) {
+        const daySchedule = teacher.weekly_schedule.find(d => d.day === day);
+        if (daySchedule) {
+          scheduleItems = daySchedule.classes.filter(c => {
+            // Check if this class is within the current time slot
+            return isWithinTimeSlot(c.start_time, c.end_time, timeSlot);
+          }).map(c => ({
+            id: c.timetable_id,
+            class: c.class_name,
+            subject: c.subject_name,
+            room: c.room,
+            startTime: c.start_time,
+            endTime: c.end_time,
+            teacherId: teacher.id,
+            teacherName: teacher.name,
+            color: generateTeacherColor(teacher.id)
+          }));
+        }
+      }
+    } else if (selectedClass !== "all" && timetableData.classes?.length > 0) {
+      // Class filter
+      const classObj = timetableData.classes.find(c => c.id.toString() === selectedClass);
+      if (classObj) {
+        const daySchedule = classObj.weekly_schedule.find(d => d.day === day);
+        if (daySchedule) {
+          scheduleItems = daySchedule.classes.filter(c => {
+            return isWithinTimeSlot(c.start_time, c.end_time, timeSlot);
+          }).map(c => ({
+            id: c.timetable_id,
+            class: classObj.name,
+            subject: c.subject_name,
+            room: c.room,
+            startTime: c.start_time,
+            endTime: c.end_time,
+            teacherId: c.teacher_id,
+            teacherName: c.teacher_name,
+            color: generateTeacherColor(c.teacher_id)
+          }));
+        }
+      }
+    } else if (selectedRoom !== "all" && timetableData.rooms?.length > 0) {
+      // Room filter
+      const room = timetableData.rooms.find(r => r.name === selectedRoom);
+      if (room) {
+        const daySchedule = room.weekly_schedule.find(d => d.day === day);
+        if (daySchedule) {
+          scheduleItems = daySchedule.classes.filter(c => {
+            return isWithinTimeSlot(c.start_time, c.end_time, timeSlot);
+          }).map(c => ({
+            id: c.timetable_id,
+            class: c.class_name,
+            subject: c.subject_name,
+            room: room.name,
+            startTime: c.start_time,
+            endTime: c.end_time,
+            teacherId: c.teacher_id,
+            teacherName: c.teacher_name,
+            color: generateTeacherColor(c.teacher_id)
+          }));
+        }
+      }
+    } else {
+      // No specific filter, try to show all schedules
+      // This is more complex as we need to combine data from different sources
+      // Let's handle teachers for simplicity in this example
+      if (timetableData.teachers) {
+        timetableData.teachers.forEach(teacher => {
+          const daySchedule = teacher.weekly_schedule.find(d => d.day === day);
+          if (daySchedule) {
+            const teacherClasses = daySchedule.classes.filter(c => {
+              return isWithinTimeSlot(c.start_time, c.end_time, timeSlot);
+            }).map(c => ({
+              id: c.timetable_id,
+              class: c.class_name,
+              subject: c.subject_name,
+              room: c.room,
+              startTime: c.start_time,
+              endTime: c.end_time,
+              teacherId: teacher.id,
+              teacherName: teacher.name,
+              color: generateTeacherColor(teacher.id)
+            }));
+            
+            scheduleItems = [...scheduleItems, ...teacherClasses];
+          }
+        });
+      }
+    }
+    
+    return scheduleItems;
+  };
+
+  // Helper to check if a class is within a time slot
+  const isWithinTimeSlot = (classStart, classEnd, timeSlotLabel) => {
+    // Extract hour from the timeSlot label (e.g., "8:00 AM" -> 8)
+    const timeSlotHour = parseInt(timeSlotLabel.split(':')[0]);
+    const isPM = timeSlotLabel.includes('PM') && timeSlotHour !== 12;
+    const timeSlotHour24 = isPM ? timeSlotHour + 12 : timeSlotHour;
+    
+    // Convert to minutes for comparison
+    const timeSlotStartMinutes = timeSlotHour24 * 60;
+    const timeSlotEndMinutes = timeSlotStartMinutes + 60; // Assume 1-hour slots
+    
+    // Parse class start/end times (assumed to be in 24-hour format like "08:00")
+    const [classStartHour, classStartMin] = classStart.split(':').map(Number);
+    const [classEndHour, classEndMin] = classEnd.split(':').map(Number);
+    
+    const classStartMinutes = classStartHour * 60 + classStartMin;
+    const classEndMinutes = classEndHour * 60 + classEndMin;
+    
+    // Check for overlap
+    return (
+      (classStartMinutes < timeSlotEndMinutes) && 
+      (classEndMinutes > timeSlotStartMinutes)
+    );
+  };
+
+  // Get all teachers for the legend
+  const getAllTeachers = () => {
+    if (!timetableData || !timetableData.teachers) return [];
+    
+    return timetableData.teachers.map(teacher => ({
+      id: teacher.id,
+      name: teacher.name,
+      color: generateTeacherColor(teacher.id)
+    }));
   };
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex space-x-4 mb-4">
-        <select
-          value={selectedTeacher}
-          onChange={(e) => setSelectedTeacher(e.target.value)}
-          className="px-3 py-2 border rounded-lg"
-        >
-          <option value="all">All Teachers</option>
-          {teachers.map((teacher) => (
-            <option key={teacher.id} value={teacher.name}>
-              {teacher.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          className="px-3 py-2 border rounded-lg"
-        >
-          <option value="all">All Classes</option>
-          <option value="Form 1">Form 1</option>
-          <option value="Form 2">Form 2</option>
-          <option value="Form 3">Form 3</option>
-          <option value="Form 4">Form 4</option>
-        </select>
-      </div>
+      {/* Notification */}
+      {notification && (
+        <div className={`p-4 rounded-lg mb-4 ${
+          notification.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+        }`}>
+          {notification.message}
+        </div>
+      )}
 
       {/* Timetable */}
       <div className="overflow-x-auto">
@@ -212,51 +318,38 @@ const WeeklySchedule = ({ teachers }) => {
                     className="px-6 py-4 whitespace-nowrap"
                   >
                     <div className="space-y-2">
-                      {schedule[day]?.find((slot) => slot.time === time)
-                        ?.classes &&
-                        filterSchedule(
-                          schedule[day].find((slot) => slot.time === time)
-                            .classes
-                        ).map((cls, index) => (
-                          <div
-                            key={index}
-                            className={`rounded-lg p-2 border ${
-                              cls.color || "bg-gray-50 border-gray-100"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm font-medium">{`${cls.class} - ${cls.subject}`}</p>
-                                <p className="text-xs text-gray-500">
-                                  {cls.teacher}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {cls.room}
-                                </p>
-                              </div>
+                      {getScheduleForTimeSlot(day, time).map((scheduleItem, index) => (
+                        <div
+                          key={index}
+                          className={`rounded-lg p-2 border ${scheduleItem.color || "bg-gray-50 border-gray-100"}`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-sm font-medium">{`${scheduleItem.class} - ${scheduleItem.subject}`}</p>
+                              <p className="text-xs text-gray-500">
+                                {scheduleItem.teacherName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {scheduleItem.room}
+                              </p>
+                            </div>
+                            <div className="flex space-x-1">
                               <button
-                                onClick={() => handleEdit(cls, day, time)}
+                                onClick={() => handleEdit(scheduleItem, day, time)}
                                 className="text-gray-400 hover:text-blue-600"
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() =>
-                                  handleDeleteClick({
-                                    id: `${day}-${time}`,
-                                    day,
-                                    time,
-                                    subject: cls.subject,
-                                    class: cls.class,
-                                  })
-                                }
+                                onClick={() => handleDeleteClick(scheduleItem)}
                                 className="text-gray-400 hover:text-red-600"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
-                        ))}
+                        </div>
+                      ))}
                     </div>
                   </td>
                 ))}
@@ -265,6 +358,8 @@ const WeeklySchedule = ({ teachers }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
       <EditScheduleModal
         isOpen={showEditModal}
         onClose={() => {
@@ -273,8 +368,10 @@ const WeeklySchedule = ({ teachers }) => {
         }}
         onSave={handleEditSave}
         scheduleData={selectedSchedule}
-        teachers={teachers}
+        teachers={getAllTeachers()}
       />
+
+      {/* Delete Modal */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => {
@@ -289,9 +386,9 @@ const WeeklySchedule = ({ teachers }) => {
       <div className="border-t pt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Teachers</h4>
         <div className="flex flex-wrap gap-4">
-          {teachers.map((teacher) => (
+          {getAllTeachers().map((teacher) => (
             <div key={teacher.id} className="flex items-center space-x-2">
-              <div className={`w-4 h-4 rounded ${teacher.color}`}></div>
+              <div className={`w-4 h-4 rounded ${teacher.color.split(' ')[0]}`}></div>
               <span className="text-sm text-gray-600">{teacher.name}</span>
             </div>
           ))}

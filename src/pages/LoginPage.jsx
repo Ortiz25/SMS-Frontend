@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Shield, Eye, EyeOff, Loader, Mail, Building2} from "lucide-react";
+import { Shield, Eye, EyeOff, Loader, Mail, Building2 } from "lucide-react";
 import {
   Form,
   Link,
   redirect,
   useActionData,
   useNavigate,
-  useNavigation
+  useNavigation,
 } from "react-router-dom";
-
 
 const LoginPage = () => {
   const [showPassword, updateShowPassword] = useState(false);
@@ -58,10 +57,10 @@ const LoginPage = () => {
               </label>
               <input
                 className="shadow appearance-none border-2 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:border-blue-400 focus:outline-none focus:shadow-outline"
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Enter your username"
                 required
               />
             </div>
@@ -133,74 +132,129 @@ const LoginPage = () => {
 
 export default LoginPage;
 
-// export async function action({ request, params }) {
-//   const data = await request.formData();
-//   const errors = {};
-//   const loginData = {
-//     email: data.get("email"),
-//     password: data.get("password").trim(),
-//   };
+export async function action({ request, params }) {
+  const data = await request.formData();
+  const errors = {};
+  // Get form data
+  const loginData = {
+    username: data.get("username"),
+    password: data.get("password").trim(),
+  };
+  // Validate input (optional)
+  if (!loginData.username) {
+    errors.username = "Username is required";
+    return errors;
+  }
+  if (!loginData.password) {
+    errors.password = "Password is required";
+    return errors;
+  }
+  try {
+    // Set correct API endpoint for our backend
+    let loginUrl = "http://localhost:5000/api/auth/login";
+    const loginResponse = await fetch(loginUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(loginData),
+    });
+    const loginResult = await loginResponse.json(); // Changed variable name here
+    
+    // Handle successful login
+    if (loginResponse.ok) {
+      // Store token
+      localStorage.setItem("token", loginResult.token); // Using the renamed variable
+      
+      // Fetch user profile with the token
+      try {
+        const profileUrl = "http://localhost:5000/api/auth/user-profile";
+        const profileResponse = await fetch(profileUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${loginResult.token}` // Using the renamed variable
+          }
+        });
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          console.log(profileData)
+          // Store complete user info with profile data
+          localStorage.setItem("user", JSON.stringify(profileData.user));
+        } else {
+          // If profile fetch fails, store basic user info
+          localStorage.setItem("user", JSON.stringify(loginResult.user)); // Using the renamed variable
+        }
+      } catch (profileError) {
+        console.error("Error fetching user profile:", profileError);
+        // Fall back to basic user data if profile fetch fails
+        localStorage.setItem("user", JSON.stringify(loginResult.user)); // Using the renamed variable
+      }
+      
+      // Return success and redirect
+      return redirect("/dashboard");
+    }
+    
+    // Handle specific error responses
+    if (loginResponse.status === 404) {
+      errors.message = loginResult.error || "User not found"; // Using the renamed variable
+      return errors;
+    }
+    if (loginResponse.status === 401) {
+      errors.message = loginResult.error || "Invalid credentials"; // Using the renamed variable
+      return errors;
+    }
+    // Handle any other error
+    errors.message = loginResult.error || "Login failed"; // Using the renamed variable
+    return errors;
+  } catch (error) {
+    // Handle network or unexpected errors
+    console.error("Login error:", error);
+    errors.message = "Connection failed. Please try again.";
+    return errors;
+  }
+}
 
-//   let url = "https://hrmbackend.teqova.biz/api/login";
-
-//   const response = await fetch(url, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(loginData),
-//   });
-//   const resData = await response.json();
-//   // console.log(resData);
-//   if (resData.status === 404) {
-//     errors.email = resData.message;
-//     return errors;
-//   }
-//   if (resData.status === 401) {
-//     errors.email = resData.message;
-//     return errors;
-//   }
-
-//   if (
-//     resData.message ===
-//     "Please reset your Registration Password, Redirecting..."
-//   ) {
-//     errors.email = "Please reset your Registration Password, Redirecting...";
-//     return errors;
-//   }
-//   console.log(resData);
-//   if(resData.message === 'User does not exist'){
-//     errors.email = 'User does not exist'
-//     return errors
-//   }
-
-//   localStorage.setItem("token", resData.token);
-//   localStorage.setItem("name", resData.name);
-
-//   return redirect("/dashboard");
-// }
-
-// export async function loader() {
-//   const token = localStorage.getItem("token");
-
-//   if (!token) {
-//     return null;
-//   }
-//   const url = "https://hrmbackend.teqova.biz/api/verifyToken";
-//   const data = { token: token };
-
-//   const response = await fetch(url, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(data),
-//   });
-
-//   const userData = await response.json();
-//   console.log(userData);
-//   if (userData.message === "token expired") {
-//     return null;
-//   }
-//   return redirect("/dashboard");
-// }
+export async function loader() {
+  // Check if we have a token in localStorage
+  const token = localStorage.getItem("token");
+  
+  // If no token exists, allow access to login page
+  if (!token) {
+    return null;
+  }
+  
+  try {
+    // Set correct API endpoint for our backend
+    const url = "http://localhost:5000/api/auth/verify-token";
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      }
+    });
+    
+    const userData = await response.json();
+    
+    // If token is invalid or expired
+    if (!response.ok || userData.error) {
+      // Clear invalid token
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return null;
+    }
+    
+    // Token is valid, redirect to dashboard
+    return redirect("/dashboard");
+    
+  } catch (error) {
+    // Handle network errors by clearing token and allowing login
+    console.error("Token verification failed:", error);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    return null;
+  }
+}

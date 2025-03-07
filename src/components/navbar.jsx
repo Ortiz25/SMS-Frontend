@@ -18,17 +18,25 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, redirect, useNavigate } from "react-router-dom";
 import { useStore } from "../store/store";
 
 const Navbar = ({ children }) => {
   const { activeModule } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState("overview");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const navigate = useNavigate()
+  const logout = () => {
+    // Clear the token and user data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/")
+  };
  
 
   const navigationItems = [
-    { id: "overview", name: "Overview", icon: BarChart, route: "/" },
+    { id: "overview", name: "Overview", icon: BarChart, route: "/dashboard" },
     {
       id: "students",
       name: "Student Management",
@@ -101,7 +109,7 @@ const Navbar = ({ children }) => {
               <Settings className="h-5 w-5" />
               <span>Settings</span>
             </NavLink>
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 rounded-lg">
+            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 rounded-lg cursor-pointer" onClick={logout}>
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </button>
@@ -125,7 +133,7 @@ const Navbar = ({ children }) => {
             <div className="flex items-center space-x-4">
               <Bell className="h-6 w-6 text-gray-600 cursor-pointer" />
               <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                A
+                {user.teacher? user.teacher.first_name.charAt(0).toUpperCase() : user.role.charAt(0).toUpperCase() }
               </div>
             </div>
           </div>

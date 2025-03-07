@@ -19,7 +19,7 @@ const TeacherProfiles = ({ teachers }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-
+   console.log(teachers)
   const handleSave = (updatedTeacher) => {
     console.log("Saving updated teacher:", updatedTeacher);
     // Add your save logic here

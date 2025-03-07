@@ -1,340 +1,476 @@
-import React, { useState } from "react";
-import { X, Calendar, Clock, AlertCircle } from "lucide-react";
-import { checkRoomConflict, checkInvigilatorConflict, checkClassConflict } from "../../util/conflictDetection";
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
 
-const ScheduleExamModal = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    subject: "",
-    class: "",
-    date: "",
+const ScheduleExamModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  examinations,
+  examTypes,
+  classes,
+  rooms,
+  academicSessionId
+}) => {
+  const initialState = {
+    examinationId: "",
+    examinationName: "",
+    examTypeId: "",
+    subjectId: "",
+    classId: "",
+    examDate: "",
     startTime: "",
-    duration: "",
-    room: "",
-    invigilator: "",
-    instructions: "",
-  });
-  
+    endTime: "",
+    venue: "",
+    supervisorId: "",
+    totalMarks: "100",
+    passingMarks: "40",
+    startDate: "",
+    endDate: ""
+  };
 
+  const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
+  const [subjects, setSubjects] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [isCreatingNewExam, setIsCreatingNewExam] = useState(false);
 
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // Reset form when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(initialState);
+      setErrors({});
+      setIsCreatingNewExam(false);
+      // Fetch subjects and teachers when the modal opens
+      fetchSubjectsAndTeachers();
+    }
+  }, [isOpen, academicSessionId]);
+
+  const fetchSubjectsAndTeachers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Fetch subjects
+      const subjectsResponse = await fetch('http://localhost:5000/api/helpers/subjects', {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (!subjectsResponse.ok) throw new Error('Failed to fetch subjects');
+      
+      const subjectsData = await subjectsResponse.json();
+      console.log(subjectsData)
+      setSubjects(subjectsData.data);
+      
+      // Fetch teachers
+      const teachersResponse = await fetch('http://localhost:5000/api/teachers', {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (!teachersResponse.ok) throw new Error('Failed to fetch teachers');
+      
+      const teachersData = await teachersResponse.json();
+      console.log(teachersData.data)
+      setTeachers(teachersData.data);
+    } catch (error) {
+      console.error('Error fetching subjects and teachers:', error);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Special handling for examination selection
+    if (name === 'examinationId' && value) {
+      if (value === 'new') {
+        setIsCreatingNewExam(true);
+        setFormData({
+          ...formData,
+          examinationId: "",
+          examinationName: "",
+          examTypeId: "",
+          startDate: "",
+          endDate: ""
+        });
+      } else {
+        const selectedExam = examinations.find(exam => exam.id.toString() === value);
+        if (selectedExam) {
+          setIsCreatingNewExam(false);
+          setFormData({
+            ...formData,
+            examinationId: value,
+            examTypeId: selectedExam.exam_type_id.toString(),
+            startDate: selectedExam.start_date,
+            endDate: selectedExam.end_date
+          });
+        }
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+    
     // Clear error when field is edited
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: null,
-      }));
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ""
+      });
     }
   };
-  const validateExamSchedule = (examData, existingExams) => {
-    const conflicts = {
-      room: checkRoomConflict(examData, existingExams),
-      invigilator: checkInvigilatorConflict(examData, existingExams),
-      class: checkClassConflict(examData, existingExams)
-    };
-  
-    const messages = [];
-    
-    if (conflicts.room.length > 0) {
-      messages.push(`Room ${examData.room} is already booked at this time`);
-    }
-    
-    if (conflicts.invigilator.length > 0) {
-      messages.push(`${examData.invigilator} is already assigned to another exam at this time`);
-    }
-    
-    if (conflicts.class.length > 0) {
-      messages.push(`Class ${examData.class} already has an exam scheduled at this time`);
-    }
-  
-    return {
-      hasConflicts: messages.length > 0,
-      messages
-    };
-  };
-  
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.subject) newErrors.subject = "Subject is required";
-    if (!formData.class) newErrors.class = "Class is required";
-    if (!formData.date) newErrors.date = "Date is required";
+    
+    if (isCreatingNewExam) {
+      if (!formData.examinationName) newErrors.examinationName = "Examination name is required";
+      if (!formData.examTypeId) newErrors.examTypeId = "Exam type is required";
+      if (!formData.startDate) newErrors.startDate = "Start date is required";
+      if (!formData.endDate) newErrors.endDate = "End date is required";
+    } else {
+      if (!formData.examinationId) newErrors.examinationId = "Please select an examination";
+    }
+    
+    if (!formData.subjectId) newErrors.subjectId = "Subject is required";
+    if (!formData.classId) newErrors.classId = "Class is required";
+    if (!formData.examDate) newErrors.examDate = "Exam date is required";
     if (!formData.startTime) newErrors.startTime = "Start time is required";
-    if (!formData.duration) newErrors.duration = "Duration is required";
-    if (!formData.room) newErrors.room = "Room is required";
-    if (!formData.invigilator)
-      newErrors.invigilator = "Invigilator is required";
-
+    if (!formData.endTime) newErrors.endTime = "End time is required";
+    if (!formData.venue) newErrors.venue = "Venue is required";
+    
+    // Validate start time is before end time
+    if (formData.startTime && formData.endTime) {
+      const start = formData.startTime;
+      const end = formData.endTime;
+      if (start >= end) {
+        newErrors.endTime = "End time must be after start time";
+      }
+    }
+    
+    // Validate exam date is within examination period
+    if (formData.examDate && formData.startDate && formData.endDate) {
+      const examDate = new Date(formData.examDate);
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      
+      if (examDate < startDate || examDate > endDate) {
+        newErrors.examDate = "Exam date must be within the examination period";
+      }
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      const conflicts = validateExamSchedule(formData, existingExams);
-      
-      if (conflicts.hasConflicts) {
-        setErrors(prev => ({
-          ...prev,
-          conflicts: conflicts.messages
-        }));
-        return;
-      }
-      
       onSubmit(formData);
-      onClose();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
-        <div
-          className="fixed inset-0 bg-black opacity-75"
-          onClick={onClose}
-        />
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-black opacity-50 w-full h-full absolute"></div>
+      <div className="relative bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Schedule New Exam</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-        <div className="relative bg-white rounded-lg w-full max-w-2xl">
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-lg font-medium text-gray-900">
-              Schedule New Exam
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* Form Content */}
-          <form onSubmit={handleSubmit}>
-            <div className="p-6 space-y-6">
-              {/* Basic Details Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Subject Selection */}
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-6">
+            {/* Examination Details Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-medium text-gray-700 mb-3">Examination Details</h3>
+              
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject*
+                    Examination
                   </label>
                   <select
-                    value={formData.subject}
-                    onChange={(e) => handleChange("subject", e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.subject ? "border-red-500" : "border-gray-300"
-                    }`}
+                    name="examinationId"
+                    value={formData.examinationId}
+                    onChange={handleChange}
+                    className={`w-full p-2 border rounded-lg ${errors.examinationId ? "border-red-500" : ""}`}
                   >
-                    <option value="">Select Subject</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
+                    <option value="">Select Examination</option>
+                    {examinations.map((exam) => (
+                      <option key={exam.id} value={exam.id}>
+                        {exam.name} ({new Date(exam.start_date).toLocaleDateString()} - {new Date(exam.end_date).toLocaleDateString()})
+                      </option>
+                    ))}
+                    <option value="new">+ Create New Examination</option>
                   </select>
-                  {errors.subject && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.subject}
-                    </p>
-                  )}
+                  {errors.examinationId && <p className="text-red-500 text-xs mt-1">{errors.examinationId}</p>}
                 </div>
 
-                {/* Class Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Class*
-                  </label>
-                  <select
-                    value={formData.class}
-                    onChange={(e) => handleChange("class", e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.class ? "border-red-500" : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select Class</option>
-                    <option value="Form 1">Form 1</option>
-                    <option value="Form 2">Form 2</option>
-                    <option value="Form 3">Form 3</option>
-                    <option value="Form 4">Form 4</option>
-                  </select>
-                  {errors.class && (
-                    <p className="mt-1 text-sm text-red-600">{errors.class}</p>
-                  )}
-                </div>
-              </div>
+                {isCreatingNewExam && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Examination Name
+                      </label>
+                      <input
+                        type="text"
+                        name="examinationName"
+                        value={formData.examinationName}
+                        onChange={handleChange}
+                        className={`w-full p-2 border rounded-lg ${errors.examinationName ? "border-red-500" : ""}`}
+                        placeholder="e.g., End Term Examination Term 1 2023"
+                      />
+                      {errors.examinationName && <p className="text-red-500 text-xs mt-1">{errors.examinationName}</p>}
+                    </div>
 
-              {/* Time and Duration Section - To be continued */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Date Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date*
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleChange("date", e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.date ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {errors.date && (
-                    <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-                  )}
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Exam Type
+                      </label>
+                      <select
+                        name="examTypeId"
+                        value={formData.examTypeId}
+                        onChange={handleChange}
+                        className={`w-full p-2 border rounded-lg ${errors.examTypeId ? "border-red-500" : ""}`}
+                      >
+                        <option value="">Select Exam Type</option>
+                        {examTypes.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name} ({type.category})
+                          </option>
+                        ))}
+                      </select>
+                      {errors.examTypeId && <p className="text-red-500 text-xs mt-1">{errors.examTypeId}</p>}
+                    </div>
 
-                {/* Start Time */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Time*
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="time"
-                      value={formData.startTime}
-                      onChange={(e) =>
-                        handleChange("startTime", e.target.value)
-                      }
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.startTime ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    <Clock className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
-                  {errors.startTime && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.startTime}
-                    </p>
-                  )}
-                </div>
-
-                {/* Duration */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duration*
-                  </label>
-                  <select
-                    value={formData.duration}
-                    onChange={(e) => handleChange("duration", e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.duration ? "border-red-500" : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select Duration</option>
-                    <option value="1">1 Hour</option>
-                    <option value="1.5">1.5 Hours</option>
-                    <option value="2">2 Hours</option>
-                    <option value="2.5">2.5 Hours</option>
-                    <option value="3">3 Hours</option>
-                  </select>
-                  {errors.duration && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.duration}
-                    </p>
-                  )}
-                </div>
-
-                {/* Room Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Room*
-                  </label>
-                  <select
-                    value={formData.room}
-                    onChange={(e) => handleChange("room", e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.room ? "border-red-500" : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select Room</option>
-                    <option value="Hall 1">Hall 1</option>
-                    <option value="Hall 2">Hall 2</option>
-                    <option value="Room 101">Room 101</option>
-                    <option value="Room 102">Room 102</option>
-                  </select>
-                  {errors.room && (
-                    <p className="mt-1 text-sm text-red-600">{errors.room}</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Invigilator*
-                </label>
-                <select
-                  value={formData.invigilator}
-                  onChange={(e) => handleChange("invigilator", e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    errors.invigilator ? "border-red-500" : "border-gray-300"
-                  }`}
-                >
-                  <option value="">Select Invigilator</option>
-                  <option value="Mr. John Doe">Mr. John Doe</option>
-                  <option value="Mrs. Jane Smith">Mrs. Jane Smith</option>
-                  <option value="Mr. David Wilson">Mr. David Wilson</option>
-                </select>
-                {errors.invigilator && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.invigilator}
-                  </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Start Date
+                        </label>
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={formData.startDate}
+                          onChange={handleChange}
+                          className={`w-full p-2 border rounded-lg ${errors.startDate ? "border-red-500" : ""}`}
+                        />
+                        {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          End Date
+                        </label>
+                        <input
+                          type="date"
+                          name="endDate"
+                          value={formData.endDate}
+                          onChange={handleChange}
+                          className={`w-full p-2 border rounded-lg ${errors.endDate ? "border-red-500" : ""}`}
+                          min={formData.startDate}
+                        />
+                        {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
+            </div>
 
-              {/* Instructions */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Special Instructions
-                </label>
-                <textarea
-                  value={formData.instructions}
-                  onChange={(e) => handleChange("instructions", e.target.value)}
-                  rows="3"
-                  className="w-full px-3 py-2 border rounded-lg border-gray-300"
-                  placeholder="Add any special instructions or requirements..."
-                />
-              </div>
+            {/* Exam Schedule Details Section */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-medium text-gray-700 mb-3">Schedule Details</h3>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject
+                    </label>
+                    <select
+                      name="subjectId"
+                      value={formData.subjectId}
+                      onChange={handleChange}
+                      className={`w-full p-2 border rounded-lg ${errors.subjectId ? "border-red-500" : ""}`}
+                    >
+                      <option value="">Select Subject</option>
+                      {subjects.map((subject) => (
+                        <option key={subject.id} value={subject.id}>
+                          {subject.name} ({subject.code})
+                        </option>
+                      ))}
+                    </select>
+                    {errors.subjectId && <p className="text-red-500 text-xs mt-1">{errors.subjectId}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Class
+                    </label>
+                    <select
+                      name="classId"
+                      value={formData.classId}
+                      onChange={handleChange}
+                      className={`w-full p-2 border rounded-lg ${errors.classId ? "border-red-500" : ""}`}
+                    >
+                      <option value="">Select Class</option>
+                      {classes.map((cls) => (
+                        <option key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.classId && <p className="text-red-500 text-xs mt-1">{errors.classId}</p>}
+                  </div>
+                </div>
 
-              {/* Warning Message */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex">
-                  <AlertCircle className="h-5 w-5 text-yellow-400" />
-                  <p className="ml-3 text-sm text-yellow-700">
-                    Please ensure there are no scheduling conflicts before
-                    confirming.
-                  </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Exam Date
+                  </label>
+                  <input
+                    type="date"
+                    name="examDate"
+                    value={formData.examDate}
+                    onChange={handleChange}
+                    className={`w-full p-2 border rounded-lg ${errors.examDate ? "border-red-500" : ""}`}
+                    min={formData.startDate || ""}
+                    max={formData.endDate || ""}
+                  />
+                  {errors.examDate && <p className="text-red-500 text-xs mt-1">{errors.examDate}</p>}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      name="startTime"
+                      value={formData.startTime}
+                      onChange={handleChange}
+                      className={`w-full p-2 border rounded-lg ${errors.startTime ? "border-red-500" : ""}`}
+                    />
+                    {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      className={`w-full p-2 border rounded-lg ${errors.endTime ? "border-red-500" : ""}`}
+                    />
+                    {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Venue
+                  </label>
+                  <select
+                    name="venue"
+                    value={formData.venue}
+                    onChange={handleChange}
+                    className={`w-full p-2 border rounded-lg ${errors.venue ? "border-red-500" : ""}`}
+                  >
+                    <option value="">Select Venue</option>
+                    {rooms.map((room) => (
+                      <option key={room.id} value={room.room_number}>
+                        {room.name || room.room_number} ({room.capacity} capacity)
+                      </option>
+                    ))}
+                  </select>
+                  {errors.venue && <p className="text-red-500 text-xs mt-1">{errors.venue}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Supervisor (Optional)
+                  </label>
+                  <select
+                    name="supervisorId"
+                    value={formData.supervisorId}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-lg"
+                  >
+                    <option value="">Select Supervisor</option>
+                    {teachers.map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Total Marks
+                    </label>
+                    <input
+                      type="number"
+                      name="totalMarks"
+                      value={formData.totalMarks}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded-lg"
+                      min="1"
+                      max="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Passing Marks
+                    </label>
+                    <input
+                      type="number"
+                      name="passingMarks"
+                      value={formData.passingMarks}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded-lg"
+                      min="1"
+                      max={formData.totalMarks}
+                    />
+                  </div>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div className="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-                >
-                  Schedule Exam
-                </button>
-              </div>
             </div>
-          </form>
-        </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Schedule Exam
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,227 +1,331 @@
-import React, { useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { X } from "lucide-react";
 
-const AddScheduleModal = ({ isOpen, onClose, onSave, teachers }) => {
-  const [formData, setFormData] = useState({
-    day: '',
-    time: '',
-    class: '',
-    subject: '',
-    teacher: '',
-    room: ''
-  });
+const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms }) => {
+  const token = localStorage.getItem("token");
+  const initialState = {
+    classId: "",
+    class: "",
+    subjectId: "",
+    subject: "",
+    teacherId: "",
+    teacherName: "",
+    room: "",
+    day: "",
+    startTime: "",
+    endTime: "",
+    academicSessionId: ""
+  };
 
+  const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [subjects, updateSubjects] = useState()
 
-  // Available options
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const times = [
-    '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', 
-    '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
-  ];
-  const classes = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
-  const rooms = ['Room 101', 'Room 102', 'Room 103', 'Lab 1', 'Lab 2'];
+
+   // Fetch users on component mount
+    useEffect(() => {
+      const fetchSubjects = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch("http://localhost:5000/api/helpers", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+  
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+  
+          const data = await response.json();
+            console.log(data)
+          updateSubjects(data.data);
+          setError(null);
+        } catch (err) {
+          setError(`Failed to fetch users: ${err.message}`);
+          console.error("Error fetching users:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchSubjects();
+    }, [formData]);
+
+    console.log(subjects)
+
+  // Reset form when modal is opened/closed
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(initialState);
+      setErrors({});
+    }
+  }, [isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === "class" && classes) {
+      const selectedClass = classes.find(c => c.name === value);
+      setFormData({
+        ...formData,
+        class: value,
+        classId: selectedClass ? selectedClass.id : ""
+      });
+    } else if (name === "teacher" && teachers) {
+      const selectedTeacher = teachers.find(t => t.name === value);
+      setFormData({
+        ...formData,
+        teacherName: value,
+        teacherId: selectedTeacher ? selectedTeacher.id : ""
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+
+    // Clear error when field is updated
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ""
+      });
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.day) newErrors.day = 'Day is required';
-    if (!formData.time) newErrors.time = 'Time is required';
-    if (!formData.class) newErrors.class = 'Class is required';
-    if (!formData.subject) newErrors.subject = 'Subject is required';
-    if (!formData.teacher) newErrors.teacher = 'Teacher is required';
-    if (!formData.room) newErrors.room = 'Room is required';
-
+    
+    if (!formData.class) newErrors.class = "Class is required";
+    if (!formData.subject) newErrors.subject = "Subject is required";
+    if (!formData.subjectId) newErrors.subjectId = "Subject ID is required";
+    if (!formData.teacherName) newErrors.teacher = "Teacher is required";
+    if (!formData.room) newErrors.room = "Room is required";
+    if (!formData.day) newErrors.day = "Day is required";
+    if (!formData.startTime) newErrors.startTime = "Start time is required";
+    if (!formData.endTime) newErrors.endTime = "End time is required";
+    
+    // Check if end time is after start time
+    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
+      newErrors.endTime = "End time must be after start time";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     if (validateForm()) {
       onSave(formData);
+      setFormData(initialState);
       onClose();
     }
   };
 
   if (!isOpen) return null;
 
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
-        <div className="fixed inset-0 bg-black opacity-75" onClick={onClose} />
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-black opacity-50 w-full h-full absolute"></div>
+      <div className="relative bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Add New Schedule</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-        <div className="relative bg-white rounded-lg w-full max-w-md">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="text-lg font-medium">Add Class Schedule</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            {/* Day Selection */}
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Day*
+                Class
               </label>
               <select
-                value={formData.day}
-                onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.day ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select Day</option>
-                {days.map(day => (
-                  <option key={day} value={day}>{day}</option>
-                ))}
-              </select>
-              {errors.day && (
-                <p className="mt-1 text-sm text-red-600">{errors.day}</p>
-              )}
-            </div>
-
-            {/* Time Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time*
-              </label>
-              <select
-                value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.time ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select Time</option>
-                {times.map(time => (
-                  <option key={time} value={time}>{time}</option>
-                ))}
-              </select>
-              {errors.time && (
-                <p className="mt-1 text-sm text-red-600">{errors.time}</p>
-              )}
-            </div>
-
-            {/* Class Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Class*
-              </label>
-              <select
+                name="class"
                 value={formData.class}
-                onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.class ? 'border-red-500' : 'border-gray-300'
-                }`}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.class ? 'border-red-500' : ''}`}
               >
                 <option value="">Select Class</option>
-                {classes.map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
+                {classes && classes.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
-              {errors.class && (
-                <p className="mt-1 text-sm text-red-600">{errors.class}</p>
-              )}
+              {errors.class && <p className="text-red-500 text-xs mt-1">{errors.class}</p>}
             </div>
 
-            {/* Teacher and Subject Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teacher*
+                Subject
               </label>
               <select
-                value={formData.teacher}
-                onChange={(e) => {
-                  const selectedTeacher = teachers.find(t => t.name === e.target.value);
-                  setFormData({ 
-                    ...formData, 
-                    teacher: e.target.value,
-                    subject: '' // Reset subject when teacher changes
-                  });
-                }}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.teacher ? 'border-red-500' : 'border-gray-300'
-                }`}
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.subject ? 'border-red-500' : ''}`}
+              >
+                <option value="">Select Subject</option>
+                {subjects && subjects.map((subject) => (
+                  <option key={subject.id} value={subject.name}>
+                    {subject.name} ({subject.code})
+                  </option>
+                ))}
+              </select>
+              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subject ID
+              </label>
+              <input
+                type="text"
+                name="subjectId"
+                value={subjects?.find(s => s.name === formData.subject)?.id || ''}
+                readOnly
+                className={`w-full p-2 border rounded-lg bg-gray-100 ${errors.subjectId ? 'border-red-500' : ''}`}
+                placeholder="Subject ID will be auto-populated"
+              />
+              {errors.subjectId && <p className="text-red-500 text-xs mt-1">{errors.subjectId}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Teacher
+              </label>
+              <select
+                name="teacher"
+                value={formData.teacherName}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.teacher ? 'border-red-500' : ''}`}
               >
                 <option value="">Select Teacher</option>
-                {teachers.map(teacher => (
-                  <option key={teacher.id} value={teacher.name}>{teacher.name}</option>
+                {teachers && teachers.map((teacher) => (
+                  <option key={teacher.id} value={teacher.name}>
+                    {teacher.name}
+                  </option>
                 ))}
               </select>
-              {errors.teacher && (
-                <p className="mt-1 text-sm text-red-600">{errors.teacher}</p>
-              )}
+              {errors.teacher && <p className="text-red-500 text-xs mt-1">{errors.teacher}</p>}
             </div>
 
-            {/* Subject Selection - Based on selected teacher */}
-            {formData.teacher && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject*
-                </label>
-                <select
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    errors.subject ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select Subject</option>
-                  {teachers
-                    .find(t => t.name === formData.teacher)
-                    ?.subjects.map(subject => (
-                      <option key={subject} value={subject}>{subject}</option>
-                    ))}
-                </select>
-                {errors.subject && (
-                  <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
-                )}
-              </div>
-            )}
-
-            {/* Room Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Room*
+                Room
               </label>
               <select
+                name="room"
                 value={formData.room}
-                onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.room ? 'border-red-500' : 'border-gray-300'
-                }`}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.room ? 'border-red-500' : ''}`}
               >
                 <option value="">Select Room</option>
-                {rooms.map(room => (
-                  <option key={room} value={room}>{room}</option>
+                {rooms && rooms.map((room) => (
+                  <option key={room.name} value={room.name}>
+                    {room.name}
+                  </option>
                 ))}
               </select>
-              {errors.room && (
-                <p className="mt-1 text-sm text-red-600">{errors.room}</p>
-              )}
+              {errors.room && <p className="text-red-500 text-xs mt-1">{errors.room}</p>}
             </div>
 
-            {/* Submit Buttons */}
-            <div className="pt-4 border-t flex justify-end space-x-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Day
+              </label>
+              <select
+                name="day"
+                value={formData.day}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.day ? 'border-red-500' : ''}`}
+              >
+                <option value="">Select Day</option>
+                {days.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+              {errors.day && <p className="text-red-500 text-xs mt-1">{errors.day}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  className={`w-full p-2 border rounded-lg ${errors.startTime ? 'border-red-500' : ''}`}
+                />
+                {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  className={`w-full p-2 border rounded-lg ${errors.endTime ? 'border-red-500' : ''}`}
+                />
+                {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Academic Session ID
+              </label>
+              <input
+                type="text"
+                name="academicSessionId"
+                value={formData.academicSessionId}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg"
+                placeholder="Leave blank for current session"
+              />
+              <p className="text-xs text-gray-500 mt-1">Optional - defaults to current session</p>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
+                className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Add Schedule
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

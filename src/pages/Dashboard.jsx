@@ -1,6 +1,4 @@
-
 import {
-
   Calendar,
   GraduationCap,
   Users,
@@ -9,39 +7,108 @@ import {
   Bell,
   Activity,
   UserPlus,
-  
   X,
   Clock,
-  
   TrendingUp,
   TrendingDown,
+  UserCheck,
+  UserX,
+  BookmarkPlus,
+  BookMinus,
+  BookCheck,
+  BookPlus,
+  List,
+  FileText,
+  CheckCircle,
+  MapPin,
+  MoreVertical,
+  PlusCircle,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import YearlyAttendanceChart from "../components/yearlyAttendance";
+import { redirect, useLoaderData } from "react-router-dom";
+import { format, formatDistance } from "date-fns";
+import { extractDate } from "../util/helperFunctions";
 
 const Dashboard = () => {
+  const data = useLoaderData();
+  const [isOpen, setIsOpen] = useState(false);
   const { updateActiveModule, activeModule } = useStore();
+  const [studentData, updateStudentData] = useState(
+    data.dashboard.student_stats
+  );
+  const [libraryData, updatelibraryData] = useState(
+    data.dashboard.library_stats
+  );
+  const [teacherData, updateteacherData] = useState(
+    data.dashboard.teacher_stats
+  );
+  const [activities, activitiesData] = useState(
+    data.dashboard.recent_activities
+  );
+  const [perfomance, updatePerfomance] = useState(
+    data.dashboard.form_perfomance
+  );
+  const [eventsData, updateEvents] = useState(data.dashboard.upcoming_events);
 
+  console.log(data.dashboard);
   useEffect(() => {
     updateActiveModule("overview");
   }, [activeModule]);
 
-  const events = [
-    {
-      title: "Sports Day",
-      date: "March 10",
-      time: "9:00 AM",
-      type: "sports",
-    },
-    {
-      title: "Science Fair",
-      date: "March 15",
-      time: "1:00 PM",
-      type: "academic",
-    },
-  ];
+  // Function to get icon based on activity type
+  const getActivityIcon = (activityType) => {
+    switch (activityType) {
+      case "New Student":
+        return UserPlus;
+      case "Attendance Marked":
+        return CheckCircle;
+      case "Parent Meeting":
+        return Bell;
+      default:
+        return List;
+    }
+  };
+
+  // Function to get icon color based on activity type
+  const getIconColor = (activityType) => {
+    switch (activityType) {
+      case "New Student":
+        return "text-green-600 bg-green-100";
+      case "Attendance Marked":
+        return "text-blue-600 bg-blue-100";
+      case "Parent Meeting":
+        return "text-orange-600 bg-orange-100";
+      default:
+        return "text-gray-600 bg-gray-100";
+    }
+  };
+
+  // Function to get trend icon
+  const getTrendIcon1 = (trend) => {
+    if (trend === "up") {
+      return <TrendingUp className="h-4 w-4 text-green-500" />;
+    } else if (trend === "down") {
+      return <TrendingDown className="h-4 w-4 text-red-500" />;
+    }
+    return null;
+  };
+
+  // Function to get status color
+  const getStatusColor1 = (status) => {
+    switch (status) {
+      case "Average":
+        return "text-yellow-600";
+      case "Below average":
+        return "text-red-600";
+      case "Excellent":
+        return "text-green-600";
+      default:
+        return "text-gray-600";
+    }
+  };
 
   const attendanceData = [
     { name: "Mon", students: 450 },
@@ -53,28 +120,52 @@ const Dashboard = () => {
 
   const formData = [
     {
-      form: "Form 1",
-      average: 82,
-      trend: "up",
-      status: "Above average",
-    },
-    {
-      form: "Form 2",
-      average: 78,
-      trend: "down",
-      status: "Below average",
-    },
-    {
       form: "Form 3",
-      average: 85,
-      trend: "up",
-      status: "Above average",
+      average: 0,
+      trend: "stable",
+      status: "No data",
     },
     {
       form: "Form 4",
-      average: 88,
-      trend: "up",
+      average: 75.63,
+      trend: "stable",
       status: "Above average",
+    },
+    {
+      form: "Grade 4",
+      average: 38.48,
+      trend: "stable",
+      status: "Below average",
+    },
+    {
+      form: "Grade 5",
+      average: 0,
+      trend: "stable",
+      status: "No data",
+    },
+    {
+      form: "Grade 6",
+      average: 0,
+      trend: "stable",
+      status: "No data",
+    },
+    {
+      form: "Grade 7",
+      average: 0,
+      trend: "stable",
+      status: "No data",
+    },
+    {
+      form: "JSS 1",
+      average: 0,
+      trend: "stable",
+      status: "No data",
+    },
+    {
+      form: "JSS 2",
+      average: 41.4,
+      trend: "stable",
+      status: "Below average",
     },
   ];
   const getTrendIcon = (trend) => {
@@ -91,129 +182,255 @@ const Dashboard = () => {
   return (
     <Navbar>
       <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
+        {/* Quick Stats - First Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Students */}
-          <div className="bg-white rounded-lg  shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-extrabold text-gray-800">
-                Total Students
+                Student Overview
               </h3>
-              <GraduationCap className="h-4 w-4 text-blue-600" />
+              <GraduationCap className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-green-600">+15% from last term</p>
+  
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">Total Students</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {studentData?.total_students}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-600">Male Students</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {studentData?.male_students}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-pink-500" />
+                  <span className="text-sm text-gray-600">Female Students</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {studentData?.female_students}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-600">Active Students</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {studentData?.active_students}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserX className="h-4 w-4 text-red-500" />
+                  <span className="text-sm text-gray-600">
+                    Inactive Students
+                  </span>
+                </div>
+                <span className="text-lg font-bold">
+                  {studentData?.inactive_students}
+                </span>
+              </div>
+            </div>
           </div>
-
+  
           {/* Total Teachers */}
-          <div className="bg-white rounded-xl  shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-extrabold text-gray-800">
-                Total Teachers
+                Teacher Overview
               </h3>
-              <Users className="h-4 w-4 text-blue-600" />
+              <Users className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-green-600">+3 new this month</p>
+  
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">Total Teachers</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {teacherData?.total_teachers}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-600">Active Teachers</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {teacherData?.active_teachers}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserX className="h-4 w-4 text-red-500" />
+                  <span className="text-sm text-gray-600">
+                    Inactive Teachers
+                  </span>
+                </div>
+                <span className="text-lg font-bold">
+                  {parseInt(teacherData?.total_teachers) -
+                    parseInt(teacherData?.active_teachers)}
+                </span>
+              </div>
+            </div>
           </div>
-
+  
           {/* Upcoming Events */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-lg p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
-                <h3 className="text-xl font-bold text-gray-900">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                   Upcoming Events
                 </h3>
               </div>
-              {/* <span className="text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-                This Month
-              </span> */}
+              
             </div>
-
             <div className="space-y-4">
-              {events.map((event, index) => (
+              {/* Map through the events array */}
+              {eventsData?.map((event) => (
                 <div
-                  key={index}
-                  className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition-colors duration-150"
+                  key={event.id}
+                  className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 transition duration-200 ease-in-out"
                 >
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">
-                      {event.title}
-                    </h4>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-sm text-gray-500">
-                          {event.date}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {event.title}
+                      </h4>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium dark:bg-indigo-900 dark:text-indigo-300">
+                          <Clock className="h-3 w-3" />
+                          {extractDate(event.event_date)}
                         </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-sm text-gray-500">
-                          {event.time}
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium dark:bg-emerald-900 dark:text-emerald-300">
+                          <MapPin className="h-3 w-3" />
+                          {event.location}
                         </span>
                       </div>
                     </div>
-                  </div>
-                  <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      event.type === "sports"
-                        ? "bg-blue-50 text-blue-600"
-                        : "bg-purple-50 text-purple-600"
-                    }`}
-                  >
-                    {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Average Student Performance */}
-          <div className="bg-white rounded-lg  shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-extrabold text-gray-800">
-                Classes Performance Overview
-              </h3>
-              <Activity className="h-5 w-5 text-blue-600" />
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-2">
-              {formData.map((data) => (
-                <div
-                  key={data.form}
-                  className="border-r last:border-r-0 px-2 first:pl-0 last:pr-0"
-                >
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-600">
-                      {data.form}
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      <div className="text-2xl font-bold">{data.average}%</div>
-                      {getTrendIcon(data.trend)}
-                    </div>
-                    <p className={`text-xs ${getStatusColor(data.status)}`}>
-                      {data.status}
-                    </p>
+                    
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          {/* Books Borrowed */}
-          <div className="bg-white rounded-lg  shadow-lg p-6">
+  
+          {/* Library Book Inventory */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-extrabold text-gray-800">
-                Library Books Borrowed
+                Library Book Inventory
               </h3>
-              <BookOpen className="h-4 w-4 text-blue-600" />
+              <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">350</div>
-            <p className="text-xs text-green-600">This month</p>
+  
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BookmarkPlus className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-gray-600">Total Books</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {libraryData?.total_books}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BookCheck className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-600">Available Books</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {libraryData?.available_books}
+                </span>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BookMinus className="h-4 w-4 text-red-500" />
+                  <span className="text-sm text-gray-600">Borrowed Books</span>
+                </div>
+                <span className="text-lg font-bold text-red-600">
+                  {libraryData?.borrowed_books}
+                </span>
+              </div>
+            </div>
           </div>
-
-          {/* Transport Usage */}
+        </div>
+  
+        {/* Classes Performance Overview - Dedicated Row */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-extrabold text-gray-800">
+              Classes Performance Overview
+            </h3>
+            <Activity className="h-5 w-5 text-blue-600" />
+          </div>
+  
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {formData?.map((data) => (
+              <div
+                key={data.form}
+                className={`p-4 rounded-lg border ${
+                  data.status === "Above average"
+                    ? "border-green-200 bg-green-50"
+                    : data.status === "Below average"
+                    ? "border-red-200 bg-red-50"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              >
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-700 truncate" title={data.form}>
+                    {data.form}
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xl font-bold">
+                      {data.average > 0 ? `${data.average}%` : "-"}
+                    </div>
+                    <div>
+                      {data.trend === "up" && <TrendingUp className="h-4 w-4 text-green-600" />}
+                      {data.trend === "down" && <TrendingDown className="h-4 w-4 text-red-600" />}
+                      {data.trend === "stable" && <div className="h-4 w-4 text-gray-400">-</div>}
+                    </div>
+                  </div>
+                  <p 
+                    className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block ${
+                      data.status === "Above average"
+                        ? "bg-green-100 text-green-800"
+                        : data.status === "Below average"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {data.status}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+  
+        {/* Transport Usage - Moved to its own row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-extrabold text-gray-800">
@@ -226,53 +443,212 @@ const Dashboard = () => {
               Students using school buses
             </p>
           </div>
+          
+          {/* You can add additional stats cards here */}
         </div>
-
-        {/* Charts and Activity Feed */}
+  
+        {/* Charts and Activity Feed - Last Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Weekly Attendance Chart */}
-          <YearlyAttendanceChart />
+          <div className="lg:col-span-2">
+            <YearlyAttendanceChart />
+          </div>
+          
           {/* Recent Activities */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-extrabold  mb-4">
-                Recent Activities
-              </h3>
+              <h3 className="text-lg font-extrabold mb-4">Recent Activities</h3>
               <div className="space-y-4">
-                {[
-                  {
-                    icon: UserPlus,
-                    text: "New student admission - John Doe",
-                    time: "2 hours ago",
-                  },
-                  {
-                    icon: Bell,
-                    text: "Parent meeting scheduled for Form 4",
-                    time: "5 hours ago",
-                  },
-                  {
-                    icon: BookOpen,
-                    text: "New books added to library inventory",
-                    time: "1 day ago",
-                  },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center space-x-4">
-                    <div className="bg-blue-100 p-2 rounded-full">
-                      <activity.icon className="h-4 w-4 text-blue-600" />
+                {activities?.slice(0, 4).map((activity, index) => {
+                  const ActivityIcon = getActivityIcon(activity.activity_type);
+                  const iconColorClass = getIconColor(activity.activity_type);
+  
+                  return (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className={`p-2 rounded-full ${iconColorClass}`}>
+                        <ActivityIcon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">
+                          {activity.activity_type}: {activity.name}
+                          {activity.reference ? ` (${activity.reference})` : ""}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDistance(
+                            new Date(activity.timestamp),
+                            new Date(),
+                            { addSuffix: true }
+                          )}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">{activity.text}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+              {activities?.length > 4 && (
+                <div className="mt-4 text-center">
+                  <button
+                    className="text-sm text-blue-600 hover:underline"
+                    onClick={() => setIsOpen(true)}
+                  >
+                    View All Activities
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Activity Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="fixed inset-0 bg-black opacity-50 z-40"
+            onClick={() => setIsOpen(false)}
+          ></div>
+          <div className="relative z-50 bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-lg font-bold text-gray-800">
+                All Activities
+              </h2>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+  
+            {/* Modal Body */}
+            <div className="overflow-y-auto p-4 space-y-4">
+              {activities.map((activity, index) => {
+                const ActivityIcon = getActivityIcon(activity.activity_type);
+                const iconColorClass = getIconColor(activity.activity_type);
+  
+                return (
+                  <div key={index} className="flex items-center space-x-4">
+                    <div className={`p-2 rounded-full ${iconColorClass}`}>
+                      <ActivityIcon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">
+                        {activity.activity_type}: {activity.name}
+                        {activity.reference ? ` (${activity.reference})` : ""}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatDistance(
+                          new Date(activity.timestamp),
+                          new Date(),
+                          { addSuffix: true }
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+  
+            {/* Modal Footer */}
+            <div className="p-4 border-t text-center">
+              <p className="text-xs text-gray-500">
+                {activities.length} total activities
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </Navbar>
   );
 };
 
 export default Dashboard;
+
+export async function loader({ params, request }) {
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+
+  // If no token exists, redirect to login
+  if (!token) {
+    return redirect("/");
+  }
+
+  // Check if we have cached dashboard data and it's not expired
+  const cachedData = localStorage.getItem("dashboardData");
+  const cacheTimestamp = localStorage.getItem("dashboardCacheTime");
+  const cacheAge = cacheTimestamp
+    ? Date.now() - parseInt(cacheTimestamp)
+    : Infinity;
+  const cacheTTL = 5 * 60 * 1000; // 5 minutes cache
+
+  // Use cached data if available and not expired
+  if (cachedData && cacheAge < cacheTTL) {
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+      dashboard: JSON.parse(cachedData),
+      fromCache: true,
+    };
+  }
+
+  try {
+    // Make both API calls in parallel instead of sequentially
+    const [tokenResponse, dashboardResponse] = await Promise.all([
+      fetch("http://localhost:5000/api/auth/verify-token", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }),
+      fetch("http://localhost:5000/api/dashboard/summary", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }),
+    ]);
+
+    // Handle token verification
+    if (!tokenResponse.ok) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
+    // Handle dashboard data
+    if (!dashboardResponse.ok) {
+      throw new Error("Failed to fetch dashboard data");
+    }
+
+    const dashboardData = await dashboardResponse.json();
+
+    // Cache the data for future use
+    localStorage.setItem("dashboardData", JSON.stringify(dashboardData));
+    localStorage.setItem("dashboardCacheTime", Date.now().toString());
+
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+      dashboard: dashboardData,
+      fromCache: false,
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+
+    // Try to return cached data if available even if it's expired
+    if (cachedData) {
+      return {
+        user: JSON.parse(localStorage.getItem("user")),
+        dashboard: JSON.parse(cachedData),
+        fromCache: true,
+        staleData: true,
+      };
+    }
+
+    return {
+      error: true,
+      message: "Failed to fetch dashboard data. Please try again later.",
+    };
+  }
+}

@@ -10,38 +10,27 @@ import {
 } from "lucide-react";
 import { useStore } from "../store/store";
 import Navbar from "../components/navbar";
+import { redirect, useLoaderData } from "react-router-dom";
+
 const LibraryManagement = () => {
+  const data = useLoaderData();
+  const [errorMessage, setErrorMessage] = useState(""); // Error state
   // State management
-  const [books, setBooks] = useState([
-    {
-      id: 1,
-      title: "React Fundamentals",
-      author: "John Doe",
-      isbn: "978-1234567890",
-      status: "available",
-      borrower: null,
-      dueDate: null,
-    },
-    {
-      id: 2,
-      title: "Advanced JavaScript",
-      author: "Jane Smith",
-      isbn: "978-0987654321",
-      status: "borrowed",
-      borrower: "Alice Johnson",
-      dueDate: "2025-02-20",
-    },
-  ]);
+  const [books, setBooks] = useState(data);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
   const [showBorrowDialog, setShowBorrowDialog] = useState(false);
-  const [borrowerDetails, setBorrowerDetails] = useState({adminNo:"", name:""});
+  const [borrowerDetails, setBorrowerDetails] = useState({
+    adminNo: "",
+    name: "",
+  });
 
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [bookFormData, setBookFormData] = useState({
     title: "",
     author: "",
     isbn: "",
+    total_copies: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const { updateActiveModule, activeModule } = useStore();
@@ -63,11 +52,44 @@ const LibraryManagement = () => {
     (book) => book.status === "borrowed" && new Date(book.dueDate) < new Date()
   );
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 5;
+
+  // Pagination calculations
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
   // Borrow book function
-  const handleBorrow = () => {
-    if (selectedBook && borrowerName) {
+  const handleBorrow = async () => {
+    if (!selectedBook || !borrowerDetails.name) return;
+
+    try {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 14); // 2 weeks borrowing period
+
+      const response = await fetch(
+        `http://localhost:5000/api/library/books/${selectedBook.id}/borrow`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            borrower_name: borrowerDetails.name,
+            borrower_type: "student",
+            borrower_contact: borrowerDetails.adminNo,
+            borrow_date: new Date().toISOString().split("T")[0],
+            due_date: dueDate.toISOString().split("T")[0],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to borrow book");
 
       setBooks(
         books.map((book) =>
@@ -75,25 +97,28 @@ const LibraryManagement = () => {
             ? {
                 ...book,
                 status: "borrowed",
-                borrower: borrowerName,
+                borrower: borrowerDetails.name,
                 dueDate: dueDate.toISOString().split("T")[0],
               }
             : book
         )
       );
+
       setShowBorrowDialog(false);
-      setBorrowerDetails({adminNo:"", name:""})
+      setBorrowerDetails({ adminNo: "", name: "" });
       setSelectedBook(null);
+      setErrorMessage(""); // Clear error on success
+    } catch (error) {
+      setErrorMessage(error.message);
+      console.error("Error borrowing book:", error);
     }
   };
-
   // Book management functions
   const handleAddBook = () => {
     setIsEditing(false);
-    setBookFormData({ title: "", author: "", isbn: "" });
+    setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
     setShowBookDialog(true);
   };
-
   const handleEditBook = (book) => {
     setIsEditing(true);
     setBookFormData({
@@ -101,46 +126,97 @@ const LibraryManagement = () => {
       title: book.title,
       author: book.author,
       isbn: book.isbn,
+      total_copies: book.total_copies,
     });
     setShowBookDialog(true);
   };
 
-  const handleDeleteBook = (bookId) => {
-    if (window.confirm("Are you sure you want to delete this book?")) {
+  const handleDeleteBook = async (bookId) => {
+    if (!window.confirm("Are you sure you want to delete this book?")) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/library/books/${bookId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to delete book");
+
       setBooks(books.filter((book) => book.id !== bookId));
+    } catch (error) {
+      console.error("Error deleting book:", error);
     }
   };
 
-  const handleSaveBook = () => {
-    if (isEditing) {
+  const handleSaveBook = async () => {
+    try {
+      const url = isEditing
+        ? `http://localhost:5000/api/library/books/${bookFormData.id}`
+        : `http://localhost:5000/api/library/books`;
+
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(bookFormData),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to save book");
+
+      if (isEditing) {
+        setBooks(
+          books.map((book) =>
+            book.id === bookFormData.id ? { ...book, ...bookFormData } : book
+          )
+        );
+      } else {
+        setBooks([...books, data.data]); // Append newly added book
+      }
+
+      setShowBookDialog(false);
+      setBookFormData({ title: "", author: "", isbn: "" });
+    } catch (error) {
+      console.error("Error saving book:", error);
+    }
+  };
+  // Return book function
+  const handleReturn = async (bookId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/library/books/${bookId}/return`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to return book");
+
       setBooks(
         books.map((book) =>
-          book.id === bookFormData.id ? { ...book, ...bookFormData } : book
+          book.id === bookId
+            ? { ...book, status: "available", borrower: null, dueDate: null }
+            : book
         )
       );
-    } else {
-      const newBook = {
-        id: Math.max(...books.map((b) => b.id)) + 1,
-        ...bookFormData,
-        status: "available",
-        borrower: null,
-        dueDate: null,
-      };
-      setBooks([...books, newBook]);
+    } catch (error) {
+      console.error("Error returning book:", error);
     }
-    setShowBookDialog(false);
-    setBookFormData({ title: "", author: "", isbn: "" });
-  };
-
-  // Return book function
-  const handleReturn = (bookId) => {
-    setBooks(
-      books.map((book) =>
-        book.id === bookId
-          ? { ...book, status: "available", borrower: null, dueDate: null }
-          : book
-      )
-    );
   };
 
   return (
@@ -186,7 +262,7 @@ const LibraryManagement = () => {
                 <input
                   type="text"
                   placeholder="Book Title"
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-md border border-gray-300 py-2 px-3"
                   value={bookFormData.title}
                   onChange={(e) =>
                     setBookFormData({ ...bookFormData, title: e.target.value })
@@ -195,7 +271,7 @@ const LibraryManagement = () => {
                 <input
                   type="text"
                   placeholder="Author"
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-md border border-gray-300 py-2 px-3"
                   value={bookFormData.author}
                   onChange={(e) =>
                     setBookFormData({ ...bookFormData, author: e.target.value })
@@ -204,10 +280,22 @@ const LibraryManagement = () => {
                 <input
                   type="text"
                   placeholder="ISBN"
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-md border border-gray-300 py-2 px-3"
                   value={bookFormData.isbn}
                   onChange={(e) =>
                     setBookFormData({ ...bookFormData, isbn: e.target.value })
+                  }
+                />
+                <input
+                  type="text"
+                  placeholder="Total Copies"
+                  className="w-full rounded-md border border-gray-300 py-2 px-3"
+                  value={bookFormData.total_copies}
+                  onChange={(e) =>
+                    setBookFormData({
+                      ...bookFormData,
+                      total_copies: e.target.value,
+                    })
                   }
                 />
                 <div className="flex justify-end space-x-3">
@@ -216,7 +304,7 @@ const LibraryManagement = () => {
                       setShowBookDialog(false);
                       setBookFormData({ title: "", author: "", isbn: "" });
                     }}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Cancel
                   </button>
@@ -227,7 +315,7 @@ const LibraryManagement = () => {
                       !bookFormData.author ||
                       !bookFormData.isbn
                     }
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     {isEditing ? "Save Changes" : "Add Book"}
                   </button>
@@ -280,6 +368,9 @@ const LibraryManagement = () => {
                       ISBN
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Copies Available
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -294,7 +385,7 @@ const LibraryManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredBooks.map((book) => (
+                  {currentBooks.map((book) => (
                     <tr key={book.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {book.title}
@@ -305,15 +396,18 @@ const LibraryManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {book.isbn}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {book.total_copies ? book.total_copies : 0}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            book.status === "available"
+                            !book.borrower
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {book.status}
+                          {book.borrower ? "Unavailable" : "Available"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -322,12 +416,17 @@ const LibraryManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
                           className={
-                            book.dueDate && new Date(book.dueDate) < new Date()
+                            book.due_date &&
+                            new Date(book.due_date) < new Date()
                               ? "text-red-600 font-medium"
                               : "text-gray-900"
                           }
                         >
-                          {book.dueDate || "-"}
+                          {book.due_date
+                            ? new Date(book.due_date)
+                                .toISOString()
+                                .split("T")[0]
+                            : "-"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
@@ -343,7 +442,7 @@ const LibraryManagement = () => {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        {book.status === "available" ? (
+                        {!book.borrower ? (
                           <button
                             onClick={() => {
                               setSelectedBook(book);
@@ -368,6 +467,28 @@ const LibraryManagement = () => {
               </table>
             </div>
           </div>
+
+          <div className="flex justify-center m-4 space-x-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="px-3 py-1 border rounded-md text-gray-700 bg-gray-100">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
 
         {showBorrowDialog && (
@@ -379,7 +500,9 @@ const LibraryManagement = () => {
             <div className="relative bg-white rounded-lg max-w-md w-full p-6 z-60">
               <h3 className="text-lg font-medium text-gray-900">Borrow Book</h3>
               <p className="mt-2 text-sm text-gray-600">
-                Enter borrower details for <span className="font-bold">"{selectedBook?.title}"</span> for 2 weeks
+                Enter borrower details for{" "}
+                <span className="font-bold">"{selectedBook?.title}"</span> for 2
+                weeks
               </p>
               <div className="mt-4 space-y-4">
                 <input
@@ -387,15 +510,30 @@ const LibraryManagement = () => {
                   placeholder="Borrower's Admission No:"
                   className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={borrowerDetails.adminNo}
-                  onChange={(e) => setBorrowerDetails({...borrowerDetails, adminNo:e.target.value})}
+                  onChange={(e) =>
+                    setBorrowerDetails({
+                      ...borrowerDetails,
+                      adminNo: e.target.value,
+                    })
+                  }
                 />
                 <input
                   type="text"
                   placeholder="Borrower's name"
                   className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={borrowerDetails.name}
-                  onChange={(e) => setBorrowerDetails({...borrowerDetails, name:e.target.value})}
+                  onChange={(e) =>
+                    setBorrowerDetails({
+                      ...borrowerDetails,
+                      name: e.target.value,
+                    })
+                  }
                 />
+                {errorMessage && (
+                  <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md">
+                    {errorMessage}
+                  </div>
+                )}
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
@@ -425,3 +563,77 @@ const LibraryManagement = () => {
 };
 
 export default LibraryManagement;
+
+export async function loader({ params, request }) {
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+
+  // If no token exists, redirect to login
+  if (!token) {
+    return redirect("/");
+  }
+
+  
+  try {
+
+    const tokenUrl = "http://localhost:5000/api/auth/verify-token";
+
+    const tokenResponse = await fetch(tokenUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+    console.log(tokenData)
+    // If token is invalid or expired
+    if (!tokenResponse.ok || tokenData.error) {
+      // Clear invalid token
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
+    // API endpoint for fetching books
+    const apiUrl = `http://localhost:5000/api/library/books`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Response Status:", response.status);
+
+    // Handle authentication failure
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
+    // Parse the response data
+    const data = await response.json();
+    console.log("API Response:", data);
+
+    // Check if the response contains a valid book list
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to fetch books data");
+    }
+
+    // Return book data
+    return data.data; // Ensures only the books array is returned
+  } catch (error) {
+    console.error("Error fetching books data:", error);
+
+    return {
+      error: true,
+      message:
+        error.message || "Failed to fetch books. Please try again later.",
+    };
+  }
+}

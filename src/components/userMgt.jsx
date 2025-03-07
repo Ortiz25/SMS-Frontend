@@ -1,49 +1,85 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Plus,
   Filter,
-  MoreVertical,
-  Edit2,
+  Clock,
+  UserRoundPenIcon,
   Trash2,
   UserCheck,
-  UserRoundPenIcon,
+  UserX,
+  CalendarClock,
 } from "lucide-react";
 import UserFormModal from "./modals/userForm";
-import RoleFormModal from "./modals/roleForm";
 import DeleteConfirmationModal from "./modals/deleteUser";
+import { format } from "date-fns";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@school.com",
-      role: "Administrator",
-      department: "Management",
-      status: "Active",
-      lastActive: "2 hours ago",
-    },
-    {
-      id: 2,
-      name: "Sarah Wilson",
-      email: "sarah.wilson@school.com",
-      role: "Teacher",
-      department: "Science",
-      status: "Active",
-      lastActive: "1 day ago",
-    },
-  ]);
+  const token = localStorage.getItem("token");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // Roles based on the database schema
+  const roles = [
+    "admin",
+    "teacher",
+    "student",
+    "parent",
+    "staff",
+    "accountant",
+    "librarian",
+  ];
+
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:5000/api/users", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setUsers(data);
+        setError(null);
+      } catch (err) {
+        setError(`Failed to fetch users: ${err.message}`);
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Filter users by search query and role
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
 
   // Handlers for User Modal
   const handleAddUser = () => {
@@ -52,40 +88,62 @@ const UserManagement = () => {
   };
 
   const handleEditUser = (user) => {
-    console.log(user);
     setSelectedUser(user);
     setShowUserModal(true);
   };
 
-  const handleSaveUser = (userData) => {
-    if (selectedUser) {
-      console.log("Updating user:", userData);
-    } else {
-      console.log("Adding new user:", userData);
+  const handleSaveUser = async (userData) => {
+    try {
+      let response;
+
+      if (selectedUser) {
+        // Update existing user
+        response = await fetch(
+          `http://localhost:5000/api/users/${selectedUser.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(userData),
+          }
+        );
+      } else {
+        // Create new user
+        response = await fetch("http://localhost:5000/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(userData),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const updatedUser = await response.json();
+
+      if (selectedUser) {
+        // Update user in state
+        setUsers(
+          users.map((user) =>
+            user.id === selectedUser.id ? updatedUser : user
+          )
+        );
+      } else {
+        // Add new user to state
+        setUsers([...users, updatedUser]);
+      }
+
+      setShowUserModal(false);
+    } catch (err) {
+      console.error("Error saving user:", err);
+      // You could add error handling UI here
     }
-    setShowUserModal(false);
-  };
-
-  // Handlers for Role Modal
-  const handleAddRole = () => {
-    setSelectedRole(null); // Clear any selected role
-    setShowRoleModal(true); // Show modal in 'add' mode
-  };
-
-  const handleEditRole = (role) => {
-    setSelectedRole(role); // Set the role to edit
-    setShowRoleModal(true); // Show modal in 'edit' mode
-  };
-
-  const handleSaveRole = (roleData) => {
-    if (selectedRole) {
-      // Update existing role
-      console.log("Updating role:", roleData);
-    } else {
-      // Add new role
-      console.log("Adding new role:", roleData);
-    }
-    setShowRoleModal(false);
   };
 
   // Handle delete initiation
@@ -95,26 +153,70 @@ const UserManagement = () => {
   };
 
   // Handle delete confirmation
-  const handleDeleteConfirm = (userId) => {
-    // Delete user logic
-    setUsers(users.filter((user) => user.id !== userId));
+  const handleDeleteConfirm = async (userId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/users/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    // Show success message (you can implement a toast notification here)
-    console.log("User deleted successfully");
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
-    // Close modal and reset state
-    setShowDeleteModal(false);
-    setUserToDelete(null);
+      // Remove user from state
+      setUsers(users.filter((user) => user.id !== userId));
+
+      // Close modal and reset state
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      // You could add error handling UI here
+    }
   };
 
-  const roles = ["Administrator", "Teacher", "Staff", "Department Head"];
-  const departments = [
-    "Management",
-    "Science",
-    "Mathematics",
-    "English",
-    "History",
-  ];
+  // Toggle user active status
+  const handleToggleStatus = async (user) => {
+    try {
+      const updatedStatus = !user.is_active;
+
+      const response = await fetch(`/api/users/${user.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_active: updatedStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Update user in state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id ? { ...u, is_active: updatedStatus } : u
+        )
+      );
+    } catch (err) {
+      console.error("Error toggling user status:", err);
+      // You could add error handling UI here
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "Never";
+    return format(new Date(dateString), "MMM d, yyyy h:mm a");
+  };
 
   return (
     <div className="space-y-6">
@@ -143,7 +245,7 @@ const UserManagement = () => {
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search users..."
+            placeholder="Search users by username or email..."
             className="pl-10 w-full rounded-md border border-gray-300 py-2 px-3"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -158,7 +260,7 @@ const UserManagement = () => {
             <option value="all">All Roles</option>
             {roles.map((role) => (
               <option key={role} value={role}>
-                {role}
+                {role.charAt(0).toUpperCase() + role.slice(1)}
               </option>
             ))}
           </select>
@@ -169,97 +271,143 @@ const UserManagement = () => {
         </div>
       </div>
 
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="text-center py-4">
+          <div className="animate-spin w-6 h-6 border-t-2 border-b-2 border-blue-500 rounded-full mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading users...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {error}
+        </div>
+      )}
+
       {/* Responsive Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {[
-                "User",
-                "Role",
-                "Department",
-                "Status",
-                "Last Active",
-                "Actions",
-              ].map((header) => (
-                <th
-                  key={header}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell"
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center space-x-4">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-600 font-medium">
-                        {user.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">
-                        {user.name}
-                      </div>
-                      <div className="text-sm text-gray-500 truncate">
-                        {user.email}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                {/* Mobile-Friendly Responsive Columns */}
-                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                  <span className="text-sm text-gray-900">{user.role}</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                  <span className="text-sm text-gray-900">
-                    {user.department}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.status === "Active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
+      {!loading && !error && (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {[
+                  "User",
+                  "Role",
+                  "Status",
+                  "Created",
+                  "Last Login",
+                  "Actions",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell"
                   >
-                    {user.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                  <span className="text-sm text-gray-500">
-                    {user.lastActive}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEditUser(user)}
-                      className="p-1 hover:bg-gray-100 rounded-md"
-                    >
-                      <UserRoundPenIcon className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(user)}
-                      className="p-1 hover:bg-gray-100 rounded-md text-red-500"
-                    >
-                      <Trash2 className="w-6 h-6" />
-                    </button>
-                  </div>
-                </td>
+                    {header}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    No users found matching your criteria
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-600 font-medium">
+                            {user.username.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {user.username}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate">
+                            {user.email}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <span className="text-sm text-gray-900 capitalize">
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {user.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <CalendarClock className="w-4 h-4 mr-1" />
+                        {formatDate(user.created_at)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {formatDate(user.last_login)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="p-1 hover:bg-gray-100 rounded-md text-blue-600"
+                          title="Edit User"
+                        >
+                          <UserRoundPenIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(user)}
+                          className={`p-1 hover:bg-gray-100 rounded-md ${
+                            user.is_active
+                              ? "text-orange-500"
+                              : "text-green-600"
+                          }`}
+                          title={
+                            user.is_active ? "Deactivate User" : "Activate User"
+                          }
+                        >
+                          {user.is_active ? (
+                            <UserX className="w-5 h-5" />
+                          ) : (
+                            <UserCheck className="w-5 h-5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(user)}
+                          className="p-1 hover:bg-gray-100 rounded-md text-red-500"
+                          title="Delete User"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Modals */}
       <UserFormModal
@@ -267,6 +415,7 @@ const UserManagement = () => {
         onClose={() => setShowUserModal(false)}
         onSave={handleSaveUser}
         user={selectedUser}
+        roles={roles}
       />
 
       <DeleteConfirmationModal

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Plus,
@@ -12,15 +12,121 @@ import LeaveRequestsTable from "./leaveRequestTable";
 import RequestLeaveModal from "./modals/requestLeave";
 import ViewLeaveDetailsModal from "./modals/viewLeaveDetails";
 import LeaveApprovalModal from "./modals/leaveApproval";
+import axios from "axios";
 
 const LeaveManagement = () => {
+  // Get token from localStorage
+  const token = localStorage.getItem("token");
+  const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
   const [activeView, setActiveView] = useState("all");
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-
   const [approvalAction, setApprovalAction] = useState(null);
+
+  // New state variables
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [leaveStats, setLeaveStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    balance: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentTeacherId, setCurrentTeacherId] = useState(userInfo.teacher.teacher_id);
+  const [isAdmin, setIsAdmin] = useState(false);
+ 
+
+  useEffect(() => {
+   
+    
+    if (userInfo.teacher) {
+      setCurrentTeacherId(userInfo.teacher.teacherId);
+    } else {
+      setCurrentTeacherId(null);
+    }
+    
+    // Check if user is an admin
+    setIsAdmin(userInfo.role === 'admin');
+    
+    console.log('Current user info:', userInfo);
+  }, []);
+
+  // Fetch leave requests
+  useEffect(() => {
+    const fetchLeaveRequests = async () => {
+      setLoading(true);
+      try {
+        const params = activeView !== "all" ? { status: activeView } : {};
+        // If not admin, only fetch current teacher's leaves
+        if (!isAdmin && currentTeacherId) {
+          params.teacher_id = currentTeacherId;
+        }
+         console.log()
+        const response = await axios.get("http://localhost:5000/api/leaves", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          params: params,
+        });
+        setLeaveRequests(response.data.results);
+         console.log(response.data.results)
+        // Also fetch stats
+        fetchLeaveStats();
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching leave requests:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currentTeacherId || isAdmin) {
+      fetchLeaveRequests();
+    }
+  }, [activeView, currentTeacherId, isAdmin]);
+
+  // Fetch leave stats
+  const fetchLeaveStats = async () => {
+    try {
+      const statsResponse = await axios.get("http://localhost:5000/api/leaves/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        params: { teacher_id: !isAdmin ? currentTeacherId : undefined },
+      });
+
+
+      const balanceResponse =
+        !isAdmin && currentTeacherId
+          ? await axios.get(`http://localhost:5000/api/leaves/balances/${currentTeacherId}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            })
+          : { data: [] };
+
+      // Calculate total remaining balance (annual leave)
+      console.log(balanceResponse)
+      const annualLeaveBalance = balanceResponse.data.find(
+        (b) => b.leave_type_name === "Annual Leave"
+      );
+
+      setLeaveStats({
+        pending: statsResponse.data.pending || 0,
+        approved: statsResponse.data.approved || 0,
+        rejected: statsResponse.data.rejected || 0,
+        balance: annualLeaveBalance ? annualLeaveBalance.remaining_days : 0,
+      });
+    } catch (err) {
+      console.error("Error fetching leave stats:", err);
+    }
+  };
 
   // To open the modal
   const handleViewDetails = (leave) => {
@@ -30,54 +136,133 @@ const LeaveManagement = () => {
 
   const handleApproveLeave = async (data) => {
     try {
-      // Add your API call here
-      console.log("Approving leave:", data);
-      // Update the leave request in your list
-      // Show success notification
+      const response = await axios.patch(
+        `http://localhost:5000/api/leaves/${data.id}/status`,
+        {
+          status: "approved",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      // Update the leave request in the list
+      setLeaveRequests(
+        leaveRequests.map((leave) =>
+          leave.id === data.id ? response.data : leave
+        )
+      );
+
+      // Refresh stats
+      fetchLeaveStats();
+
+      // Close modal
+      setShowApprovalModal(false);
+      setSelectedLeave(null);
+      setApprovalAction(null);
     } catch (error) {
       console.error("Error approving leave:", error);
-      // Show error notification
+      setError(error.response?.data?.message || error.message);
     }
   };
 
   const handleRejectLeave = async (data) => {
     try {
-      // Add your API call here
-      console.log("Rejecting leave:", data);
-      // Update the leave request in your list
-      // Show success notification
+      if (!data.rejection_reason) {
+        return setError("Rejection reason is required");
+      }
+
+      const response = await axios.patch(
+        `http://localhost:5000/api/leaves/${data.id}/status`,
+        {
+          status: "rejected",
+          rejection_reason: data.rejection_reason,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      // Update the leave request in the list
+      setLeaveRequests(
+        leaveRequests.map((leave) =>
+          leave.id === data.id ? response.data : leave
+        )
+      );
+
+      // Refresh stats
+      fetchLeaveStats();
+
+      // Close modal
+      setShowApprovalModal(false);
+      setSelectedLeave(null);
+      setApprovalAction(null);
     } catch (error) {
       console.error("Error rejecting leave:", error);
-      // Show error notification
+      setError(error.response?.data?.message || error.message);
     }
   };
 
-  // Stats data
-  const leaveStats = [
+  // Handle new leave request submission
+  const handleLeaveSubmission = async (formData) => {
+    console.log(currentTeacherId)
+    try {
+      await axios.post(
+        "http://localhost:5000/api/leaves", 
+        {
+          ...formData,
+          teacher_id: userInfo.teacher.teacher_id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      // Refresh leave requests and stats
+      setActiveView("pending");
+      fetchLeaveStats();
+      setShowRequestModal(false);
+    } catch (error) {
+      console.error("Error submitting leave request:", error);
+      setError(error.response?.data?.message || error.message);
+    }
+  };
+
+  // Stats data calculation from state
+  const statsData = [
     {
       title: "Pending Requests",
-      count: 5,
+      count: leaveStats.pending,
       icon: Clock,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
     },
     {
       title: "Approved Leaves",
-      count: 12,
+      count: leaveStats.approved,
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
       title: "Rejected Leaves",
-      count: 3,
+      count: leaveStats.rejected,
       icon: XCircle,
       color: "text-red-600",
       bgColor: "bg-red-50",
     },
     {
       title: "Leave Balance",
-      count: "15 days",
+      count: `${leaveStats.balance} days`,
       icon: Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -86,9 +271,19 @@ const LeaveManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Error message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+          <button className="float-right" onClick={() => setError(null)}>
+            &times;
+          </button>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {leaveStats.map((stat, index) => (
+        {statsData.map((stat, index) => (
           <div key={index} className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-600">
@@ -114,18 +309,12 @@ const LeaveManagement = () => {
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
-          <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
-            <Filter className="h-4 w-4" />
-            <span>Filter</span>
-          </button>
         </div>
 
         <button
-          onClick={() => {
-            console.log(showRequestModal);
-            setShowRequestModal(true);
-          }}
+          onClick={() => setShowRequestModal(true)}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          disabled={loading}
         >
           <Plus className="h-4 w-4" />
           <span>Request Leave</span>
@@ -134,10 +323,13 @@ const LeaveManagement = () => {
 
       {/* Leave Requests Table */}
       <LeaveRequestsTable
+        requests={leaveRequests}
+        loading={loading}
         handleViewDetails={handleViewDetails}
         setShowApprovalModal={setShowApprovalModal}
         setSelectedLeave={setSelectedLeave}
         setApprovalAction={setApprovalAction}
+        isAdmin={isAdmin}
       />
 
       {/* Modals */}
@@ -145,12 +337,11 @@ const LeaveManagement = () => {
         <RequestLeaveModal
           isOpen={showRequestModal}
           onClose={() => setShowRequestModal(false)}
-          onSubmit={(data) => {
-            console.log("Leave request submitted:", data);
-            setShowRequestModal(false);
-          }}
+          onSubmit={handleLeaveSubmission} 
+          teacherId={currentTeacherId}
         />
       )}
+
       <ViewLeaveDetailsModal
         isOpen={showDetailsModal}
         onClose={() => {
@@ -158,7 +349,9 @@ const LeaveManagement = () => {
           setSelectedLeave(null);
         }}
         leaveRequest={selectedLeave}
+        isAdmin={isAdmin}
       />
+
       <LeaveApprovalModal
         isOpen={showApprovalModal}
         onClose={() => {

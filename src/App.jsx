@@ -18,76 +18,42 @@ import ErrorPage from './pages/ErrorPage';
 import AlumniManagement from './pages/AlumniPages';
 import LoginPage from './pages/LoginPage';
 import ForgotPass from './pages/ForgotPassPage';
+import { action as LoginAction, loader as LoginLoader } from './pages/LoginPage';
+import { loader as DashLoader } from './pages/Dashboard';
+import { loader as StudentLoader } from './pages/StudentMgt';
+import { loader as LibraryLoader } from './pages/LibraryMgt';
+import { loader as timetableLoader } from './pages/TimetableMgt';
+import { loader as teacherLoader } from './pages/TeacherMgt';
+import { loader as ExamLoader } from './pages/ExamGrading';
+import { loader as DisciplinaryLoader } from './pages/DiscplinaryMgt';
+import { loader as loaderTransport  } from './pages/HostelTransportMgt';
+import { loader as commsLoader } from './pages/CommunicationMgt';
+import { loader as loaderSettings  } from './pages/SettingsMgt';
+import { loader as inventoryLoader } from './pages/InventoryMgt';
+
 
 
 
 
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Dashboard/>,
-  },
-  {
-    path: "/students",
-    element: <StudentManagement/>,
-  },
-  {
-    path: "/teachers",
-    element: <TeacherManagement/>,
-  },
-  {
-    path: "/timetable",
-    element: <TimetableManagement/>,
-  },
-  {
-    path: "/grading",
-    element: <ExamGrading/>,
-  },
-  {
-    path: "/library",
-    element: <LibraryManagement/>,
-  },
-  {
-    path: "/disciplinary",
-    element: <DisciplineMgt/>,
-  },
-  {
-    path: "/inventory",
-    element: <InventoryManagement/>,
-  },
-  {
-    path: "/communications",
-    element: <CommunicationHub/>,
-  },
-  {
-    path: "/transport",
-    element: <HostelTransportManagement/>,
-  },
-  {
-    path: "/settings",
-    element: <SettingsModule/>,
-  },
-  {
-    path: "/error",
-    element: <ErrorPage/>,
-  },
-  {
-    path: "/alumni",
-    element: <AlumniManagement/>,
-  },
-  {
-    path: "/login",
-    element: <LoginPage/>,
-  },
-  {
-    path: "/forgotpassword",
-    element: <ForgotPass/>,
-  },
-  
-  
-  
+  { path: "/", element: <LoginPage/>, action:LoginAction, loader: LoginLoader },
+  { path: "/dashboard", element: <Dashboard/>, loader:DashLoader },
+  { path: "/students", element: <StudentManagement/>, loader:StudentLoader },
+  { path: "/teachers", element: <TeacherManagement/>, loader:teacherLoader },
+  { path: "/timetable", element: <TimetableManagement/>, loader:timetableLoader},
+  { path: "/grading", element: <ExamGrading/>, loader:ExamLoader},
+  { path: "/library", element: <LibraryManagement/>, loader:LibraryLoader},
+  { path: "/disciplinary", element: <DisciplineMgt/>, loader:DisciplinaryLoader },
+  { path: "/inventory", element: <InventoryManagement/>, loader: inventoryLoader },
+  { path: "/communications", element: <CommunicationHub/>, loader:commsLoader },
+  { path: "/transport", element: <HostelTransportManagement/>, loader:loaderTransport },
+  { path: "/settings", element: <SettingsModule/>, loader:loaderSettings},
+  { path: "/alumni", element: <AlumniManagement/> },
+  { path: "/forgotpassword", element: <ForgotPass/> },
+  { path: "*", element: <ErrorPage/> }
 ]);
+
 
 function App() {
   return (

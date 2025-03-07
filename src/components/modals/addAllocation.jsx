@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 
-const AllocationModal = ({ isOpen, onClose, onSave }) => {
+const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, subjects }) => {
   const [formData, setFormData] = useState({
-    class: '',
+    classidId: '',
     subject: '',
-    teacher: '',
+    teacherId: '',
     hours: '',
     room: '',
     days: []
   });
-
+  const uniqueSubjects = [...new Set(subjects.map((subject) => subject.name))];
+  const formattedSubjects = uniqueSubjects.map(name => ({ name }));
+  console.log(subjects)
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
@@ -27,6 +29,7 @@ const AllocationModal = ({ isOpen, onClose, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      console.log(formData)
       onSave(formData);
       onClose();
     }
@@ -60,9 +63,12 @@ const AllocationModal = ({ isOpen, onClose, onSave }) => {
                 }`}
               >
                 <option value="">Select Class</option>
-                <option value="Form 4A">Form 4A</option>
-                <option value="Form 4B">Form 4B</option>
-                {/* Add more options */}
+                {classes.map(cls => (
+                  <option key={cls.name} value={cls.name}>
+                    {cls.name}
+                  </option>
+                ))}
+             
               </select>
               {errors.class && (
                 <p className="mt-1 text-sm text-red-600">{errors.class}</p>
@@ -81,9 +87,12 @@ const AllocationModal = ({ isOpen, onClose, onSave }) => {
                 }`}
               >
                 <option value="">Select Subject</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="Physics">Physics</option>
-                {/* Add more options */}
+                {formattedSubjects.map(sb => (
+                  <option key={sb.name} value={sb.name}>
+                    {sb.name}
+                  </option>
+                ))}
+             
               </select>
               {errors.subject && (
                 <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
@@ -102,9 +111,12 @@ const AllocationModal = ({ isOpen, onClose, onSave }) => {
                 }`}
               >
                 <option value="">Select Teacher</option>
-                <option value="Mr. John Doe">Mr. John Doe</option>
-                <option value="Mrs. Jane Smith">Mrs. Jane Smith</option>
-                {/* Add more options */}
+                {teachers.map(teacher => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.first_name} {teacher.last_name} - {teacher.subject_specialization?.join(', ') || 'No specialization'}
+                  </option>
+                ))}
+              
               </select>
               {errors.teacher && (
                 <p className="mt-1 text-sm text-red-600">{errors.teacher}</p>
@@ -133,13 +145,23 @@ const AllocationModal = ({ isOpen, onClose, onSave }) => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Room
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.room}
                 onChange={(e) => setFormData({ ...formData, room: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg border-gray-300"
-                placeholder="e.g., Room 101"
-              />
+                className={`w-full px-3 py-2 border rounded-lg ${
+                  errors.teacher ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select Room</option>
+                {rooms.map(sb => (
+                  <option key={sb.name} value={sb.name}>
+                    {sb.name}
+                  </option>
+                ))}
+              </select>
+              {errors.teacher && (
+                <p className="mt-1 text-sm text-red-600">{errors.teacher}</p>
+              )}
             </div>
 
             <div className="pt-4 border-t flex justify-end space-x-4">

@@ -11,7 +11,7 @@ const PersonalInfo = ({ student }) => {
             <label className="block text-sm font-medium text-gray-500">
               Full Name
             </label>
-            <p className="mt-1">{student?.name}</p>
+            <p className="mt-1">{student?.first_name + " " + student?.last_name}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-500">
