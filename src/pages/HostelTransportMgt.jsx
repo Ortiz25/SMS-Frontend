@@ -23,7 +23,7 @@ const HostelTransportManagement = () => {
     // Fetch statistics data
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/hostel-transport/stats',{
+        const response = await fetch('http://localhost:5001/api/hostel-transport/stats',{
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -134,7 +134,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
   
-    const tokenUrl = "http://localhost:5000/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5001/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

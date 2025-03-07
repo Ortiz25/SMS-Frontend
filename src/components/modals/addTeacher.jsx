@@ -133,7 +133,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post("http://localhost:5000/api/teachers", formDataUpload, {
+      const response = await axios.post("http://localhost:5001/api/teachers", formDataUpload, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,

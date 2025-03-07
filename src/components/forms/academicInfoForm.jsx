@@ -59,7 +59,7 @@ const AcademicInfoForm = ({
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/classes", {
+      const response = await axios.get("http://localhost:5001/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -102,7 +102,7 @@ const AcademicInfoForm = ({
         { level: formData.class, curriculum_type: classes.find(c => c.level === formData.class)?.curriculum_type } : 
         {};
       
-      const response = await axios.get("http://localhost:5000/api/classes/subjects", {
+      const response = await axios.get("http://localhost:5001/api/classes/subjects", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

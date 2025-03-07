@@ -30,19 +30,19 @@ const EditModal = ({ item, editType, onClose, onUpdate, token }) => {
       
       // Hostel endpoints
       if (editType === "dormitories") {
-        endpoint = `http://localhost:5000/api/hostel-transport/dormitories/${item.id}`;
+        endpoint = `http://localhost:5001/api/hostel-transport/dormitories/${item.id}`;
       } else if (editType === "allocations") {
-        endpoint = `http://localhost:5000/api/hostel-transport/allocations/${item.id}`;
+        endpoint = `http://localhost:5001/api/hostel-transport/allocations/${item.id}`;
       } else if (editType === "students") {
-        endpoint = `http://localhost:5000/api/hostel-transport/boarders/${item.id}`;
+        endpoint = `http://localhost:5001/api/hostel-transport/boarders/${item.id}`;
       }
       // Transport endpoints
       else if (editType === "routes") {
-        endpoint = `http://localhost:5000/api/transport/routes/${item.id}`;
+        endpoint = `http://localhost:5001/api/transport/routes/${item.id}`;
       } else if (editType === "stops") {
-        endpoint = `http://localhost:5000/api/transport/stops/${item.id}`;
+        endpoint = `http://localhost:5001/api/transport/stops/${item.id}`;
       } else if (editType === "allocations") {
-        endpoint = `http://localhost:5000/api/transport/allocations/${item.id}`;
+        endpoint = `http://localhost:5001/api/transport/allocations/${item.id}`;
       }
       
       const response = await fetch(endpoint, {

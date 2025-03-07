@@ -25,7 +25,7 @@ const LoginPage = () => {
     ) {
       const timeoutId = setTimeout(() => {
         navigate("/resetpassword");
-      }, 5000);
+      }, 5001);
       return () => clearTimeout(timeoutId);
     }
   }, [errors]);
@@ -151,7 +151,7 @@ export async function action({ request, params }) {
   }
   try {
     // Set correct API endpoint for our backend
-    let loginUrl = "http://localhost:5000/api/auth/login";
+    let loginUrl = "http://localhost:5001/api/auth/login";
     const loginResponse = await fetch(loginUrl, {
       method: "POST",
       headers: {
@@ -168,7 +168,7 @@ export async function action({ request, params }) {
       
       // Fetch user profile with the token
       try {
-        const profileUrl = "http://localhost:5000/api/auth/user-profile";
+        const profileUrl = "http://localhost:5001/api/auth/user-profile";
         const profileResponse = await fetch(profileUrl, {
           method: "GET",
           headers: {
@@ -227,7 +227,7 @@ export async function loader() {
   
   try {
     // Set correct API endpoint for our backend
-    const url = "http://localhost:5000/api/auth/verify-token";
+    const url = "http://localhost:5001/api/auth/verify-token";
     
     const response = await fetch(url, {
       method: "GET",

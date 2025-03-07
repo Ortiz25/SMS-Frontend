@@ -34,7 +34,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch academic sessions and determine current session
         const sessionsResponse = await fetch(
-          "http://localhost:5000/api/sessions/academic-sessions",
+          "http://localhost:5001/api/sessions/academic-sessions",
           {
             headers: {
               "Content-Type": "application/json",
@@ -57,7 +57,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch allocations - using teacher_subjects table as per schema
         const allocationsResponse = await fetch(
-          "http://localhost:5000/api/allocations/allocations",
+          "http://localhost:5001/api/allocations/allocations",
           {
             headers: {
               "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const ClassAllocation = ({rooms}) => {
         const fetchReferenceData = async () => {
           try {
             const response = await fetch(
-              "http://localhost:5000/api/helpers/reference-data",
+              "http://localhost:5001/api/helpers/reference-data",
               {
                 headers: {
                   "Content-Type": "application/json",
@@ -155,10 +155,11 @@ const ClassAllocation = ({rooms}) => {
 
   // Handler for new allocation submission
   const handleSaveAllocation = async (allocationData) => {
+    console.log(allocationData)
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5000/api/allocations", {
+      const response = await fetch("http://localhost:5001/api/allocations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -226,7 +227,7 @@ const ClassAllocation = ({rooms}) => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/allocations/${allocationData.id}`,
+        `http://localhost:5001/api/allocations/${allocationData.id}`,
         {
           method: "PUT",
           headers: {
@@ -297,7 +298,7 @@ const ClassAllocation = ({rooms}) => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/allocations/${selectedAllocation.id}`,
+        `http://localhost:5001/api/allocations/${selectedAllocation.id}`,
         {
           method: "DELETE",
           headers: {

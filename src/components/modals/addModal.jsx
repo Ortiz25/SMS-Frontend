@@ -8,58 +8,58 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
+    
     try {
       setLoading(true);
       let endpoint;
-
+      
       // Hostel endpoints
       if (addType === "dormitories") {
-        endpoint = "http://localhost:5000/api/hostel-transport/dormitories";
+        endpoint = "http://localhost:5001/api/hostel-transport/dormitories";
         // Set default values if not provided
         if (!formData.status) formData.status = "active";
       } else if (addType === "hostel-allocations") {
-        endpoint = "http://localhost:5000/api/hostel-transport/allocations";
+        endpoint = "http://localhost:5001/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
       // Transport endpoints
       else if (addType === "routes") {
-        endpoint = "http://localhost:5000/api/transport/routes";
+        endpoint = "http://localhost:5001/api/transport/routes";
         // Set default values
         if (!formData.status) formData.status = "active";
       } else if (addType === "stops") {
-        endpoint = "http://localhost:5000/api/transport/stops";
+        endpoint = "http://localhost:5001/api/transport/stops";
       } else if (addType === "transport-allocations") {
-        endpoint = "http://localhost:5000/api/transport/allocations";
+        endpoint = "http://localhost:5001/api/transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
-
+      
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
-
+      
       const responseData = await response.json();
-
+      
       if (responseData.success) {
         // Determine which property contains the new item based on endpoint
         let newItem;
-
+        
         // Extract the new item
         if (addType === "dormitories") {
           newItem = responseData.dormitory;
@@ -72,7 +72,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "transport-allocations") {
           newItem = responseData.allocation;
         }
-
+        
         // Update parent component's state
         onAdd(newItem);
         onClose();
@@ -93,12 +93,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Name
-            </label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
             <input
               type="text"
               name="name"
@@ -110,12 +105,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="gender"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Gender
-            </label>
+            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
             <select
               name="gender"
               id="gender"
@@ -131,12 +121,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="capacity"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Capacity
-            </label>
+            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">Capacity</label>
             <input
               type="number"
               name="capacity"
@@ -149,12 +134,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="fee_per_term"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Fee Per Term (KES)
-            </label>
+            <label htmlFor="fee_per_term" className="block text-sm font-medium text-gray-700">Fee Per Term (KES)</label>
             <input
               type="number"
               name="fee_per_term"
@@ -167,12 +147,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="caretaker_name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Caretaker Name
-            </label>
+            <label htmlFor="caretaker_name" className="block text-sm font-medium text-gray-700">Caretaker Name</label>
             <input
               type="text"
               name="caretaker_name"
@@ -183,12 +158,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="caretaker_contact"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Caretaker Contact
-            </label>
+            <label htmlFor="caretaker_contact" className="block text-sm font-medium text-gray-700">Caretaker Contact</label>
             <input
               type="text"
               name="caretaker_contact"
@@ -208,12 +178,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="student_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Student
-            </label>
+            <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">Student</label>
             <select
               name="student_id"
               id="student_id"
@@ -229,12 +194,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="room_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Room
-            </label>
+            <label htmlFor="room_id" className="block text-sm font-medium text-gray-700">Room</label>
             <select
               name="room_id"
               id="room_id"
@@ -250,12 +210,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="bed_number"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Bed Number
-            </label>
+            <label htmlFor="bed_number" className="block text-sm font-medium text-gray-700">Bed Number</label>
             <input
               type="text"
               name="bed_number"
@@ -267,12 +222,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="academic_session_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Academic Session
-            </label>
+            <label htmlFor="academic_session_id" className="block text-sm font-medium text-gray-700">Academic Session</label>
             <select
               name="academic_session_id"
               id="academic_session_id"
@@ -298,12 +248,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="route_name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Route Name
-            </label>
+            <label htmlFor="route_name" className="block text-sm font-medium text-gray-700">Route Name</label>
             <input
               type="text"
               name="route_name"
@@ -315,12 +260,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="departure_time"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Departure Time
-            </label>
+            <label htmlFor="departure_time" className="block text-sm font-medium text-gray-700">Departure Time</label>
             <input
               type="time"
               name="departure_time"
@@ -332,12 +272,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="return_time"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Return Time
-            </label>
+            <label htmlFor="return_time" className="block text-sm font-medium text-gray-700">Return Time</label>
             <input
               type="time"
               name="return_time"
@@ -349,12 +284,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="fee_per_term"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Fee Per Term (KES)
-            </label>
+            <label htmlFor="fee_per_term" className="block text-sm font-medium text-gray-700">Fee Per Term (KES)</label>
             <input
               type="number"
               name="fee_per_term"
@@ -376,12 +306,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="route_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Route
-            </label>
+            <label htmlFor="route_id" className="block text-sm font-medium text-gray-700">Route</label>
             <select
               name="route_id"
               id="route_id"
@@ -397,12 +322,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="stop_name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Stop Name
-            </label>
+            <label htmlFor="stop_name" className="block text-sm font-medium text-gray-700">Stop Name</label>
             <input
               type="text"
               name="stop_name"
@@ -414,12 +334,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="stop_order"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Stop Order
-            </label>
+            <label htmlFor="stop_order" className="block text-sm font-medium text-gray-700">Stop Order</label>
             <input
               type="number"
               name="stop_order"
@@ -432,12 +347,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="morning_pickup_time"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Morning Pickup Time
-            </label>
+            <label htmlFor="morning_pickup_time" className="block text-sm font-medium text-gray-700">Morning Pickup Time</label>
             <input
               type="time"
               name="morning_pickup_time"
@@ -448,12 +358,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label
-              htmlFor="evening_dropoff_time"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Evening Dropoff Time
-            </label>
+            <label htmlFor="evening_dropoff_time" className="block text-sm font-medium text-gray-700">Evening Dropoff Time</label>
             <input
               type="time"
               name="evening_dropoff_time"
@@ -473,12 +378,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="student_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Student
-            </label>
+            <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">Student</label>
             <select
               name="student_id"
               id="student_id"
@@ -494,12 +394,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="route_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Route
-            </label>
+            <label htmlFor="route_id" className="block text-sm font-medium text-gray-700">Route</label>
             <select
               name="route_id"
               id="route_id"
@@ -515,12 +410,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="pickup_stop_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Pickup Stop
-            </label>
+            <label htmlFor="pickup_stop_id" className="block text-sm font-medium text-gray-700">Pickup Stop</label>
             <select
               name="pickup_stop_id"
               id="pickup_stop_id"
@@ -536,12 +426,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="academic_session_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Academic Session
-            </label>
+            <label htmlFor="academic_session_id" className="block text-sm font-medium text-gray-700">Academic Session</label>
             <select
               name="academic_session_id"
               id="academic_session_id"
@@ -563,17 +448,17 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
   const renderForm = () => {
     // Hostel forms
-    if (addType === "dormitories") {
+    if (addType === 'dormitories') {
       return renderDormitoryForm();
-    } else if (addType === "hostel-allocations") {
+    } else if (addType === 'hostel-allocations') {
       return renderHostelAllocationForm();
-    }
+    } 
     // Transport forms
-    else if (addType === "routes") {
+    else if (addType === 'routes') {
       return renderRouteForm();
-    } else if (addType === "stops") {
+    } else if (addType === 'stops') {
       return renderStopForm();
-    } else if (addType === "transport-allocations") {
+    } else if (addType === 'transport-allocations') {
       return renderTransportAllocationForm();
     } else {
       return <p>No form available</p>;
@@ -583,46 +468,35 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
   // Get modal title based on add type
   const getModalTitle = () => {
     // Hostel titles
-    if (addType === "dormitories") {
+    if (addType === 'dormitories') {
       return "Add New Dormitory";
-    } else if (addType === "hostel-allocations") {
+    } else if (addType === 'hostel-allocations') {
       return "Add New Hostel Allocation";
     }
     // Transport titles
-    else if (addType === "routes") {
+    else if (addType === 'routes') {
       return "Add New Transport Route";
-    } else if (addType === "stops") {
+    } else if (addType === 'stops') {
       return "Add New Route Stop";
-    } else if (addType === "transport-allocations") {
+    } else if (addType === 'transport-allocations') {
       return "Add New Transport Allocation";
     } else {
-      return "Add New";
+      return 'Add New';
     }
   };
 
   return (
     <div className="fixed inset-0  overflow-y-auto z-50">
-      <div
-        className="fixed inset-0 bg-black opacity-75 transition-opacity"
-        aria-hidden="true"
-        onClick={onClose}
-      ></div>
+        <div className="fixed inset-0 bg-black opacity-75 transition-opacity" aria-hidden="true" onClick={onClose}></div>
       <div className="relative flex min-h-screen items-end z- justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <span
-          className="hidden sm:inline-block sm:h-screen sm:align-middle"
-          aria-hidden="true"
-        >
-          &#8203;
-        </span>
+       
+        <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
         <div className=" inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                 <div className="flex justify-between items-center">
-                  <h3
-                    className="text-lg leading-6 font-medium text-gray-900"
-                    id="modal-title"
-                  >
+                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                     {getModalTitle()}
                   </h3>
                   <button
@@ -652,7 +526,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? "Adding..." : "Add"}
+              {loading ? 'Adding...' : 'Add'}
             </button>
             <button
               type="button"

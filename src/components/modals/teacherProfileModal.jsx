@@ -28,7 +28,7 @@ import { extractDate } from "../../util/helperFunctions";
     const[subjects, updatedSubjects] = useState()
 
     useEffect(() => {
-      const url = "http://localhost:5000/api/subjects/subjects"
+      const url = "http://localhost:5001/api/subjects/subjects"
       const fetchData = async () => {
         try {
           const response = await fetch(url,{

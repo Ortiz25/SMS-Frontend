@@ -82,7 +82,7 @@ const InventoryList = ({ categoryFilter }) => {
   const fetchInventoryItems = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:5000/api/inventory/inventory';
+      let url = 'http://localhost:5001/api/inventory/inventory';
       const params = {};
       
       if (categoryFilter && categoryFilter !== 'all') {
@@ -106,7 +106,7 @@ const InventoryList = ({ categoryFilter }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/inventory/inventory-categories', {
+      const response = await axios.get('http://localhost:5001/api/inventory/inventory-categories', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -229,7 +229,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.post(
-        'http://localhost:5000/api/inventory/inventory',
+        'http://localhost:5001/api/inventory/inventory',
         newItemData,
         {
           headers: {
@@ -258,7 +258,7 @@ const InventoryList = ({ categoryFilter }) => {
       
       // Create a transaction record
       await axios.post(
-        `http://localhost:5000/api/inventory/inventory/${selectedItem.id}/transactions`,
+        `http://localhost:5001/api/inventory/inventory/${selectedItem.id}/transactions`,
         {
           transaction_type: stockAction === 'increase' ? 'in' : 'out',
           quantity: stockAmount,
@@ -286,7 +286,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `http://localhost:5000/api/inventory/inventory/${selectedItem.id}`,
+        `http://localhost:5001/api/inventory/inventory/${selectedItem.id}`,
         editFormData,
         {
           headers: {
@@ -308,7 +308,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.delete(
-        `http://localhost:5000/api/inventory/inventory/${selectedItem.id}`,
+        `http://localhost:5001/api/inventory/inventory/${selectedItem.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

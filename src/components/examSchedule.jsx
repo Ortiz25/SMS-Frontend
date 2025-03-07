@@ -34,7 +34,7 @@ const ExamSchedule = () => {
 
         // Fetch academic sessions
         const sessionsResponse = await fetch(
-          "http://localhost:5000/api/sessions/academic-sessions",
+          "http://localhost:5001/api/sessions/academic-sessions",
           {
             headers: {
               "Content-Type": "application/json",
@@ -58,7 +58,7 @@ const ExamSchedule = () => {
 
         // Fetch exam types
         const typesResponse = await fetch(
-          "http://localhost:5000/api/exams/exam-types",
+          "http://localhost:5001/api/exams/exam-types",
           {
             headers: {
               "Content-Type": "application/json",
@@ -74,7 +74,7 @@ const ExamSchedule = () => {
 
         // Fetch classes
         const classesResponse = await fetch(
-          "http://localhost:5000/api/helpers/classes",
+          "http://localhost:5001/api/helpers/classes",
           {
             headers: {
               "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const ExamSchedule = () => {
         setClasses(classesData.data);
 
         // Fetch rooms
-        const roomsResponse = await fetch("http://localhost:5000/api/rooms", {
+        const roomsResponse = await fetch("http://localhost:5001/api/rooms", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -130,7 +130,7 @@ const ExamSchedule = () => {
 
       // Fetch examinations for the selected session
       const examsResponse = await fetch(
-        `http://localhost:5000/api/exams/examinations?academicSessionId=${sessionId}`,
+        `http://localhost:5001/api/exams/examinations?academicSessionId=${sessionId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -155,7 +155,7 @@ const ExamSchedule = () => {
       }
 
       const schedulesResponse = await fetch(
-        `http://localhost:5000/api/exams/exam-schedules?${params}`,
+        `http://localhost:5001/api/exams/exam-schedules?${params}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -224,7 +224,7 @@ const ExamSchedule = () => {
       if (!examinationId) {
         // Create a new examination if it doesn't exist
         const examResponse = await fetch(
-          "http://localhost:5000/api/exams/examinations",
+          "http://localhost:5001/api/exams/examinations",
           {
             method: "POST",
             headers: {
@@ -250,7 +250,7 @@ const ExamSchedule = () => {
 
       // Now create the exam schedule
       const scheduleResponse = await fetch(
-        "http://localhost:5000/api/exams/exam-schedules",
+        "http://localhost:5001/api/exams/exam-schedules",
         {
           method: "POST",
           headers: {

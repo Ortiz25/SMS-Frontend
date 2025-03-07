@@ -187,7 +187,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "http://localhost:5000/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5001/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

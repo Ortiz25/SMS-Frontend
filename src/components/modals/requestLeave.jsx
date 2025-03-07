@@ -25,7 +25,7 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
       try {
         // Fetch leave types
         const typesResponse = await axios.get(
-          "http://localhost:5000/api/leavetypes",
+          "http://localhost:5001/api/leavetypes",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -51,7 +51,7 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
     
         try {
           const response = await axios.get(
-            "http://localhost:5000/api/teachers/check/available-substitutes",
+            "http://localhost:5001/api/teachers/check/available-substitutes",
             {
               headers: {
                 Authorization: `Bearer ${token}`,

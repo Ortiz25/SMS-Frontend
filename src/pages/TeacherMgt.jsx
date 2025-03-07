@@ -205,7 +205,7 @@ export async function loader({ params, request }) {
     const teacherId = params.teacherId;
 
     // API endpoint
-    const apiUrl = `http://localhost:5000/api/teachers`;
+    const apiUrl = `http://localhost:5001/api/teachers`;
 
     // Fetch teachers or teacher details with authentication
     const response = await fetch(apiUrl, {

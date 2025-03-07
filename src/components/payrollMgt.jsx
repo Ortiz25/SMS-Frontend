@@ -37,7 +37,7 @@ const PayrollManagement = () => {
       paymentMethod: "Bank Transfer",
       accountLast4: "4321",
       basicSalary: employee.basicSalary,
-      housingAllowance: 5000,
+      housingAllowance: 5001,
       transportAllowance: 3000,
       paye: 4500,
       nhif: 1000,
