@@ -594,14 +594,14 @@ export async function loader({ params, request }) {
   try {
     // Make both API calls in parallel instead of sequentially
     const [tokenResponse, dashboardResponse] = await Promise.all([
-      fetch("http://localhost:5001/api/auth/verify-token", {
+      fetch("/backend/api/auth/verify-token", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }),
-      fetch("http://localhost:5001/api/dashboard/summary", {
+      fetch("/backend/api/dashboard/summary", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

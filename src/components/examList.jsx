@@ -95,7 +95,7 @@ const ExamList = ({
       const token = localStorage.getItem("token");
        console.log(updatedExam)
       const response = await fetch(
-        `http://localhost:5001/api/exams/exam-schedules/${updatedExam.id}`,
+        `/backend/api/exams/exam-schedules/${updatedExam.id}`,
         {
           method: "PUT",
           headers: {
@@ -146,7 +146,7 @@ const ExamList = ({
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5001/api/exams/exam-schedules/${selectedExam.id}`,
+        `/backend/api/exams/exam-schedules/${selectedExam.id}`,
         {
           method: "DELETE",
           headers: {

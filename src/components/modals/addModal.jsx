@@ -24,23 +24,23 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       
       // Hostel endpoints
       if (addType === "dormitories") {
-        endpoint = "http://localhost:5001/api/hostel-transport/dormitories";
+        endpoint = "/backend/api/hostel-transport/dormitories";
         // Set default values if not provided
         if (!formData.status) formData.status = "active";
       } else if (addType === "hostel-allocations") {
-        endpoint = "http://localhost:5001/api/hostel-transport/allocations";
+        endpoint = "/backend/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
       // Transport endpoints
       else if (addType === "routes") {
-        endpoint = "http://localhost:5001/api/transport/routes";
+        endpoint = "/backend/api/transport/routes";
         // Set default values
         if (!formData.status) formData.status = "active";
       } else if (addType === "stops") {
-        endpoint = "http://localhost:5001/api/transport/stops";
+        endpoint = "/backend/api/transport/stops";
       } else if (addType === "transport-allocations") {
-        endpoint = "http://localhost:5001/api/transport/allocations";
+        endpoint = "/backend/api/transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }

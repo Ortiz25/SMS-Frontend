@@ -27,7 +27,7 @@ const ViewResultsModal = ({ isOpen, onClose, examData }) => {
       setIsLoading(true);
       const token = localStorage.getItem("token");
       
-      const response = await fetch(`http://localhost:5001/api/exams/exam-results?examScheduleId=${examId}`, {
+      const response = await fetch(`/backend/api/exams/exam-results?examScheduleId=${examId}`, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`

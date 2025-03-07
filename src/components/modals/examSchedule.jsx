@@ -50,7 +50,7 @@ const ScheduleExamModal = ({
       const token = localStorage.getItem("token");
       
       // Fetch subjects
-      const subjectsResponse = await fetch('http://localhost:5001/api/helpers/subjects', {
+      const subjectsResponse = await fetch('/backend/api/helpers/subjects', {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -64,7 +64,7 @@ const ScheduleExamModal = ({
       setSubjects(subjectsData.data);
       
       // Fetch teachers
-      const teachersResponse = await fetch('http://localhost:5001/api/teachers', {
+      const teachersResponse = await fetch('/backend/api/teachers', {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`

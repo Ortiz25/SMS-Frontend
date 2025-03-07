@@ -70,7 +70,7 @@ const ExamGrading = () => {
   // Fetch classes for filter
   const fetchClasses = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/grading/classes',{
+      const response = await axios.get('/backend/api/grading/classes',{
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -93,7 +93,7 @@ const ExamGrading = () => {
     
     const fetchSubjects = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/grading/subjects/${selectedClass}`,{
+        const response = await axios.get(`/backend/api/grading/subjects/${selectedClass}`,{
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -112,7 +112,7 @@ const ExamGrading = () => {
   // Fetch current academic session
   const fetchCurrentSession = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/grading/current-session',{
+      const response = await axios.get('/backend/api/grading/current-session',{
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -131,7 +131,7 @@ const ExamGrading = () => {
       setLoading(true);
       
       // Get current session
-      const sessionResponse = await axios.get('http://localhost:5001/api/grading/current-session',{
+      const sessionResponse = await axios.get('/backend/api/grading/current-session',{
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -141,7 +141,7 @@ const ExamGrading = () => {
       const currentSession = sessionResponse.data;
       
       // Get all exams for this session
-      const examsResponse = await axios.get(`http://localhost:5001/api/examgrading?academic_session_id=${currentSession.id}`,{
+      const examsResponse = await axios.get(`/backend/api/examgrading?academic_session_id=${currentSession.id}`,{
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -164,7 +164,7 @@ const ExamGrading = () => {
       
       // If we have a selected class, get specific average
       if (selectedClass !== "all") {
-        const analyticsResponse = await axios.get(`http://localhost:5001/api/analytics/class-performance/${selectedClass}?academic_session_id=${currentSession.id}`,{
+        const analyticsResponse = await axios.get(`/backend/api/analytics/class-performance/${selectedClass}?academic_session_id=${currentSession.id}`,{
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -182,7 +182,7 @@ const ExamGrading = () => {
         }
       } else {
         // Get overall school average
-        const schoolAnalyticsResponse = await axios.get(`http://localhost:5001/api/analytics/school-performance?academic_session_id=${currentSession.id}`,{
+        const schoolAnalyticsResponse = await axios.get(`/backend/api/analytics/school-performance?academic_session_id=${currentSession.id}`,{
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -223,7 +223,7 @@ const ExamGrading = () => {
     
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/grading/students/${selectedClass}`,{
+        const response = await axios.get(`/backend/api/grading/students/${selectedClass}`,{
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -471,7 +471,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "http://localhost:5001/api/auth/verify-token";
+    const tokenUrl = "/backend/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

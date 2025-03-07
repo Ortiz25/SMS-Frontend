@@ -24,7 +24,7 @@ const HostelSection = () => {
     const fetchDormitories = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5001/api/hostel-transport/dormitories', {
+        const response = await fetch('/backend/api/hostel-transport/dormitories', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -47,7 +47,7 @@ const HostelSection = () => {
     const fetchAllocations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5001/api/hostel-transport/allocations', {
+        const response = await fetch('/backend/api/hostel-transport/allocations', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -70,7 +70,7 @@ const HostelSection = () => {
     const fetchBoarders = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5001/api/hostel-transport/boarders', {
+        const response = await fetch('/backend/api/hostel-transport/boarders', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,

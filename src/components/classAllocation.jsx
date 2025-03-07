@@ -34,7 +34,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch academic sessions and determine current session
         const sessionsResponse = await fetch(
-          "http://localhost:5001/api/sessions/academic-sessions",
+          "/backend/api/sessions/academic-sessions",
           {
             headers: {
               "Content-Type": "application/json",
@@ -57,7 +57,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch allocations - using teacher_subjects table as per schema
         const allocationsResponse = await fetch(
-          "http://localhost:5001/api/allocations/allocations",
+          "/backend/api/allocations/allocations",
           {
             headers: {
               "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const ClassAllocation = ({rooms}) => {
         const fetchReferenceData = async () => {
           try {
             const response = await fetch(
-              "http://localhost:5001/api/helpers/reference-data",
+              "/backend/api/helpers/reference-data",
               {
                 headers: {
                   "Content-Type": "application/json",
@@ -159,7 +159,7 @@ const ClassAllocation = ({rooms}) => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:5001/api/allocations", {
+      const response = await fetch("/backend/api/allocations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +227,7 @@ const ClassAllocation = ({rooms}) => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5001/api/allocations/${allocationData.id}`,
+        `/backend/api/allocations/${allocationData.id}`,
         {
           method: "PUT",
           headers: {
@@ -298,7 +298,7 @@ const ClassAllocation = ({rooms}) => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5001/api/allocations/${selectedAllocation.id}`,
+        `/backend/api/allocations/${selectedAllocation.id}`,
         {
           method: "DELETE",
           headers: {

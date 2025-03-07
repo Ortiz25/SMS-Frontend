@@ -94,7 +94,7 @@ const AssetsList = ({ categoryFilter }) => {
   const fetchAssets = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:5001/api/inventory/assets';
+      let url = '/backend/api/inventory/assets';
       const params = {};
       
       if (categoryFilter && categoryFilter !== 'all') {
@@ -119,7 +119,7 @@ const AssetsList = ({ categoryFilter }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/inventory/asset-categories', {
+      const response = await axios.get('/backend/api/inventory/asset-categories', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -132,7 +132,7 @@ const AssetsList = ({ categoryFilter }) => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/inventory/departments', {
+      const response = await axios.get('/backend/api/inventory/departments', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -145,7 +145,7 @@ const AssetsList = ({ categoryFilter }) => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/inventory/rooms', {
+      const response = await axios.get('/backend/api/inventory/rooms', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -268,7 +268,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.post(
-        'http://localhost:5001/api/inventory/assets',
+        '/backend/api/inventory/assets',
         newAssetData,
         {
           headers: {
@@ -291,7 +291,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `http://localhost:5001/api/inventory/assets/${selectedAsset.id}`,
+        `/backend/api/inventory/assets/${selectedAsset.id}`,
         { status: newStatus },
         {
           headers: {
@@ -314,7 +314,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `http://localhost:5001/api/inventory/assets/${selectedAsset.id}`,
+        `/backend/api/inventory/assets/${selectedAsset.id}`,
         editFormData,
         {
           headers: {
@@ -336,7 +336,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.delete(
-        `http://localhost:5001/api/inventory/assets/${selectedAsset.id}`,
+        `/backend/api/inventory/assets/${selectedAsset.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
