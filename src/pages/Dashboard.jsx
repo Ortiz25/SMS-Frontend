@@ -38,25 +38,55 @@ const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { updateActiveModule, activeModule } = useStore();
-  const [performanceData, updatePerformanceData] = useState();
-  const [studentData, updateStudentData] = useState(
-    data.dashboard.student_stats
-  );
-  const [libraryData, updatelibraryData] = useState(
-    data.dashboard.library_stats
-  );
-  const [teacherData, updateteacherData] = useState(
-    data.dashboard.teacher_stats
-  );
-  const [activities, activitiesData] = useState(
-    data.dashboard.recent_activities
-  );
-  const [perfomance, updatePerfomance] = useState(
-    data.dashboard.form_perfomance
-  );
-  const [eventsData, updateEvents] = useState(data.dashboard.upcoming_events);
+  const [performanceData, updatePerformanceData] = useState([]);
+  const [studentData, updateStudentData] = useState({
+    total_students: 0,
+    male_students: 0,
+    female_students: 0,
+    active_students: 0,
+    inactive_students: 0
+  });
+  const [libraryData, updateLibraryData] = useState({
+    total_books: 0,
+    available_books: 0,
+    borrowed_books: 0
+  });
+  const [teacherData, updateTeacherData] = useState({
+    total_teachers: 0,
+    active_teachers: 0
+  });
+  const [activities, updateActivities] = useState([]);
+  const [performance, updatePerformance] = useState([]);
+  const [eventsData, updateEvents] = useState([]);
 
-  console.log(data.dashboard);
+  useEffect(() => {
+    // Initialize with default values, then update if data exists
+    if (data && data.dashboard) {
+      if (data.dashboard.student_stats) {
+        updateStudentData(data.dashboard.student_stats);
+      }
+      
+      if (data.dashboard.library_stats) {
+        updateLibraryData(data.dashboard.library_stats);
+      }
+      
+      if (data.dashboard.teacher_stats) {
+        updateTeacherData(data.dashboard.teacher_stats);
+      }
+      
+      if (data.dashboard.recent_activities) {
+        updateActivities(data.dashboard.recent_activities);
+      }
+      
+      if (data.dashboard.form_performance) {
+        updatePerformance(data.dashboard.form_performance);
+      }
+      
+      if (data.dashboard.upcoming_events) {
+        updateEvents(data.dashboard.upcoming_events);
+      }
+    }
+  }, [data]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -80,21 +110,26 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-        updatePerformanceData(classData);
-        console.log(classData);
+        updatePerformanceData(classData || []);
       } catch (error) {
         console.error("Error fetching class data:", error);
+        // Set to empty array in case of error
+        updatePerformanceData([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-    setIsLoading(false);
-  }, [data, token]);
-  console.log(performanceData);
+    if (token) {
+      fetchData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     updateActiveModule("overview");
-  }, [activeModule]);
+  }, [updateActiveModule]);
 
   // Function to get icon based on activity type
   const getActivityIcon = (activityType) => {
@@ -188,7 +223,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Total Students</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {studentData?.total_students}
+                  {studentData?.total_students || 0}
                 </span>
               </div>
 
@@ -198,7 +233,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Male Students</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {studentData?.male_students}
+                  {studentData?.male_students || 0}
                 </span>
               </div>
 
@@ -208,7 +243,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Female Students</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {studentData?.female_students}
+                  {studentData?.female_students || 0}
                 </span>
               </div>
 
@@ -218,7 +253,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Active Students</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {studentData?.active_students}
+                  {studentData?.active_students || 0}
                 </span>
               </div>
 
@@ -230,7 +265,7 @@ const Dashboard = () => {
                   </span>
                 </div>
                 <span className="text-lg font-bold">
-                  {studentData?.inactive_students}
+                  {studentData?.inactive_students || 0}
                 </span>
               </div>
             </div>
@@ -252,7 +287,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Total Teachers</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {teacherData?.total_teachers}
+                  {teacherData?.total_teachers || 0}
                 </span>
               </div>
 
@@ -262,7 +297,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Active Teachers</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {teacherData?.active_teachers}
+                  {teacherData?.active_teachers || 0}
                 </span>
               </div>
 
@@ -274,8 +309,8 @@ const Dashboard = () => {
                   </span>
                 </div>
                 <span className="text-lg font-bold">
-                  {parseInt(teacherData?.total_teachers) -
-                    parseInt(teacherData?.active_teachers)}
+                  {parseInt(teacherData?.total_teachers || 0) -
+                    parseInt(teacherData?.active_teachers || 0)}
                 </span>
               </div>
             </div>
@@ -293,30 +328,34 @@ const Dashboard = () => {
             </div>
             <div className="space-y-4">
               {/* Map through the events array */}
-              {eventsData?.map((event) => (
-                <div
-                  key={event.id}
-                  className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 transition duration-200 ease-in-out"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {event.title}
-                      </h4>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium dark:bg-indigo-900 dark:text-indigo-300">
-                          <Clock className="h-3 w-3" />
-                          {extractDate(event.event_date)}
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium dark:bg-emerald-900 dark:text-emerald-300">
-                          <MapPin className="h-3 w-3" />
-                          {event.location}
-                        </span>
+              {eventsData && eventsData.length > 0 ? (
+                eventsData.map((event) => (
+                  <div
+                    key={event.id}
+                    className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700 transition duration-200 ease-in-out"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {event.title}
+                        </h4>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium dark:bg-indigo-900 dark:text-indigo-300">
+                            <Clock className="h-3 w-3" />
+                            {extractDate(event.event_date)}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium dark:bg-emerald-900 dark:text-emerald-300">
+                            <MapPin className="h-3 w-3" />
+                            {event.location}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center text-gray-500">No upcoming events</div>
+              )}
             </div>
           </div>
 
@@ -336,7 +375,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Total Books</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {libraryData?.total_books}
+                  {libraryData?.total_books || 0}
                 </span>
               </div>
 
@@ -346,7 +385,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Available Books</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {libraryData?.available_books}
+                  {libraryData?.available_books || 0}
                 </span>
               </div>
 
@@ -356,7 +395,7 @@ const Dashboard = () => {
                   <span className="text-sm text-gray-600">Borrowed Books</span>
                 </div>
                 <span className="text-lg font-bold text-red-600">
-                  {libraryData?.borrowed_books}
+                  {libraryData?.borrowed_books || 0}
                 </span>
               </div>
             </div>
@@ -364,21 +403,21 @@ const Dashboard = () => {
         </div>
 
         {/* Classes Performance Overview - Dedicated Row */}
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-extrabold text-gray-800">
+              Classes Performance Overview
+            </h3>
+            <Activity className="h-5 w-5 text-blue-600" />
           </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-extrabold text-gray-800">
-                Classes Performance Overview
-              </h3>
-              <Activity className="h-5 w-5 text-blue-600" />
-            </div>
 
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            </div>
+          ) : performanceData && performanceData.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-              {performanceData?.map((data) => (
+              {performanceData.map((data) => (
                 <div
                   key={data.form}
                   className={`p-4 rounded-lg border ${
@@ -427,8 +466,10 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center text-gray-500 py-8">No performance data available</div>
+          )}
+        </div>
 
         {/* Transport Usage - Moved to its own row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -459,34 +500,38 @@ const Dashboard = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-extrabold mb-4">Recent Activities</h3>
-              <div className="space-y-4">
-                {activities?.slice(0, 4).map((activity, index) => {
-                  const ActivityIcon = getActivityIcon(activity.activity_type);
-                  const iconColorClass = getIconColor(activity.activity_type);
+              {activities && activities.length > 0 ? (
+                <div className="space-y-4">
+                  {activities.slice(0, 4).map((activity, index) => {
+                    const ActivityIcon = getActivityIcon(activity.activity_type);
+                    const iconColorClass = getIconColor(activity.activity_type);
 
-                  return (
-                    <div key={index} className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-full ${iconColorClass}`}>
-                        <ActivityIcon className="h-4 w-4" />
+                    return (
+                      <div key={index} className="flex items-center space-x-4">
+                        <div className={`p-2 rounded-full ${iconColorClass}`}>
+                          <ActivityIcon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">
+                            {activity.activity_type}: {activity.name}
+                            {activity.reference ? ` (${activity.reference})` : ""}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDistance(
+                              new Date(activity.timestamp),
+                              new Date(),
+                              { addSuffix: true }
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">
-                          {activity.activity_type}: {activity.name}
-                          {activity.reference ? ` (${activity.reference})` : ""}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatDistance(
-                            new Date(activity.timestamp),
-                            new Date(),
-                            { addSuffix: true }
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {activities?.length > 4 && (
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-8">No recent activities</div>
+              )}
+              {activities && activities.length > 4 && (
                 <div className="mt-4 text-center">
                   <button
                     className="text-sm text-blue-600 hover:underline"
@@ -502,7 +547,7 @@ const Dashboard = () => {
       </div>
 
       {/* Activity Modal */}
-      {isOpen && (
+      {isOpen && activities && activities.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="fixed inset-0 bg-black opacity-50 z-40"
@@ -577,6 +622,7 @@ export async function loader({ params, request }) {
 
   const tokenUrl = "/backend/api/auth/verify-token";
 
+  try {
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
       headers: {
@@ -586,44 +632,45 @@ export async function loader({ params, request }) {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log(tokenResponse)
+
     // If token is invalid or expired
-    if (!tokenResponse.ok ) {
+    if (!tokenResponse.ok) {
       // Clear invalid token
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       return redirect("/");
     }
 
-  // Check if we have cached dashboard data and it's not expired
-  const cachedData = localStorage.getItem("dashboardData");
-  const cacheTimestamp = localStorage.getItem("dashboardCacheTime");
-  const cacheAge = cacheTimestamp
-    ? Date.now() - parseInt(cacheTimestamp)
-    : Infinity;
-  const cacheTTL = 5 * 60 * 1000; // 5 minutes cache
+    // Check if we have cached dashboard data and it's not expired
+    const cachedData = localStorage.getItem("dashboardData");
+    const performanceData = localStorage.getItem("classData");
+    const cacheTimestamp = localStorage.getItem("dashboardCacheTime");
+    const cacheAge = cacheTimestamp
+      ? Date.now() - parseInt(cacheTimestamp)
+      : Infinity;
+    const cacheTTL = 5 * 60 * 1000; // 5 minutes cache
 
-  // Use cached data if available and not expired
-  if (cachedData && cacheAge < cacheTTL) {
-    return {
-      user: JSON.parse(localStorage.getItem("user")),
-      dashboard: JSON.parse(cachedData),
-      fromCache: true,
-    };
-  }
+    // Use cached data if available and not expired
+    if (cachedData && cacheAge < cacheTTL) {
+      return {
+        user: JSON.parse(localStorage.getItem("user") || "{}"),
+        dashboard: JSON.parse(cachedData),
+        performance: performanceData ? JSON.parse(performanceData) : [],
+        fromCache: true,
+      };
+    }
 
-  try {
-    // Make both API calls in parallel instead of sequentially
-    const [dashboardResponse] = await Promise.all([
-      
-      fetch("/backend/api/dashboard/summary", {
+    // Make API call to fetch dashboard data
+    const dashboardResponse = await fetch(
+      "/backend/api/dashboard/summary",
+      {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }),
-    ]);
+      }
+    );
 
     // Handle dashboard data
     if (!dashboardResponse.ok) {
@@ -634,21 +681,22 @@ export async function loader({ params, request }) {
 
     // Cache the data for future use
     localStorage.setItem("dashboardData", JSON.stringify(dashboardData));
+    // Note: classData is no longer referenced here, removed it
     localStorage.setItem("dashboardCacheTime", Date.now().toString());
 
     return {
-      user: JSON.parse(localStorage.getItem("user")),
+      user: JSON.parse(localStorage.getItem("user") || "{}"),
       dashboard: dashboardData,
-      performance: classData,
       fromCache: false,
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
 
     // Try to return cached data if available even if it's expired
+    const cachedData = localStorage.getItem("dashboardData");
     if (cachedData) {
       return {
-        user: JSON.parse(localStorage.getItem("user")),
+        user: JSON.parse(localStorage.getItem("user") || "{}"),
         dashboard: JSON.parse(cachedData),
         fromCache: true,
         staleData: true,

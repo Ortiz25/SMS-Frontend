@@ -31,6 +31,7 @@ import { loader as loaderTransport  } from './pages/HostelTransportMgt';
 import { loader as commsLoader } from './pages/CommunicationMgt';
 import { loader as loaderSettings  } from './pages/SettingsMgt';
 import { loader as inventoryLoader } from './pages/InventoryMgt';
+import { loader as financeLoader } from './pages/FinanceMgt';
 
 
 
@@ -51,7 +52,7 @@ const router = createBrowserRouter([
   { path: "/transport", element: <HostelTransportManagement/>, loader:loaderTransport },
   { path: "/settings", element: <SettingsModule/>, loader:loaderSettings},
   { path: "/alumni", element: <AlumniManagement/> },
-  { path: "/finance", element: <FinanceMgt/> },
+  { path: "/finance", element: <FinanceMgt/>, loader:financeLoader },
   { path: "/forgotpassword", element: <ForgotPass/> },
   { path: "*", element: <ErrorPage/> }
 ]);
