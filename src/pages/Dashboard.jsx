@@ -33,9 +33,12 @@ import { format, formatDistance } from "date-fns";
 import { extractDate } from "../util/helperFunctions";
 
 const Dashboard = () => {
+  const token = localStorage.getItem("token");
   const data = useLoaderData();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { updateActiveModule, activeModule } = useStore();
+  const [performanceData, updatePerformanceData] = useState();
   const [studentData, updateStudentData] = useState(
     data.dashboard.student_stats
   );
@@ -54,6 +57,41 @@ const Dashboard = () => {
   const [eventsData, updateEvents] = useState(data.dashboard.upcoming_events);
 
   console.log(data.dashboard);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const fetchData = async () => {
+      try {
+        const classesSummaryResponse = await fetch(
+          "/backend/api/dashboard/form-performance",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!classesSummaryResponse.ok) {
+          throw new Error(
+            `HTTP error! Status: ${classesSummaryResponse.status}`
+          );
+        }
+
+        const classData = await classesSummaryResponse.json();
+        updatePerformanceData(classData);
+        console.log(classData);
+      } catch (error) {
+        console.error("Error fetching class data:", error);
+      }
+    };
+
+    fetchData();
+    setIsLoading(false);
+  }, [data, token]);
+  console.log(performanceData);
+
   useEffect(() => {
     updateActiveModule("overview");
   }, [activeModule]);
@@ -118,56 +156,6 @@ const Dashboard = () => {
     { name: "Fri", students: 465 },
   ];
 
-  const formData = [
-    {
-      form: "Form 3",
-      average: 0,
-      trend: "stable",
-      status: "No data",
-    },
-    {
-      form: "Form 4",
-      average: 75.63,
-      trend: "stable",
-      status: "Above average",
-    },
-    {
-      form: "Grade 4",
-      average: 38.48,
-      trend: "stable",
-      status: "Below average",
-    },
-    {
-      form: "Grade 5",
-      average: 0,
-      trend: "stable",
-      status: "No data",
-    },
-    {
-      form: "Grade 6",
-      average: 0,
-      trend: "stable",
-      status: "No data",
-    },
-    {
-      form: "Grade 7",
-      average: 0,
-      trend: "stable",
-      status: "No data",
-    },
-    {
-      form: "JSS 1",
-      average: 0,
-      trend: "stable",
-      status: "No data",
-    },
-    {
-      form: "JSS 2",
-      average: 41.4,
-      trend: "stable",
-      status: "Below average",
-    },
-  ];
   const getTrendIcon = (trend) => {
     if (trend === "up") {
       return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -192,7 +180,7 @@ const Dashboard = () => {
               </h3>
               <GraduationCap className="h-5 w-5 text-blue-600" />
             </div>
-  
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -203,7 +191,7 @@ const Dashboard = () => {
                   {studentData?.total_students}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Users className="h-4 w-4 text-blue-500" />
@@ -213,7 +201,7 @@ const Dashboard = () => {
                   {studentData?.male_students}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Users className="h-4 w-4 text-pink-500" />
@@ -223,7 +211,7 @@ const Dashboard = () => {
                   {studentData?.female_students}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-green-500" />
@@ -233,7 +221,7 @@ const Dashboard = () => {
                   {studentData?.active_students}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserX className="h-4 w-4 text-red-500" />
@@ -247,7 +235,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-  
+
           {/* Total Teachers */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
@@ -256,7 +244,7 @@ const Dashboard = () => {
               </h3>
               <Users className="h-5 w-5 text-blue-600" />
             </div>
-  
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -267,7 +255,7 @@ const Dashboard = () => {
                   {teacherData?.total_teachers}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-green-500" />
@@ -277,7 +265,7 @@ const Dashboard = () => {
                   {teacherData?.active_teachers}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserX className="h-4 w-4 text-red-500" />
@@ -292,7 +280,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-  
+
           {/* Upcoming Events */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6">
@@ -302,7 +290,6 @@ const Dashboard = () => {
                   Upcoming Events
                 </h3>
               </div>
-              
             </div>
             <div className="space-y-4">
               {/* Map through the events array */}
@@ -327,13 +314,12 @@ const Dashboard = () => {
                         </span>
                       </div>
                     </div>
-                    
                   </div>
                 </div>
               ))}
             </div>
           </div>
-  
+
           {/* Library Book Inventory */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
@@ -342,7 +328,7 @@ const Dashboard = () => {
               </h3>
               <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
-  
+
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -353,7 +339,7 @@ const Dashboard = () => {
                   {libraryData?.total_books}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookCheck className="h-4 w-4 text-blue-500" />
@@ -363,7 +349,7 @@ const Dashboard = () => {
                   {libraryData?.available_books}
                 </span>
               </div>
-  
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookMinus className="h-4 w-4 text-red-500" />
@@ -376,59 +362,74 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-  
+
         {/* Classes Performance Overview - Dedicated Row */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-extrabold text-gray-800">
-              Classes Performance Overview
-            </h3>
-            <Activity className="h-5 w-5 text-blue-600" />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
           </div>
-  
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {formData?.map((data) => (
-              <div
-                key={data.form}
-                className={`p-4 rounded-lg border ${
-                  data.status === "Above average"
-                    ? "border-green-200 bg-green-50"
-                    : data.status === "Below average"
-                    ? "border-red-200 bg-red-50"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-700 truncate" title={data.form}>
-                    {data.form}
-                  </h4>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold">
-                      {data.average > 0 ? `${data.average}%` : "-"}
+        ) : (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-extrabold text-gray-800">
+                Classes Performance Overview
+              </h3>
+              <Activity className="h-5 w-5 text-blue-600" />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+              {performanceData?.map((data) => (
+                <div
+                  key={data.form}
+                  className={`p-4 rounded-lg border ${
+                    data.status === "Above average"
+                      ? "border-green-200 bg-green-50"
+                      : data.status === "Below average"
+                      ? "border-red-200 bg-red-50"
+                      : "border-gray-200 bg-gray-50"
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <h4
+                      className="text-sm font-medium text-gray-700 truncate"
+                      title={data.form}
+                    >
+                      {data.form}
+                    </h4>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl font-bold">
+                        {data.average > 0 ? `${data.average}%` : "-"}
+                      </div>
+                      <div>
+                        {data.trend === "up" && (
+                          <TrendingUp className="h-4 w-4 text-green-600" />
+                        )}
+                        {data.trend === "down" && (
+                          <TrendingDown className="h-4 w-4 text-red-600" />
+                        )}
+                        {data.trend === "stable" && (
+                          <div className="h-4 w-4 text-gray-400">-</div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      {data.trend === "up" && <TrendingUp className="h-4 w-4 text-green-600" />}
-                      {data.trend === "down" && <TrendingDown className="h-4 w-4 text-red-600" />}
-                      {data.trend === "stable" && <div className="h-4 w-4 text-gray-400">-</div>}
-                    </div>
+                    <p
+                      className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block ${
+                        data.status === "Above average"
+                          ? "bg-green-100 text-green-800"
+                          : data.status === "Below average"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {data.status}
+                    </p>
                   </div>
-                  <p 
-                    className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block ${
-                      data.status === "Above average"
-                        ? "bg-green-100 text-green-800"
-                        : data.status === "Below average"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {data.status}
-                  </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-  
+        )}
+
         {/* Transport Usage - Moved to its own row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
@@ -443,17 +444,17 @@ const Dashboard = () => {
               Students using school buses
             </p>
           </div>
-          
+
           {/* You can add additional stats cards here */}
         </div>
-  
+
         {/* Charts and Activity Feed - Last Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Weekly Attendance Chart */}
           <div className="lg:col-span-2">
             <YearlyAttendanceChart />
           </div>
-          
+
           {/* Recent Activities */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6">
@@ -462,7 +463,7 @@ const Dashboard = () => {
                 {activities?.slice(0, 4).map((activity, index) => {
                   const ActivityIcon = getActivityIcon(activity.activity_type);
                   const iconColorClass = getIconColor(activity.activity_type);
-  
+
                   return (
                     <div key={index} className="flex items-center space-x-4">
                       <div className={`p-2 rounded-full ${iconColorClass}`}>
@@ -499,7 +500,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Activity Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -520,13 +521,13 @@ const Dashboard = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-  
+
             {/* Modal Body */}
             <div className="overflow-y-auto p-4 space-y-4">
               {activities.map((activity, index) => {
                 const ActivityIcon = getActivityIcon(activity.activity_type);
                 const iconColorClass = getIconColor(activity.activity_type);
-  
+
                 return (
                   <div key={index} className="flex items-center space-x-4">
                     <div className={`p-2 rounded-full ${iconColorClass}`}>
@@ -549,7 +550,7 @@ const Dashboard = () => {
                 );
               })}
             </div>
-  
+
             {/* Modal Footer */}
             <div className="p-4 border-t text-center">
               <p className="text-xs text-gray-500">
@@ -574,6 +575,26 @@ export async function loader({ params, request }) {
     return redirect("/");
   }
 
+  const tokenUrl = "/backend/api/auth/verify-token";
+
+    const tokenResponse = await fetch(tokenUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const tokenData = await tokenResponse.json();
+    console.log(tokenResponse)
+    // If token is invalid or expired
+    if (!tokenResponse.ok ) {
+      // Clear invalid token
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return redirect("/");
+    }
+
   // Check if we have cached dashboard data and it's not expired
   const cachedData = localStorage.getItem("dashboardData");
   const cacheTimestamp = localStorage.getItem("dashboardCacheTime");
@@ -593,14 +614,8 @@ export async function loader({ params, request }) {
 
   try {
     // Make both API calls in parallel instead of sequentially
-    const [tokenResponse, dashboardResponse] = await Promise.all([
-      fetch("/backend/api/auth/verify-token", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }),
+    const [dashboardResponse] = await Promise.all([
+      
       fetch("/backend/api/dashboard/summary", {
         method: "GET",
         headers: {
@@ -609,13 +624,6 @@ export async function loader({ params, request }) {
         },
       }),
     ]);
-
-    // Handle token verification
-    if (!tokenResponse.ok) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      return redirect("/");
-    }
 
     // Handle dashboard data
     if (!dashboardResponse.ok) {
@@ -631,6 +639,7 @@ export async function loader({ params, request }) {
     return {
       user: JSON.parse(localStorage.getItem("user")),
       dashboard: dashboardData,
+      performance: classData,
       fromCache: false,
     };
   } catch (error) {
