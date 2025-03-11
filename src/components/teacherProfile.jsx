@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Users,
@@ -8,21 +8,74 @@ import {
   Trash2,
   MoreVertical,
   Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import EditTeacherModal, {
   ViewTeacherModal,
   DeleteConfirmationModal,
 } from "./modals/teacherProfileModal";
+import axios from "axios";
 
 const TeacherProfiles = ({ teachers }) => {
+  const token = localStorage.getItem('token');
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-   console.log(teachers)
-  const handleSave = (updatedTeacher) => {
-    console.log("Saving updated teacher:", updatedTeacher);
-    // Add your save logic here
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [paginatedTeachers, setPaginatedTeachers] = useState([]);
+  
+  // Calculate pagination whenever teachers or pagination settings change
+  useEffect(() => {
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    setPaginatedTeachers(teachers.slice(indexOfFirstRecord, indexOfLastRecord));
+  }, [teachers, currentPage, recordsPerPage]);
+  
+  // Total pages
+  const totalPages = Math.ceil(teachers.length / recordsPerPage);
+  
+  // Pagination controls
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing records per page
+  };
+
+  const handleSave = async (updatedTeacher) => {
+    console.log(updatedTeacher)
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`/backend/api/teachers/${updatedTeacher.id}`, updatedTeacher, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log(response)
+    } catch (error) {
+      console.error('Error updating teacher:', error)
+    }
     setShowEditModal(false);
     setSelectedTeacher(null);
   };
@@ -113,7 +166,7 @@ const TeacherProfiles = ({ teachers }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {teachers.map((teacher) => (
+              {paginatedTeachers.map((teacher) => (
                 <tr key={teacher.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -183,17 +236,87 @@ const TeacherProfiles = ({ teachers }) => {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-3 border-t">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-700">
-              Showing 1 to 10 of 42 teachers
-            </span>
-            <div className="space-x-2">
-              <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
-                Previous
+        <div className="px-6 py-4 border-t">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+              <label className="text-sm text-gray-600">Records per page:</label>
+              <select
+                value={recordsPerPage}
+                onChange={handleRecordsPerPageChange}
+                className="border rounded-md px-2 py-1 text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-sm text-gray-700">
+                Showing {paginatedTeachers.length} of {teachers.length} teachers
+              </span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`p-1 rounded-md ${
+                  currentPage === 1 
+                    ? 'text-gray-300 cursor-not-allowed' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <ChevronLeft className="h-5 w-5" />
               </button>
-              <button className="px-3 py-1 text-sm border rounded hover:bg-gray-50">
-                Next
+              
+              <div className="flex space-x-1">
+                {/* Show pagination numbers */}
+                {[...Array(totalPages)].map((_, index) => {
+                  // Show limited page buttons with ellipsis for better UX
+                  const page = index + 1;
+                  
+                  // Always show first, last, current, and pages around current
+                  if (
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded-md text-sm ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  }
+                  
+                  // Show ellipsis (but only once on each side)
+                  if (
+                    (page === 2 && currentPage > 3) || 
+                    (page === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                  }
+                  
+                  return null;
+                })}
+              </div>
+              
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`p-1 rounded-md ${
+                  currentPage === totalPages 
+                    ? 'text-gray-300 cursor-not-allowed' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -213,18 +336,7 @@ const TeacherProfiles = ({ teachers }) => {
         />
       )}
 
-      {/* Modals */}
-      {showEditModal && (
-        <EditTeacherModal
-          teacher={selectedTeacher}
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setSelectedTeacher(null);
-          }}
-          onSave={handleSave}
-        />
-      )}
+     
 
       {showViewModal && (
         <ViewTeacherModal
@@ -245,12 +357,7 @@ const TeacherProfiles = ({ teachers }) => {
             setShowEditModal(false);
             setSelectedTeacher(null);
           }}
-          onSave={(updatedTeacher) => {
-            console.log("Saving teacher:", updatedTeacher);
-            // Add your save logic here
-            setShowEditModal(false);
-            setSelectedTeacher(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </div>

@@ -30,6 +30,7 @@ const TeacherManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const data = useLoaderData();
+
   useEffect(() => {
     updateActiveModule("teachers");
     let filtered = [...data.teachers];

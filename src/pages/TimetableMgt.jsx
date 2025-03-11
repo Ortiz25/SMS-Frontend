@@ -59,12 +59,14 @@ const TimetableManagement = () => {
         }),
       });
 
+      console.log(response)
+
       if (!response.ok) {
         throw new Error("Failed to add schedule");
       }
 
       // Reload the timetable data after adding
-      window.location.reload();
+      redirect("/timetable")
     } catch (error) {
       console.error("Error adding schedule:", error);
       // Handle error (show notification, etc.)

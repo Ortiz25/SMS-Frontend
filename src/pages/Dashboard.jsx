@@ -472,7 +472,7 @@ const Dashboard = () => {
         </div>
 
         {/* Transport Usage - Moved to its own row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-extrabold text-gray-800">
@@ -485,9 +485,7 @@ const Dashboard = () => {
               Students using school buses
             </p>
           </div>
-
-          {/* You can add additional stats cards here */}
-        </div>
+        </div> */}
 
         {/* Charts and Activity Feed - Last Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

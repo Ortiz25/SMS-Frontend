@@ -21,42 +21,41 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [subjects, updateSubjects] = useState()
+  const [subjects, updateSubjects] = useState([]);
 
+  // Fetch subjects on component mount
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/backend/api/helpers", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-   // Fetch users on component mount
-    useEffect(() => {
-      const fetchSubjects = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch("/backend/api/helpers", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-  
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-  
-          const data = await response.json();
-            console.log(data)
-          updateSubjects(data.data);
-          setError(null);
-        } catch (err) {
-          setError(`Failed to fetch users: ${err.message}`);
-          console.error("Error fetching users:", err);
-        } finally {
-          setLoading(false);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-      };
-  
-      fetchSubjects();
-    }, [formData]);
 
-    console.log(subjects)
+        const data = await response.json();
+        console.log(data);
+        updateSubjects(data.data);
+        setError(null);
+      } catch (err) {
+        setError(`Failed to fetch users: ${err.message}`);
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubjects();
+  }, []); // Removed formData dependency to prevent infinite loops
+
+  console.log(subjects);
 
   // Reset form when modal is opened/closed
   useEffect(() => {
@@ -82,6 +81,14 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
         ...formData,
         teacherName: value,
         teacherId: selectedTeacher ? selectedTeacher.id : ""
+      });
+    } else if (name === "subject" && subjects) {
+      // Add this case to handle subject selection
+      const selectedSubject = subjects.find(s => s.name === value);
+      setFormData({
+        ...formData,
+        subject: value,
+        subjectId: selectedSubject ? selectedSubject.id : ""
       });
     } else {
       setFormData({
@@ -197,7 +204,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
               <input
                 type="text"
                 name="subjectId"
-                value={subjects?.find(s => s.name === formData.subject)?.id || ''}
+                value={formData.subjectId}
                 readOnly
                 className={`w-full p-2 border rounded-lg bg-gray-100 ${errors.subjectId ? 'border-red-500' : ''}`}
                 placeholder="Subject ID will be auto-populated"

@@ -7,23 +7,30 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    otherName: "",
+    otherNames: "", // Changed from otherName to match backend
     admissionNo: "",
-    class: "",
+    class: "", // Will store the actual class name (e.g., "Grade 7C")
     stream: "",
     dateOfBirth: "",
     gender: "",
+    nationality: "Kenyan", // Added to match backend
+    nemisUpi: "", // Added to match backend
+    previousSchool: "", // Added to match backend
+    bloodGroup: "", // Added to match backend
     studentType: "",
     address: "",
     busRoute: "",
     hostel: "",
+    roomNumber: "", // Added to match backend
     medicalInfo: "",
     guardianFirstName: "",
     guardianLastName: "",
     guardianPhone: "",
+    guardianPhoneSecondary: "", // Added to match backend
     guardianEmail: "",
     guardianRelation: "",
     guardianAddress: "",
+    guardianIdNumber: "", // Added to match backend
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,11 +56,9 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(response.data);
 
       if (response.data.success) {
         setClasses(response.data.data);
-        console.log(response.data);
       }
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -99,10 +104,34 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Special handling for class selection
+    if (name === "class") {
+      // Find the selected class from the classes array
+      const selectedClass = classes.find(cls => cls.id.toString() === value);
+      
+      if (selectedClass) {
+        // Store the actual class level instead of id
+        setFormData(prev => ({
+          ...prev,
+          [name]: selectedClass.level,
+          // If the class has a stream attached, automatically set it
+          ...(selectedClass.stream && { stream: selectedClass.stream })
+        }));
+        
+        console.log(`Selected class: ${selectedClass.level}, Stream: ${selectedClass.stream}`);
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -112,9 +141,27 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
     try {
       const token = localStorage.getItem("token");
+      
+      // Prepare data for submission - make sure to extract the right class and stream
+      const selectedClass = classes.find(cls => 
+        cls.level === formData.class && cls.stream === formData.stream
+      );
+      
+      // Create a new object for submission to ensure it matches the backend format
+      const submitData = {
+        ...formData,
+        // Ensure gender is lowercase for backend compatibility
+        gender: formData.gender.toLowerCase(),
+        // Make sure the class is set correctly
+        class: formData.class, // This should be the level from the class
+        // Stream is already set by the class selection
+      };
+      
+      console.log("Submitting student data:", submitData);
+
       const response = await axios.post(
         "/backend/api/students/add",
-        formData,
+        submitData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -128,23 +175,30 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         setFormData({
           firstName: "",
           lastName: "",
-          otherName: "",
+          otherNames: "",
           admissionNo: "",
           class: "",
           stream: "",
           dateOfBirth: "",
           gender: "",
+          nationality: "Kenyan",
+          nemisUpi: "",
+          previousSchool: "",
+          bloodGroup: "",
           studentType: "",
           address: "",
           busRoute: "",
           hostel: "",
+          roomNumber: "",
           medicalInfo: "",
           guardianFirstName: "",
           guardianLastName: "",
           guardianPhone: "",
+          guardianPhoneSecondary: "",
           guardianEmail: "",
           guardianRelation: "",
           guardianAddress: "",
+          guardianIdNumber: "",
         });
 
         // Close modal and notify parent component
@@ -165,49 +219,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
       setLoading(false);
     }
   };
-
-  /**
-   * Function to determine available bus routes based on address
-   * @param {string} address - The student's home address
-   * @returns {Array} Array of matching bus routes
-   */
-  const getAvailableBusRoutes = (address) => {
-    if (!address || busRoutes.length === 0) return [];
-
-    // If we have fetched bus routes from API, use those
-    if (busRoutes.length > 0) {
-      return busRoutes;
-    }
-
-    // Fallback to the static routes if API fetch failed
-    const allRoutes = [
-      {
-        id: "route-1",
-        route_name: "Route 1",
-        areas: "Karen, Langata",
-        matches: ["karen", "langata", "lang'ata"],
-        pickupPoints: ["Karen Shopping Center", "Langata Mall", "Galleria"],
-      },
-      // Other routes...
-    ];
-
-    // Convert address to lowercase for case-insensitive matching
-    const lowerAddress = address.toLowerCase();
-
-    // Filter routes based on address matching
-    const matchingRoutes = allRoutes.filter((route) =>
-      route.matches.some((area) => lowerAddress.includes(area))
-    );
-
-    // If no matches found, return all routes as options
-    if (matchingRoutes.length === 0) {
-      return allRoutes;
-    }
-
-    return matchingRoutes;
-  };
-
-  console.log(classes);
 
   return (
     <AnimatedModal isOpen={showAddModal}>
@@ -270,15 +281,14 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Other Name*
+                  Other Names
                 </label>
                 <input
                   type="text"
-                  name="otherName"
-                  value={formData.otherName}
+                  name="otherNames" // Changed from otherName to match backend
+                  value={formData.otherNames}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
                   disabled={loading}
                 />
               </div>
@@ -298,11 +308,37 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  NEMIS UPI
+                </label>
+                <input
+                  type="text"
+                  name="nemisUpi"
+                  value={formData.nemisUpi}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nationality
+                </label>
+                <input
+                  type="text"
+                  name="nationality"
+                  value={formData.nationality}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Class*
                 </label>
                 <select
                   name="class"
-                  value={formData.class}
+                  value={classes.find(cls => cls.level === formData.class && cls.stream === formData.stream)?.id || ""}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
@@ -311,31 +347,26 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                   <option value="">Select class</option>
                   {classes.map((cls) => (
                     <option key={cls.id} value={cls.id}>
-                      {cls.name}
+                      {cls.name} ({cls.level} {cls.stream})
                     </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stream
+                  Stream (Auto-set from class)
                 </label>
-                <select
+                <input
+                  type="text"
                   name="stream"
-                  value={formData.stream}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={loading}
-                >
-                  <option value="">Select stream</option>
-                  {formData.class ? (
-                    <>
-                      <option value="A">A</option>
-                      <option value="B">B</option>
-                      <option value="C">C</option>
-                    </>
-                  ) : null}
-                </select>
+                  value={formData.stream || ""}
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-700"
+                  disabled={true}
+                  readOnly
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Stream is automatically set when you select a class
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -367,6 +398,41 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Blood Group
+                </label>
+                <select
+                  name="bloodGroup"
+                  value={formData.bloodGroup}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                >
+                  <option value="">Select blood group</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Previous School
+                </label>
+                <input
+                  type="text"
+                  name="previousSchool"
+                  value={formData.previousSchool}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
               </div>
             </div>
           </div>
@@ -429,9 +495,9 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                         disabled={loading}
                       >
                         <option value="">Select bus route</option>
-                        {busRoutes.map((route) => (
+                        {busRoutes?.map((route) => (
                           <option key={route.id} value={route.id}>
-                            {route.route_name} - {route.description}
+                            {route.route_name} - {route.description || ''}
                           </option>
                         ))}
                         <option value="None">No Bus Required</option>
@@ -446,25 +512,41 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               )}
 
               {formData.studentType === "Boarder" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hostel Assignment
-                  </label>
-                  <select
-                    name="hostel"
-                    value={formData.hostel}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={loading}
-                  >
-                    <option value="">Select hostel</option>
-                    {hostels.map((hostel) => (
-                      <option key={hostel.id} value={hostel.name}>
-                        {hostel.name} ({hostel.occupied}/{hostel.capacity})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hostel Assignment
+                    </label>
+                    <select
+                      name="hostel"
+                      value={formData.hostel}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      disabled={loading}
+                    >
+                      <option value="">Select hostel</option>
+                      {hostels.map((hostel) => (
+                        <option key={hostel.id} value={hostel.name}>
+                          {hostel.name} ({hostel.occupied}/{hostel.capacity})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Room Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="roomNumber"
+                      value={formData.roomNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Leave blank for auto-assignment"
+                      disabled={loading}
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -521,49 +603,17 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number*
+                  ID Number
                 </label>
                 <input
-                  type="tel"
-                  name="guardianPhone"
-                  value={formData.guardianPhone}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="guardianEmail"
-                  value={formData.guardianEmail}
+                  type="text"
+                  name="guardianIdNumber"
+                  value={formData.guardianIdNumber}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   disabled={loading}
                 />
               </div>
-              <div className="col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Guardian Address*
-                    </label>
-                    <textarea
-                      name="guardianAddress"
-                      value={formData.guardianAddress}
-                      onChange={handleInputChange}
-                      rows="2"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter physical address"
-                      required
-                      disabled={loading}
-                    ></textarea>
-                    <p className="mt-1 text-sm text-gray-500">
-                      This will help determine available bus routes
-                    </p>
-                  </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Relationship*
@@ -582,6 +632,61 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                   <option value="Sibling">Sibling</option>
                   <option value="Other">Other</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primary Phone*
+                </label>
+                <input
+                  type="tel"
+                  name="guardianPhone"
+                  value={formData.guardianPhone}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Secondary Phone
+                </label>
+                <input
+                  type="tel"
+                  name="guardianPhoneSecondary"
+                  value={formData.guardianPhoneSecondary}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="guardianEmail"
+                  value={formData.guardianEmail}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Guardian Address*
+                </label>
+                <textarea
+                  name="guardianAddress"
+                  value={formData.guardianAddress}
+                  onChange={handleInputChange}
+                  rows="2"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter physical address"
+                  required
+                  disabled={loading}
+                ></textarea>
               </div>
             </div>
           </div>

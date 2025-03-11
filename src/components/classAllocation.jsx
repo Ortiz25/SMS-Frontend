@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Filter, Search, Edit, Trash2 } from "lucide-react";
+import { Plus, Filter, Search, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import AllocationModal from "./modals/addAllocation";
 import EditAllocationModal from "./modals/editAllocation";
 import DeleteConfirmationModal from "./modals/deleteAllocation";
@@ -13,6 +13,11 @@ const ClassAllocation = ({rooms}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [paginatedAllocations, setPaginatedAllocations] = useState([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -152,6 +157,43 @@ const ClassAllocation = ({rooms}) => {
 
     return matchesSearch && matchesClass && matchesTeacher && matchesSubject;
   });
+  
+  // Total pages
+  const totalPages = Math.ceil(filteredAllocations.length / recordsPerPage);
+  
+  // Update paginated data when filtered data changes
+  useEffect(() => {
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    setPaginatedAllocations(filteredAllocations.slice(indexOfFirstRecord, indexOfLastRecord));
+    
+    // Reset to first page if current page is now invalid
+    if (currentPage > Math.ceil(filteredAllocations.length / recordsPerPage) && filteredAllocations.length > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredAllocations, currentPage, recordsPerPage]);
+  
+  // Pagination controls
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing records per page
+  };
 
   // Handler for new allocation submission
   const handleSaveAllocation = async (allocationData) => {
@@ -466,8 +508,8 @@ const ClassAllocation = ({rooms}) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredAllocations.length > 0 ? (
-                filteredAllocations.map((allocation) => (
+              {paginatedAllocations.length > 0 ? (
+                paginatedAllocations.map((allocation) => (
                   <tr key={allocation.id} className="hover:bg-gray-50">
                     <td className="px-4 sm:px-6 py-4 text-sm text-gray-900">
                       {allocation.class_name}
@@ -526,6 +568,95 @@ const ClassAllocation = ({rooms}) => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {filteredAllocations.length > 0 && (
+          <div className="px-6 py-4 border-t">
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+                <label className="text-sm text-gray-600">Records per page:</label>
+                <select
+                  value={recordsPerPage}
+                  onChange={handleRecordsPerPageChange}
+                  className="border rounded-md px-2 py-1 text-sm"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray-700">
+                  Showing {paginatedAllocations.length} of {filteredAllocations.length} allocations
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className={`p-1 rounded-md ${
+                    currentPage === 1 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                
+                <div className="flex space-x-1">
+                  {/* Show pagination numbers */}
+                  {[...Array(totalPages)].map((_, index) => {
+                    // Show limited page buttons with ellipsis for better UX
+                    const page = index + 1;
+                    
+                    // Always show first, last, current, and pages around current
+                    if (
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 rounded-md text-sm ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+                    
+                    // Show ellipsis (but only once on each side)
+                    if (
+                      (page === 2 && currentPage > 3) || 
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                    }
+                    
+                    return null;
+                  })}
+                </div>
+                
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`p-1 rounded-md ${
+                    currentPage === totalPages 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

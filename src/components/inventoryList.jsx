@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Edit, Trash, Plus, Minus, X, Search } from 'lucide-react';
+import { Edit, Trash, Plus, Minus, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 
 const InventoryList = ({ categoryFilter }) => {
@@ -14,6 +14,12 @@ const InventoryList = ({ categoryFilter }) => {
   const [stockAction, setStockAction] = useState('');
   const [stockAmount, setStockAmount] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [paginatedItems, setPaginatedItems] = useState([]);
+  
   const [newItemData, setNewItemData] = useState({
     item_code: '',
     name: '',
@@ -60,7 +66,21 @@ const InventoryList = ({ categoryFilter }) => {
     );
     
     setFilteredItems(filtered);
+    // Reset to first page when filtering
+    setCurrentPage(1);
   }, [searchQuery, inventoryItems]);
+
+  // Pagination calculation
+  useEffect(() => {
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    setPaginatedItems(filteredItems.slice(indexOfFirstRecord, indexOfLastRecord));
+    
+    // Reset to first page if current page is now invalid
+    if (currentPage > Math.ceil(filteredItems.length / recordsPerPage) && filteredItems.length > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredItems, currentPage, recordsPerPage]);
 
   useEffect(() => {
     // Initialize form data when selected item changes (for edit modal)
@@ -115,6 +135,30 @@ const InventoryList = ({ categoryFilter }) => {
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
+  };
+
+  // Pagination controls
+  const totalPages = Math.ceil(filteredItems.length / recordsPerPage);
+  
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing records per page
   };
 
   // Modal openers
@@ -807,101 +851,192 @@ const InventoryList = ({ categoryFilter }) => {
         </button>
       </div>
       
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Item Code
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Current Quantity
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Minimum Quantity
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Unit
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Last Restocked
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {filteredItems.length > 0 ? (
-            filteredItems.map((item) => (
-              <tr key={item.id} className={`hover:bg-gray-50 ${item.current_quantity <= item.min_quantity ? 'bg-red-50' : ''}`}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.item_code}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`text-sm ${item.current_quantity <= item.min_quantity ? 'text-red-600 font-bold' : 'text-gray-900'}`}>
-                    {item.current_quantity}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.min_quantity}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.unit}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {item.last_restocked ? new Date(item.last_restocked).toLocaleDateString() : 'Never'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <button 
-                      onClick={() => openStockModal(item, 'increase')}
-                      className="text-green-600 hover:text-green-900"
-                      title="Add Stock"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                    <button 
-                      onClick={() => openStockModal(item, 'decrease')}
-                      className="text-red-600 hover:text-red-900"
-                      disabled={item.current_quantity <= 0}
-                      title="Remove Stock"
-                    >
-                      <Minus className={`w-5 h-5 ${item.current_quantity <= 0 ? 'opacity-50' : ''}`} />
-                    </button>
-                    <button 
-                      onClick={() => openEditModal(item)}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="Edit Item"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button 
-                      onClick={() => openDeleteModal(item)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Delete Item"
-                    >
-                      <Trash className="w-5 h-5" />
-                    </button>
-                  </div>
+      {/* Inventory Table */}
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Item Code
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Category
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Current Quantity
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Minimum Quantity
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Unit
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Last Restocked
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedItems.length > 0 ? (
+              paginatedItems.map((item) => (
+                <tr key={item.id} className={`hover:bg-gray-50 ${item.current_quantity <= item.min_quantity ? 'bg-red-50' : ''}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.item_code}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`text-sm ${item.current_quantity <= item.min_quantity ? 'text-red-600 font-bold' : 'text-gray-900'}`}>
+                      {item.current_quantity}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.min_quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.unit}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {item.last_restocked ? new Date(item.last_restocked).toLocaleDateString() : 'Never'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => openStockModal(item, 'increase')}
+                        className="text-green-600 hover:text-green-900"
+                        title="Add Stock"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => openStockModal(item, 'decrease')}
+                        className="text-red-600 hover:text-red-900"
+                        disabled={item.current_quantity <= 0}
+                        title="Remove Stock"
+                      >
+                        <Minus className={`w-5 h-5 ${item.current_quantity <= 0 ? 'opacity-50' : ''}`} />
+                      </button>
+                      <button 
+                        onClick={() => openEditModal(item)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Edit Item"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={() => openDeleteModal(item)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete Item"
+                      >
+                        <Trash className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+                  {searchQuery ? 'No matching inventory items found' : 'No inventory items found'}
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
-                {searchQuery ? 'No matching inventory items found' : 'No inventory items found'}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination Controls */}
+      {filteredItems.length > 0 && (
+        <div className="bg-white p-4 border-t mt-4 rounded-lg shadow">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+              <label className="text-sm text-gray-600">Records per page:</label>
+              <select
+                value={recordsPerPage}
+                onChange={handleRecordsPerPageChange}
+                className="border rounded-md px-2 py-1 text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-sm text-gray-700">
+                Showing {paginatedItems.length} of {filteredItems.length} items
+              </span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`p-1 rounded-md ${
+                  currentPage === 1 
+                    ? 'text-gray-300 cursor-not-allowed' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              <div className="flex space-x-1">
+                {/* Show pagination numbers */}
+                {[...Array(totalPages)].map((_, index) => {
+                  // Show limited page buttons with ellipsis for better UX
+                  const page = index + 1;
+                  
+                  // Always show first, last, current, and pages around current
+                  if (
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded-md text-sm ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  }
+                  
+                  // Show ellipsis (but only once on each side)
+                  if (
+                    (page === 2 && currentPage > 3) || 
+                    (page === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                  }
+                  
+                  return null;
+                })}
+              </div>
+              
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`p-1 rounded-md ${
+                  currentPage === totalPages 
+                    ? 'text-gray-300 cursor-not-allowed' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-
-export default InventoryList
+export default InventoryList;

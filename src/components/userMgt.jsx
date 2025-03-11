@@ -19,7 +19,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [showUserModal, setShowUserModal] = useState(false);
@@ -37,6 +37,8 @@ const UserManagement = () => {
     "accountant",
     "librarian",
   ];
+
+  console.log(user)
 
   // Fetch users on component mount
   useEffect(() => {
@@ -217,6 +219,8 @@ const UserManagement = () => {
     if (!dateString) return "Never";
     return format(new Date(dateString), "MMM d, yyyy h:mm a");
   };
+
+  if(user.role !== "admin"){return null}
 
   return (
     <div className="space-y-6">

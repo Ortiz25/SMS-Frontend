@@ -324,85 +324,94 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
   };
 
   // Create exam schedule if needed and save grades
-  const handleSubmit = async () => {
-    if (!selectedExam || !selectedClass || !selectedSubject) {
-      setError("Please select exam, class, and subject");
-      return;
-    }
+const handleSubmit = async () => {
+  if (!selectedExam || !selectedClass || !selectedSubject) {
+    setError("Please select exam, class, and subject");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      let scheduleId;
+  try {
+    setLoading(true);
+    let scheduleId;
 
-      // Create schedule if one doesn't exist
-      if (!examSchedule) {
-        const scheduleResponse = await axios.post(
-          `/backend/api/examgrading/${selectedExam}/schedules`,
-          {
-            subject_id: selectedSubject,
-            class_id: selectedClass,
-            exam_date: new Date().toISOString().split("T")[0], // Today's date
-            start_time: "08:00:00",
-            end_time: "10:00:00",
-            venue: "Classroom",
-            total_marks: 100,
-            passing_marks: 40,
+    // Create schedule if one doesn't exist
+    if (!examSchedule) {
+      const scheduleResponse = await axios.post(
+        `/backend/api/examgrading/${selectedExam}/schedules`,
+        {
+          subject_id: selectedSubject,
+          class_id: selectedClass,
+          exam_date: new Date().toISOString().split("T")[0], // Today's date
+          start_time: "08:00:00",
+          end_time: "10:00:00",
+          venue: "Classroom",
+          total_marks: 100,
+          passing_marks: 40,
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
           }
-        );
-
-        scheduleId = scheduleResponse.data.id;
-      } else {
-        scheduleId = examSchedule.id;
-      }
-
-      // Format data for API
-      const gradesToSave = grades.map(
-        ({ student_id, marks_obtained, is_absent }) => ({
-          student_id,
-          marks_obtained,
-          is_absent,
-        })
+        }
       );
 
-      // Save grades
-      await axios.post(`/backend/api/examgrading/schedules/${scheduleId}/results`, {
+      scheduleId = scheduleResponse.data.id;
+    } else {
+      scheduleId = examSchedule.id;
+    }
+
+    // Format data for API
+    const gradesToSave = grades.map(
+      ({ student_id, marks_obtained, is_absent }) => ({
+        student_id,
+        marks_obtained,
+        is_absent,
+      })
+    );
+
+    // Save grades - FIXED: Added proper headers and removed incorrect method parameter
+    await axios.post(
+      `/backend/api/examgrading/schedules/${scheduleId}/results`, 
+      {
         results: gradesToSave,
-      },{
-        method: "GET",
+      },
+      {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         }
-      });
-
-      setSuccess("Grades saved successfully");
-
-      // Call parent onSave if provided
-      if (onSave) {
-        onSave({
-          exam_id: selectedExam,
-          class_id: selectedClass,
-          subject_id: selectedSubject,
-          schedule_id: scheduleId,
-          grades: gradesToSave,
-        });
       }
+    );
 
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccess(null);
-        onClose();
-      }, 3000);
+    setSuccess("Grades saved successfully");
 
-      setLoading(false);
-    } catch (err) {
-      setError(
-        "Failed to save grades: " + (err.response?.data?.msg || err.message)
-      );
-      setLoading(false);
-      console.error(err);
+    // Call parent onSave if provided
+    if (onSave) {
+      onSave({
+        exam_id: selectedExam,
+        class_id: selectedClass,
+        subject_id: selectedSubject,
+        schedule_id: scheduleId,
+        grades: gradesToSave,
+      });
     }
-  };
+
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSuccess(null);
+      onClose();
+    }, 3000);
+
+    setLoading(false);
+  } catch (err) {
+    setError(
+      "Failed to save grades: " + (err.response?.data?.msg || err.message)
+    );
+    setLoading(false);
+    console.error(err);
+  }
+};
 
   if (!isOpen) return null;
 

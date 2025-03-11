@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,93 +9,197 @@ import {
   Tooltip,
   ReferenceLine,
 } from "recharts";
+import axios from "axios";
 
 const YearlyAttendanceChart = () => {
+  const token = localStorage.getItem("token");
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [academicSessions, setAcademicSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+
   // Modern term configuration with updated colors
   const termConfigs = {
     "Term 1": {
       color: "#8B5CF6", // Modern purple
       gradientId: "gradientTerm1",
-      weeks: [1, 14],
       description: "Jan - March",
     },
     "Term 2": {
       color: "#EC4899", // Modern pink
       gradientId: "gradientTerm2",
-      weeks: [15, 28],
       description: "May - July",
     },
     "Term 3": {
       color: "#06B6D4", // Modern cyan
       gradientId: "gradientTerm3",
-      weeks: [29, 42],
       description: "Sept - Nov",
     },
   };
 
-  // Generate sample data aligned with Kenyan school calendar
-  const generateYearlyData = () => {
-    const data = [];
-    const baseAttendance = 460;
-
-    for (let week = 1; week <= 42; week++) {
-      let attendance = baseAttendance;
-
-      if ([1, 14, 15, 28, 29, 42].includes(week)) {
-        attendance *= 0.85;
+  // Fetch academic sessions
+  useEffect(() => {
+    const fetchAcademicSessions = async () => {
+      try {
+        const response = await axios.get('/backend/api/yearly',{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.data && response.data.sessions) {
+          setAcademicSessions(response.data.sessions);
+          
+          // Set the current session if available
+          const currentSession = response.data.sessions.find(session => session.is_current);
+          if (currentSession) {
+            setSelectedSession(currentSession.id);
+            setSelectedYear(currentSession.year);
+          } else if (response.data.sessions.length > 0) {
+            // Otherwise use the most recent session
+            const sortedSessions = [...response.data.sessions].sort((a, b) => 
+              new Date(b.start_date) - new Date(a.start_date)
+            );
+            setSelectedSession(sortedSessions[0].id);
+            setSelectedYear(sortedSessions[0].year);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch academic sessions:", err);
+        setError("Failed to load academic sessions. Please try again later.");
       }
-      if ([7, 21, 35].includes(week)) {
-        attendance *= 1.1;
+    };
+
+    fetchAcademicSessions();
+  }, []);
+
+  // Fetch attendance data when session changes
+  useEffect(() => {
+    if (!selectedSession) return;
+
+    const fetchAttendanceData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`/backend/api/yearly/summary/weekly?academic_session_id=${selectedSession}`,{
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        if (response.data && response.data.weeklyData) {
+          // Transform data to match chart format
+          const transformedData = response.data.weeklyData.map(week => {
+            let currentTerm = "Term 1";
+            if (week.week_number > 28) currentTerm = "Term 3";
+            else if (week.week_number > 14) currentTerm = "Term 2";
+
+            return {
+              week: `Week ${week.week_number}`,
+              students: week.present_count,
+              term: currentTerm,
+              description: termConfigs[currentTerm].description,
+              fill: `url(#${termConfigs[currentTerm].gradientId})`,
+              attendance_rate: week.attendance_rate,
+              absent_count: week.absent_count,
+              late_count: week.late_count,
+              leave_count: week.leave_count,
+              total_students: week.total_students
+            };
+          });
+
+          setAttendanceData(transformedData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch attendance data:", err);
+        setError("Failed to load attendance data. Please try again later.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      attendance += baseAttendance * (Math.random() * 0.06 - 0.03);
+    fetchAttendanceData();
+  }, [selectedSession]);
 
-      let currentTerm = "Term 1";
-      if (week > 28) currentTerm = "Term 3";
-      else if (week > 14) currentTerm = "Term 2";
-
-      data.push({
-        week: `Week ${week}`,
-        students: Math.round(attendance),
-        term: currentTerm,
-        description: termConfigs[currentTerm].description,
-        fill: `url(#${termConfigs[currentTerm].gradientId})`, // Assign fill color here
-      });
+  // Handle session change
+  const handleSessionChange = (e) => {
+    const sessionId = parseInt(e.target.value);
+    setSelectedSession(sessionId);
+    
+    // Update year when session changes
+    const session = academicSessions.find(s => s.id === sessionId);
+    if (session) {
+      setSelectedYear(session.year);
     }
-    return data;
   };
 
-  const attendanceData = generateYearlyData();
+  if (loading && !attendanceData.length) {
+    return (
+      <div className="flex justify-center items-center h-80">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-6">
+        <h3 className="text-xl font-bold">Error Loading Data</h3>
+        <p className="mt-2">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="lg:col-span-2">
       <div className="bg-white rounded-xl border border-gray-100 shadow-lg p-6">
-        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 justify-between items-start sm:items-center mb-8">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 justify-between items-start sm:items-center mb-4">
           <div>
             <h3 className="text-xl font-bold text-gray-900">
-              School Attendance
+              School Attendance {selectedYear}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               Weekly attendance tracking
             </p>
           </div>
-          <div className="flex flex-wrap gap-4 bg-gray-50/50 px-4 py-2 rounded-full">
-            {Object.entries(termConfigs).map(([term, config]) => (
-              <div key={term} className="flex items-center">
-                <div
-                  className="w-2.5 h-2.5 rounded-full mr-2"
-                  style={{ backgroundColor: config.color }}
-                ></div>
-                <span className="text-xs font-medium text-gray-700">
-                  {term}
-                </span>
-                <span className="text-xs text-gray-400 ml-1">
-                  ({config.description})
-                </span>
-              </div>
-            ))}
+          
+          {/* Session selector */}
+          <div className="flex items-center">
+            <label htmlFor="session-select" className="mr-2 text-sm font-medium text-gray-700">Academic Session:</label>
+            <select 
+              id="session-select"
+              value={selectedSession || ''}
+              onChange={handleSessionChange}
+              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+            >
+              {academicSessions.map(session => (
+                <option key={session.id} value={session.id}>
+                  {session.year} - Term {session.term} {session.is_current ? '(Current)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+        
+        <div className="flex flex-wrap gap-4 bg-gray-50/50 px-4 py-2 rounded-full mb-6">
+          {Object.entries(termConfigs).map(([term, config]) => (
+            <div key={term} className="flex items-center">
+              <div
+                className="w-2.5 h-2.5 rounded-full mr-2"
+                style={{ backgroundColor: config.color }}
+              ></div>
+              <span className="text-xs font-medium text-gray-700">
+                {term}
+              </span>
+              <span className="text-xs text-gray-400 ml-1">
+                ({config.description})
+              </span>
+            </div>
+          ))}
+        </div>
+        
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -146,7 +250,16 @@ const YearlyAttendanceChart = () => {
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
-                    const { term, description } = payload[0].payload;
+                    const { 
+                      term, 
+                      description, 
+                      attendance_rate, 
+                      absent_count, 
+                      late_count, 
+                      leave_count, 
+                      total_students 
+                    } = payload[0].payload;
+                    
                     return (
                       <div className="bg-white border border-gray-100 p-4 shadow-xl rounded-lg">
                         <p className="font-medium text-gray-600">{label}</p>
@@ -154,9 +267,31 @@ const YearlyAttendanceChart = () => {
                           className="text-2xl font-bold mt-1"
                           style={{ color: termConfigs[term].color }}
                         >
-                          {payload[0].value.toLocaleString()}
+                          {payload[0].value.toLocaleString()} students
                         </p>
-                        <div className="flex items-center mt-2 text-sm">
+                        <div className="mt-2 space-y-1 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Attendance Rate:</span>
+                            <span className="font-medium">{attendance_rate}%</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Absent:</span>
+                            <span className="font-medium">{absent_count} students</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Late:</span>
+                            <span className="font-medium">{late_count} students</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">On Leave:</span>
+                            <span className="font-medium">{leave_count} students</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                            <span className="text-gray-500">Total Enrolled:</span>
+                            <span className="font-medium">{total_students} students</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center mt-2 text-sm border-t border-gray-100 pt-1">
                           <span className="font-medium text-gray-700">
                             {term}
                           </span>

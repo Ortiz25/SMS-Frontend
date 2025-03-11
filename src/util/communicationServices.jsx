@@ -140,7 +140,7 @@ export const getClasses = async () => {
 export const getDepartments = async () => {
   try {
     // Note: This endpoint is outside our base URL
-    const response = await axios.get('/backend/api/helpers/departments', {
+    const response = await axios.get('/backend/api/inventory/departments', {
       headers: getAuthHeaders()
     });
     return response.data;

@@ -1,5 +1,5 @@
-import React from "react";
-import { Edit } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Edit, ChevronLeft, ChevronRight } from "lucide-react";
 
 const AttendanceTab = ({
   attendanceFilterOptions,
@@ -8,6 +8,43 @@ const AttendanceTab = ({
   attendanceSummary,
   attendanceData
 }) => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [paginatedData, setPaginatedData] = useState([]);
+  
+  // Calculate pagination whenever attendanceData or pagination settings change
+  useEffect(() => {
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    setPaginatedData(attendanceData.slice(indexOfFirstRecord, indexOfLastRecord));
+  }, [attendanceData, currentPage, recordsPerPage]);
+  
+  // Total pages
+  const totalPages = Math.ceil(attendanceData.length / recordsPerPage);
+  
+  // Pagination controls
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing records per page
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       {/* Attendance Filters */}
@@ -101,15 +138,7 @@ const AttendanceTab = ({
             </>
           )}
           
-          {/* Apply Filters Button */}
-          <div className="flex items-end">
-            <button
-              onClick={applyAttendanceFilters}
-              className="bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700"
-            >
-              Apply Filters
-            </button>
-          </div>
+        
         </div>
       </div>
       
@@ -209,14 +238,14 @@ const AttendanceTab = ({
               <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
                 Reason
               </th>
-              <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+              {/* <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
                 Actions
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody className="divide-y">
-            {attendanceData.length > 0 ? (
-              attendanceData.map((record) => (
+            {paginatedData.length > 0 ? (
+              paginatedData.map((record) => (
                 <tr key={record.id} className="hover:bg-gray-50">
                   <td className="py-4 px-4">
                     <div className="flex items-center space-x-3">
@@ -255,7 +284,7 @@ const AttendanceTab = ({
                   <td className="py-4 px-4 text-sm text-gray-600">
                     {record.reason || '-'}
                   </td>
-                  <td className="py-4 px-4">
+                  {/* <td className="py-4 px-4">
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => {
@@ -267,7 +296,7 @@ const AttendanceTab = ({
                         <Edit className="h-4 w-4" />
                       </button>
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (
@@ -280,6 +309,93 @@ const AttendanceTab = ({
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination Controls */}
+      {attendanceData.length > 0 && (
+        <div className="px-4 py-5 flex flex-col sm:flex-row justify-between items-center border-t">
+          <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+            <label className="text-sm text-gray-600">Records per page:</label>
+            <select
+              value={recordsPerPage}
+              onChange={handleRecordsPerPageChange}
+              className="border rounded-md px-2 py-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-sm text-gray-600">
+              Showing {paginatedData.length} of {attendanceData.length} records
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className={`p-1 rounded-md ${
+                currentPage === 1 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <div className="flex space-x-1">
+              {/* Show pagination numbers */}
+              {[...Array(totalPages)].map((_, index) => {
+                // Show limited page buttons with ellipsis for better UX
+                const page = index + 1;
+                
+                // Always show first, last, current, and pages around current
+                if (
+                  page === 1 || 
+                  page === totalPages || 
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded-md text-sm ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+                
+                // Show ellipsis (but only once on each side)
+                if (
+                  (page === 2 && currentPage > 3) || 
+                  (page === totalPages - 1 && currentPage < totalPages - 2)
+                ) {
+                  return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                }
+                
+                return null;
+              })}
+            </div>
+            
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className={`p-1 rounded-md ${
+                currentPage === totalPages 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

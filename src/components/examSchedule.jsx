@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Search, Filter, Download } from "lucide-react";
+import { Plus, Calendar, Search, Filter, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import ExamList from "./examList";
 import ScheduleExamModal from "./modals/examSchedule";
 
@@ -11,6 +11,11 @@ const ExamSchedule = () => {
   const [examinations, setExaminations] = useState([]);
   const [examSchedules, setExamSchedules] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("all");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
+  const [paginatedExams, setPaginatedExams] = useState([]);
 
   const [selectedSession, setSelectedSession] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
@@ -173,6 +178,8 @@ const ExamSchedule = () => {
 
       // Calculate stats
       calculateStats(examsData.data, schedulesData.data);
+      // Reset to first page when data changes
+      setCurrentPage(1);
     } catch (error) {
       console.error("Error loading exam data:", error);
       setError(error.message);
@@ -296,14 +303,60 @@ const ExamSchedule = () => {
     setSelectedClass(e.target.value);
   };
 
-
   const handleStatusChange = (e) => {
     setSelectedStatus(e.target.value);
   };
+
+  // Get filtered exams based on status
+  const filteredExamSchedules = selectedStatus === 'all' 
+    ? examSchedules 
+    : examSchedules.filter(exam => exam.status === selectedStatus);
+
+  // Calculate pagination data
+  const totalPages = Math.ceil(filteredExamSchedules.length / recordsPerPage);
+
+  // Update paginated data when filtered data changes
+
+useEffect(() => {
+  // Only update paginated exams if we have data
+  if (filteredExamSchedules.length > 0) {
+    const maxPage = Math.max(1, Math.ceil(filteredExamSchedules.length / recordsPerPage));
+    
+    // If current page is invalid, set it to the max valid page
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    } else {
+      // Otherwise, just update the paginated exams
+      const indexOfLastRecord = currentPage * recordsPerPage;
+      const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+      setPaginatedExams(filteredExamSchedules.slice(indexOfFirstRecord, indexOfLastRecord));
+    }
+  } else {
+    // If there's no data, just set paginated exams to empty array
+    setPaginatedExams([]);
+  }
+}, [filteredExamSchedules, currentPage, recordsPerPage]);
+  // Pagination controls
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
   
-
-
- 
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+  
+  const handleRecordsPerPageChange = (e) => {
+    setRecordsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing records per page
+  };
 
   if (isLoading) {
     return (
@@ -320,10 +373,6 @@ const ExamSchedule = () => {
       </div>
     );
   }
-
-  const filteredExamSchedules = selectedStatus === 'all' 
-  ? examSchedules 
-  : examSchedules.filter(exam => exam.status === selectedStatus);
 
   return (
     <div className="space-y-6">
@@ -381,10 +430,6 @@ const ExamSchedule = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
-            <Download className="h-5 w-5" />
-            <span>Export</span>
-          </button> */}
           <button
             onClick={() => setShowScheduleModal(true)}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -436,13 +481,104 @@ const ExamSchedule = () => {
 
       {/* Exam List */}
       <ExamList
-        examSchedules={filteredExamSchedules}
+        examSchedules={paginatedExams}
         classes={classes}
         rooms={rooms}
         examTypes={examTypes}
         onRefresh={() => loadExamData(selectedSession)}
         searchTerm={searchTerm}
       />
+
+      {/* Pagination Controls */}
+      {filteredExamSchedules.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-t">
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-0">
+                <label className="text-sm text-gray-600">Records per page:</label>
+                <select
+                  value={recordsPerPage}
+                  onChange={handleRecordsPerPageChange}
+                  className="border rounded-md px-2 py-1 text-sm"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray-700">
+                  Showing {paginatedExams.length} of {filteredExamSchedules.length} exams
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className={`p-1 rounded-md ${
+                    currentPage === 1 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                
+                <div className="flex space-x-1">
+                  {/* Show pagination numbers */}
+                  {[...Array(totalPages)].map((_, index) => {
+                    // Show limited page buttons with ellipsis for better UX
+                    const page = index + 1;
+                    
+                    // Always show first, last, current, and pages around current
+                    if (
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 rounded-md text-sm ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+                    
+                    // Show ellipsis (but only once on each side)
+                    if (
+                      (page === 2 && currentPage > 3) || 
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                    }
+                    
+                    return null;
+                  })}
+                </div>
+                
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`p-1 rounded-md ${
+                    currentPage === totalPages 
+                      ? 'text-gray-300 cursor-not-allowed' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Schedule Exam Modal */}
       <ScheduleExamModal

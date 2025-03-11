@@ -189,7 +189,6 @@ const ExamList = ({
   const sortedExams = [...filteredExams].sort((a, b) => {
     return new Date(a.exam_date) - new Date(b.exam_date);
   });
-  console.log(sortedExams);
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Notification */}
