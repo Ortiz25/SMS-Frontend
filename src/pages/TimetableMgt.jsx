@@ -41,7 +41,7 @@ const TimetableManagement = () => {
       const token = localStorage.getItem("token");
 
       // API call to add a new schedule entry
-      const response = await fetch("/backend/api/timetable/add", {
+      const response = await fetch("http://localhost:5010/api/timetable/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -324,7 +324,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
@@ -345,7 +345,7 @@ export async function loader({ params }) {
     }
 
     // Fetch timetable data
-    const response = await fetch(`/backend/api/timetable/weekly`, {
+    const response = await fetch(`http://localhost:5010/api/timetable/weekly`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

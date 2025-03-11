@@ -1,11 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Plus, Filter, Search, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import AllocationModal from "./modals/addAllocation";
 import EditAllocationModal from "./modals/editAllocation";
 import DeleteConfirmationModal from "./modals/deleteAllocation";
 
-const ClassAllocation = ({rooms}) => {
-  console.log(rooms)
+// Move this outside the component to prevent recreation on every render
+const SUBJECT_HOURS = {
+  Mathematics: 6,
+  Physics: 4,
+  Chemistry: 4,
+  Biology: 4,
+  English: 5,
+  Kiswahili: 4,
+  History: 3,
+  Geography: 3,
+};
+
+const ClassAllocation = ({ rooms }) => {
+  // State declarations (unchanged)
   const [allocations, setAllocations] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
@@ -30,7 +42,12 @@ const ClassAllocation = ({rooms}) => {
   const [academicSessions, setAcademicSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
 
-  // Fetch allocations and reference data on component mount
+  // Memoize the calculateWeeklyHours function to prevent recreation on every render
+  const calculateWeeklyHours = useCallback((allocation) => {
+    return SUBJECT_HOURS[allocation.subject_name] || 3;
+  }, []);
+
+  // Fetch data only once when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -39,7 +56,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch academic sessions and determine current session
         const sessionsResponse = await fetch(
-          "/backend/api/sessions/academic-sessions",
+          "http://localhost:5010/api/sessions/academic-sessions",
           {
             headers: {
               "Content-Type": "application/json",
@@ -52,7 +69,6 @@ const ClassAllocation = ({rooms}) => {
           throw new Error("Failed to fetch academic sessions");
 
         const sessionsData = await sessionsResponse.json();
-
         setAcademicSessions(sessionsData.data);
 
         const currentSessionData = sessionsData.data.find(
@@ -62,7 +78,7 @@ const ClassAllocation = ({rooms}) => {
 
         // Fetch allocations - using teacher_subjects table as per schema
         const allocationsResponse = await fetch(
-          "/backend/api/allocations/allocations",
+          "http://localhost:5010/api/allocations/allocations",
           {
             headers: {
               "Content-Type": "application/json",
@@ -75,41 +91,33 @@ const ClassAllocation = ({rooms}) => {
           throw new Error("Failed to fetch allocations");
 
         const allocationsData = await allocationsResponse.json();
-        console.log(allocationsData);
         setAllocations(allocationsData.data);
 
         // Fetch reference data
-        const fetchReferenceData = async () => {
-          try {
-            const response = await fetch(
-              "/backend/api/helpers/reference-data",
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-            if (!response.ok) throw new Error("Failed to fetch reference data");
-
-            const result = await response.json();
-
-            // Now you have all data in one object
-            const { classes, teachers, subjects, currentSession } = result.data;
-
-            // Update your state
-            setClasses(classes);
-            setTeachers(teachers);
-            setSubjects(subjects);
-            setCurrentSession(currentSession);
-          } catch (error) {
-            console.error("Error fetching reference data:", error);
-            // Handle error
+        const referenceResponse = await fetch(
+          "http://localhost:5010/api/helpers/reference-data",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           }
-        };
+        );
 
-        fetchReferenceData();
+        if (!referenceResponse.ok) 
+          throw new Error("Failed to fetch reference data");
+
+        const referenceData = await referenceResponse.json();
+        
+        // Now you have all data in one object
+        const { classes, teachers, subjects, currentSession } = referenceData.data;
+
+        // Update your state
+        setClasses(classes);
+        setTeachers(teachers);
+        setSubjects(subjects);
+        if (currentSession) setCurrentSession(currentSession);
+        
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -119,48 +127,32 @@ const ClassAllocation = ({rooms}) => {
     };
 
     fetchData();
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
-  // Function to calculate weekly hours based on timetable entries
-  const calculateWeeklyHours = (allocation) => {
-    // In a real implementation, fetch actual hours from timetable
-    // For now, let's return a placeholder value based on subject
-    const subjectHours = {
-      Mathematics: 6,
-      Physics: 4,
-      Chemistry: 4,
-      Biology: 4,
-      English: 5,
-      Kiswahili: 4,
-      History: 3,
-      Geography: 3,
-    };
+  // Memoize filtered allocations to prevent recalculation on every render
+  const filteredAllocations = useMemo(() => {
+    return allocations.filter((allocation) => {
+      const matchesSearch =
+        allocation.class_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        allocation.subject_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        allocation.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return subjectHours[allocation.subject_name] || 3;
-  };
+      const matchesClass =
+        !selectedClass || allocation.class_id?.toString() === selectedClass;
+      const matchesTeacher =
+        !selectedTeacher || allocation.teacher_id?.toString() === selectedTeacher;
+      const matchesSubject =
+        !selectedSubject || allocation.subject_id?.toString() === selectedSubject;
 
-  // Filter allocations based on search term and filters
-  const filteredAllocations = allocations.filter((allocation) => {
-    const matchesSearch =
-      allocation.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      allocation.subject_name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      allocation.teacher_name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch && matchesClass && matchesTeacher && matchesSubject;
+    });
+  }, [allocations, searchTerm, selectedClass, selectedTeacher, selectedSubject]);
 
-    const matchesClass =
-      !selectedClass || allocation.class_id.toString() === selectedClass;
-    const matchesTeacher =
-      !selectedTeacher || allocation.teacher_id.toString() === selectedTeacher;
-    const matchesSubject =
-      !selectedSubject || allocation.subject_id.toString() === selectedSubject;
+  // Memoize total pages calculation
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredAllocations.length / recordsPerPage);
+  }, [filteredAllocations.length, recordsPerPage]);
 
-    return matchesSearch && matchesClass && matchesTeacher && matchesSubject;
-  });
-  
-  // Total pages
-  const totalPages = Math.ceil(filteredAllocations.length / recordsPerPage);
-  
   // Update paginated data when filtered data changes
   useEffect(() => {
     const indexOfLastRecord = currentPage * recordsPerPage;
@@ -173,35 +165,34 @@ const ClassAllocation = ({rooms}) => {
     }
   }, [filteredAllocations, currentPage, recordsPerPage]);
   
-  // Pagination controls
-  const handleNextPage = () => {
+  // Pagination controls - use callbacks to prevent recreation on every render
+  const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage(prev => prev + 1);
     }
-  };
+  }, [currentPage, totalPages]);
   
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage(prev => prev - 1);
     }
-  };
+  }, [currentPage]);
   
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
   
-  const handleRecordsPerPageChange = (e) => {
+  const handleRecordsPerPageChange = useCallback((e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page when changing records per page
-  };
+  }, []);
 
-  // Handler for new allocation submission
-  const handleSaveAllocation = async (allocationData) => {
-    console.log(allocationData)
+  // Handler for new allocation submission - use callback
+  const handleSaveAllocation = useCallback(async (allocationData) => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch("/backend/api/allocations", {
+      const response = await fetch("http://localhost:5010/api/allocations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -261,15 +252,15 @@ const ClassAllocation = ({rooms}) => {
         message: error.message,
       });
     }
-  };
+  }, [teachers, subjects, classes, currentSession]);
 
-  // Handler for editing allocation
-  const handleEditAllocation = async (allocationData) => {
+  // Handler for editing allocation - use callback
+  const handleEditAllocation = useCallback(async (allocationData) => {
     try {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `/backend/api/allocations/${allocationData.id}`,
+        `http://localhost:5010/api/allocations/${allocationData.id}`,
         {
           method: "PUT",
           headers: {
@@ -332,15 +323,17 @@ const ClassAllocation = ({rooms}) => {
         message: error.message,
       });
     }
-  };
+  }, [teachers, subjects, classes, currentSession]);
 
-  // Handler for deleting allocation
-  const handleDeleteAllocation = async () => {
+  // Handler for deleting allocation - use callback
+  const handleDeleteAllocation = useCallback(async () => {
+    if (!selectedAllocation) return;
+    
     try {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `/backend/api/allocations/${selectedAllocation.id}`,
+        `http://localhost:5010/api/allocations/${selectedAllocation.id}`,
         {
           method: "DELETE",
           headers: {
@@ -372,19 +365,19 @@ const ClassAllocation = ({rooms}) => {
         message: error.message,
       });
     }
-  };
+  }, [selectedAllocation]);
 
-  // Handler for edit button click
-  const handleEditClick = (allocation) => {
+  // Handler for edit button click - use callback
+  const handleEditClick = useCallback((allocation) => {
     setSelectedAllocation(allocation);
     setShowEditModal(true);
-  };
+  }, []);
 
-  // Handler for delete button click
-  const handleDeleteClick = (allocation) => {
+  // Handler for delete button click - use callback
+  const handleDeleteClick = useCallback((allocation) => {
     setSelectedAllocation(allocation);
     setShowDeleteModal(true);
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -660,41 +653,47 @@ const ClassAllocation = ({rooms}) => {
       </div>
 
       {/* Modals */}
-      <AllocationModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleSaveAllocation}
-        classes={classes}
-        teachers={teachers}
-        subjects={subjects}
-        academicSessions={academicSessions}
-        currentSession={currentSession}
-        rooms={rooms}
-      />
+      {showAddModal && (
+        <AllocationModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSave={handleSaveAllocation}
+          classes={classes}
+          teachers={teachers}
+          subjects={subjects}
+          academicSessions={academicSessions}
+          currentSession={currentSession}
+          rooms={rooms}
+        />
+      )}
 
-      <EditAllocationModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedAllocation(null);
-        }}
-        onSave={handleEditAllocation}
-        allocation={selectedAllocation}
-        classes={classes}
-        teachers={teachers}
-        subjects={subjects}
-        academicSessions={academicSessions}
-      />
+      {showEditModal && selectedAllocation && (
+        <EditAllocationModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedAllocation(null);
+          }}
+          onSave={handleEditAllocation}
+          allocation={selectedAllocation}
+          classes={classes}
+          teachers={teachers}
+          subjects={subjects}
+          academicSessions={academicSessions}
+        />
+      )}
 
-      <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setSelectedAllocation(null);
-        }}
-        onConfirm={handleDeleteAllocation}
-        allocation={selectedAllocation}
-      />
+      {showDeleteModal && selectedAllocation && (
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedAllocation(null);
+          }}
+          onConfirm={handleDeleteAllocation}
+          allocation={selectedAllocation}
+        />
+      )}
     </div>
   );
 };

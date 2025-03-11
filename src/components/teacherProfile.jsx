@@ -65,7 +65,7 @@ const TeacherProfiles = ({ teachers }) => {
     console.log(updatedTeacher)
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/backend/api/teachers/${updatedTeacher.id}`, updatedTeacher, {
+      const response = await axios.put(`http://localhost:5010/api/teachers/${updatedTeacher.id}`, updatedTeacher, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
