@@ -20,7 +20,7 @@ const AcademicInfo = ({ student }) => {
                 setLoading(true);
                 const token = localStorage.getItem('token');
                 const response = await axios.get(
-                    `http://localhost:5010/api/academic/student/${student.id}`,
+                    `/backend/api/academic/student/${student.id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`

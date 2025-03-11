@@ -51,7 +51,7 @@ const WorkloadSchedule = ({ teachers }) => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch("http://localhost:5010/api/rooms", {
+        const response = await fetch("/backend/api/rooms", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ const WorkloadSchedule = ({ teachers }) => {
       try {
         // Get current academic session
         const sessionResponse = await fetch(
-          "http://localhost:5010/api/academic/current",
+          "/backend/api/academic/current",
           {
             method: "GET",
             headers: {
@@ -92,7 +92,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
         // Get classes for current session
         const classesResponse = await fetch(
-          `http://localhost:5010/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          `/backend/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
           {
             method: "GET",
             headers: {
@@ -121,7 +121,7 @@ const WorkloadSchedule = ({ teachers }) => {
         try {
           // Use the teacher_id to get subjects based on their specialization in the database
           const response = await fetch(
-            `http://localhost:5010/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
+            `/backend/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
             {
               method: "GET",
               headers: {
@@ -184,7 +184,7 @@ const WorkloadSchedule = ({ teachers }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:5010/api/timetable/check-conflicts",
+        "/backend/api/timetable/check-conflicts",
         {
           method: "POST",
           headers: {
@@ -243,7 +243,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // First, assign the teacher to the subject and class
       const teacherSubjectResponse = await fetch(
-        "http://localhost:5010/api/subjects/teacher-subjects",
+        "/backend/api/subjects/teacher-subjects",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -262,7 +262,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // Then, create the timetable entry
       const timetableResponse = await fetch(
-        "http://localhost:5010/api/timetable/entry",
+        "/backend/api/timetable/entry",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

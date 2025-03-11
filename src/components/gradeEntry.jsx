@@ -40,7 +40,7 @@ const GradeEntry = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get("http://localhost:5010/api/grading/sessions", {
+        const response = await axios.get("/backend/api/grading/sessions", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -78,7 +78,7 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5010/api/examgrading?academic_session_id=${selectedSession}`,{
+          `/backend/api/examgrading?academic_session_id=${selectedSession}`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5010/api/grading/classes?academic_session_id=${selectedSession}`,{
+          `/backend/api/grading/classes?academic_session_id=${selectedSession}`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -134,7 +134,7 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5010/api/grading/subjects/${selectedClass}`,{
+          `/backend/api/grading/subjects/${selectedClass}`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -161,7 +161,7 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `http://localhost:5010/api/grading/students/${selectedClass}`,{
+          `/backend/api/grading/students/${selectedClass}`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -189,7 +189,7 @@ const GradeEntry = () => {
         setLoading(true);
         // Get exam schedules for the selected exam
         const schedulesResponse = await axios.get(
-          `http://localhost:5010/api/examgrading/${selectedExam}/schedules`,{
+          `/backend/api/examgrading/${selectedExam}/schedules`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -209,7 +209,7 @@ const GradeEntry = () => {
 
           // Load existing grades for this schedule
           const gradesResponse = await axios.get(
-            `http://localhost:5010/api/examgrading/schedules/${schedule.id}/results`,{
+            `/backend/api/examgrading/schedules/${schedule.id}/results`,{
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -295,7 +295,7 @@ const GradeEntry = () => {
 
       // Save to API
       await axios.post(
-        `http://localhost:5010/api/examgrading/schedules/${examSchedule.id}/results`,
+        `/backend/api/examgrading/schedules/${examSchedule.id}/results`,
         { results: gradesToSave }, // Request body
         {
           headers: {
@@ -310,7 +310,7 @@ const GradeEntry = () => {
 
       // Refresh grades to get updated calculated fields
       const refreshResponse = await axios.get(
-        `http://localhost:5010/api/exams/schedules/${examSchedule.id}/results`,{
+        `/backend/api/exams/schedules/${examSchedule.id}/results`,{
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

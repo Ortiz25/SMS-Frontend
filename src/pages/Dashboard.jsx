@@ -93,7 +93,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const classesSummaryResponse = await fetch(
-          "http://localhost:5010/api/dashboard/form-performance",
+          "/backend/api/dashboard/form-performance",
           {
             method: "GET",
             headers: {
@@ -618,7 +618,7 @@ export async function loader({ params, request }) {
     return redirect("/");
   }
 
-  const tokenUrl = "http://localhost:5010/api/auth/verify-token";
+  const tokenUrl = "/backend/api/auth/verify-token";
 
   try {
     const tokenResponse = await fetch(tokenUrl, {
@@ -660,7 +660,7 @@ export async function loader({ params, request }) {
 
     // Make API call to fetch dashboard data
     const dashboardResponse = await fetch(
-      "http://localhost:5010/api/dashboard/summary",
+      "/backend/api/dashboard/summary",
       {
         method: "GET",
         headers: {

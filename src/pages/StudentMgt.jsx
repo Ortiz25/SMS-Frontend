@@ -249,7 +249,7 @@ const StudentManagement = () => {
 
       // Fetch attendance data
       const response = await fetch(
-        `http://localhost:5010/api/attendance?${queryParams.toString()}`,
+        `/backend/api/attendance?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -736,7 +736,7 @@ export async function loader({ params, request }) {
 
   try {
     // Set correct API endpoint for detailed student data
-    const apiUrl = `http://localhost:5010/api/students/detailed`;
+    const apiUrl = `/backend/api/students/detailed`;
 
     const response = await fetch(apiUrl, {
       method: "GET",

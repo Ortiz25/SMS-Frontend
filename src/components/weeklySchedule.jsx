@@ -40,7 +40,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       const token = localStorage.getItem("token");
       
       // API call to update the schedule
-      const response = await fetch(`http://localhost:5010/api/timetable/${editedData.id}`, {
+      const response = await fetch(`/backend/api/timetable/${editedData.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       const token = localStorage.getItem("token");
       
       // API call to delete the schedule
-      const response = await fetch(`http://localhost:5010/api/timetable/${selectedSchedule.id}`, {
+      const response = await fetch(`/backend/api/timetable/${selectedSchedule.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

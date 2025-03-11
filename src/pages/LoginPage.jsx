@@ -151,7 +151,7 @@ export async function action({ request, params }) {
   }
   try {
     // Set correct API endpoint for our backend
-    let loginUrl = "http://localhost:5010/api/auth/login";
+    let loginUrl = "/backend/api/auth/login";
     const loginResponse = await fetch(loginUrl, {
       method: "POST",
       headers: {
@@ -168,7 +168,7 @@ export async function action({ request, params }) {
       
       // Fetch user profile with the token
       try {
-        const profileUrl = "http://localhost:5010/api/auth/user-profile";
+        const profileUrl = "/backend/api/auth/user-profile";
         const profileResponse = await fetch(profileUrl, {
           method: "GET",
           headers: {
@@ -227,7 +227,7 @@ export async function loader() {
   
   try {
     // Set correct API endpoint for our backend
-    const url = "http://localhost:5010/api/auth/verify-token";
+    const url = "/backend/api/auth/verify-token";
     
     const response = await fetch(url, {
       method: "GET",
