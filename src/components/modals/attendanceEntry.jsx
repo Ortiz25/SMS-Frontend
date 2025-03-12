@@ -66,7 +66,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
           Authorization: `Bearer ${token}`
         }
       });
-      
+       console.log(response)
       // Group classes by name and collect streams
       const classData = response.data.data.reduce((acc, cls) => {
         if (!acc[cls.name]) {

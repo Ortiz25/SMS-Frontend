@@ -10,6 +10,7 @@ const LeaveRequestsTable = ({
   setApprovalAction,
   isAdmin
 }) => {
+  console.log(requests)
   // Status badge component
   const StatusBadge = ({ status }) => {
     switch (status) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Calendar, Search, Filter, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import ExamList from "./examList";
 import ScheduleExamModal from "./modals/examSchedule";
@@ -15,7 +15,6 @@ const ExamSchedule = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
-  const [paginatedExams, setPaginatedExams] = useState([]);
 
   const [selectedSession, setSelectedSession] = useState("");
   const [selectedClass, setSelectedClass] = useState("all");
@@ -104,7 +103,6 @@ const ExamSchedule = () => {
         if (!roomsResponse.ok) throw new Error("Failed to fetch rooms");
 
         const roomsData = await roomsResponse.json();
-        console.log(roomsData);
         setRooms(roomsData);
 
         // Load exams and exam schedules after setting the selected session
@@ -147,7 +145,6 @@ const ExamSchedule = () => {
       if (!examsResponse.ok) throw new Error("Failed to fetch examinations");
 
       const examsData = await examsResponse.json();
-      console.log(examsData);
       setExaminations(examsData.data);
 
       // Fetch exam schedules for the selected session
@@ -173,7 +170,6 @@ const ExamSchedule = () => {
         throw new Error("Failed to fetch exam schedules");
 
       const schedulesData = await schedulesResponse.json();
-      console.log(schedulesData);
       setExamSchedules(schedulesData.data);
 
       // Calculate stats
@@ -283,8 +279,6 @@ const ExamSchedule = () => {
       if (!scheduleResponse.ok)
         throw new Error("Failed to create exam schedule");
 
-      const scheduleResult = await scheduleResponse.json();
-
       // Reload exam data to refresh the list
       await loadExamData(selectedSession);
 
@@ -307,35 +301,35 @@ const ExamSchedule = () => {
     setSelectedStatus(e.target.value);
   };
 
-  // Get filtered exams based on status
-  const filteredExamSchedules = selectedStatus === 'all' 
-    ? examSchedules 
-    : examSchedules.filter(exam => exam.status === selectedStatus);
+  // Get filtered exams based on status - memoize to prevent recalculation
+  const filteredExamSchedules = useMemo(() => {
+    return selectedStatus === 'all' 
+      ? examSchedules 
+      : examSchedules.filter(exam => exam.status === selectedStatus);
+  }, [examSchedules, selectedStatus]);
 
-  // Calculate pagination data
-  const totalPages = Math.ceil(filteredExamSchedules.length / recordsPerPage);
-
-  // Update paginated data when filtered data changes
-
-useEffect(() => {
-  // Only update paginated exams if we have data
-  if (filteredExamSchedules.length > 0) {
-    const maxPage = Math.max(1, Math.ceil(filteredExamSchedules.length / recordsPerPage));
-    
-    // If current page is invalid, set it to the max valid page
-    if (currentPage > maxPage) {
-      setCurrentPage(maxPage);
-    } else {
-      // Otherwise, just update the paginated exams
-      const indexOfLastRecord = currentPage * recordsPerPage;
-      const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-      setPaginatedExams(filteredExamSchedules.slice(indexOfFirstRecord, indexOfLastRecord));
+  // Pagination calculations - moved out of useEffect to render time
+  const totalPages = Math.max(1, Math.ceil(filteredExamSchedules.length / recordsPerPage));
+  
+  // Ensure current page is valid
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  // If page is invalid, update it once
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
     }
-  } else {
-    // If there's no data, just set paginated exams to empty array
-    setPaginatedExams([]);
-  }
-}, [filteredExamSchedules, currentPage, recordsPerPage]);
+  }, [totalPages]);
+  
+  // Calculate paginated items directly (no state or useEffect needed)
+  const paginatedExams = useMemo(() => {
+    if (filteredExamSchedules.length === 0) return [];
+    
+    const indexOfLastRecord = validCurrentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    return filteredExamSchedules.slice(indexOfFirstRecord, indexOfLastRecord);
+  }, [filteredExamSchedules, validCurrentPage, recordsPerPage]);
+
   // Pagination controls
   const handleNextPage = () => {
     if (currentPage < totalPages) {

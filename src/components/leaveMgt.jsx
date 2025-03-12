@@ -116,7 +116,7 @@ const LeaveManagement = () => {
       const annualLeaveBalance = balanceResponse.data.find(
         (b) => b.leave_type_name === "Annual Leave"
       );
-
+             console.log(annualLeaveBalance)
       setLeaveStats({
         pending: statsResponse.data.pending || 0,
         approved: statsResponse.data.approved || 0,

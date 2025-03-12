@@ -234,6 +234,8 @@ const Analytics = () => {
             },
           }
         );
+
+        console.log(response)
         setClassPerformance(response.data);
 
         // Extract trend data
@@ -1392,10 +1394,12 @@ const Analytics = () => {
                                 return (
                                   <tr key={index}>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                      {exam.exam_name}
+                                      {exam?.exam_name}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                      {exam.class_average?.toFixed(1)}%
+                                      {typeof exam?.class_average === "number"
+                                        ? exam.class_average.toFixed(1) + "%"
+                                        : "0%"}
                                     </td>
                                     <td
                                       className={`px-4 py-3 whitespace-nowrap text-sm ${changeClass}`}

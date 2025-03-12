@@ -8,6 +8,7 @@ import {
   Plus,
   Download,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import WeeklySchedule from "../components/weeklySchedule";
 import ClassAllocation from "../components/classAllocation";
@@ -15,31 +16,166 @@ import ExamSchedule from "../components/examSchedule";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
 import AddScheduleModal from "../components/modals/addSchedule";
-import { redirect, useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 
 const TimetableManagement = () => {
+  const token = localStorage.getItem("token");
   const { activeModule, updateActiveModule } = useStore();
   const { timetableData, error } = useLoaderData();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedClass, setSelectedClass] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [selectedRoom, setSelectedRoom] = useState("all");
+  const [teachers, setTeachers] = useState();
   const [showAddModal, setShowAddModal] = useState(false);
-     console.log(timetableData)
+  const [session, setCurrentSession] = useState();
+  const [classes, setClasses] = useState();
+  const [rooms, setRooms] = useState();
+   console.log(timetableData)
+  // Added state for schedule errors and success messages
+  const [scheduleError, setScheduleError] = useState(null);
+  const [scheduleSuccess, setScheduleSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentTimetableData, setCurrentTimetableData] = useState(timetableData);
+
   useEffect(() => {
     updateActiveModule("timetable");
   }, [updateActiveModule]);
-  console.log(timetableData)
+  
+  // Update currentTimetableData when timetableData changes
+  useEffect(() => {
+    setCurrentTimetableData(timetableData);
+  }, [timetableData]);
+  
   const tabs = [
     { id: "weekly", label: "Weekly Schedule", icon: Calendar },
     { id: "class", label: "Class Allocation", icon: Users },
     { id: "exam", label: "Exam Schedule", icon: Clock },
   ];
 
+  // Function to refetch timetable data from loader
+  const refetchTimetableData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/backend/api/timetable/weekly`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load timetable");
+      }
+
+      const responseData = await response.json();
+
+      if (!responseData.success) {
+        throw new Error(responseData.message || "Failed to load timetable data");
+      }
+
+      // Update the timetable data state
+      setCurrentTimetableData(responseData.data);
+      return true;
+    } catch (error) {
+      console.error("Error refetching timetable:", error);
+      setScheduleError("Failed to refresh timetable data: " + error.message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch classes and current academic session when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get current academic session
+        const sessionResponse = await fetch(
+          "/backend/api/academic/current",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!sessionResponse.ok)
+          throw new Error("Failed to fetch current academic session");
+        const sessionData = await sessionResponse.json();
+        console.log(sessionData);
+        setCurrentSession(sessionData);
+
+        // Get classes for current session
+        const classesResponse = await fetch(
+          `/backend/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!classesResponse.ok) throw new Error("Failed to fetch classes");
+        const classesData = await classesResponse.json();
+        console.log(classesData);
+        setClasses(classesData);
+
+        // Get Rooms
+        const roomsResponse = await fetch(
+          `/backend/api/rooms`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!roomsResponse.ok) throw new Error("Failed to fetch classes");
+        const roomsData = await roomsResponse.json();
+        console.log(roomsData);
+        setRooms(roomsData);
+
+        // Get teachers
+        const teachersResponse = await fetch(
+          `/backend/api/teachers`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!teachersResponse.ok) throw new Error("Failed to fetch classes");
+        const teachersData = await teachersResponse.json();
+        setTeachers(teachersData.data);
+      } catch (err) {
+        console.error(err);
+        setScheduleError(err.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  console.log(classes);
+
   const handleAddSchedule = async (newSchedule) => {
     try {
-      const token = localStorage.getItem("token");
-
+      setIsLoading(true);
+      // Clear previous messages
+      setScheduleError(null);
+      setScheduleSuccess(null);
+      
+      console.log(newSchedule);
       // API call to add a new schedule entry
       const response = await fetch("/backend/api/timetable/add", {
         method: "POST",
@@ -55,21 +191,35 @@ const TimetableManagement = () => {
           start_time: newSchedule.startTime,
           end_time: newSchedule.endTime,
           room_number: newSchedule.room,
-          academic_session_id: newSchedule.academicSessionId || 1, // Default to current session
+          academic_session_id: session.id
         }),
       });
 
-      console.log(response)
+      console.log(response);
 
       if (!response.ok) {
-        throw new Error("Failed to add schedule");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add schedule");
       }
 
-      // Reload the timetable data after adding
-      redirect("/timetable")
+      // Show success message
+      setScheduleSuccess("Schedule added successfully!");
+      
+      // Close the modal
+      setShowAddModal(false);
+      
+      // Refetch the timetable data
+      const refetchSuccess = await refetchTimetableData();
+      
+      if (!refetchSuccess) {
+        setScheduleSuccess("Schedule was added, but the timetable couldn't be refreshed. Please reload the page.");
+      }
+      
     } catch (error) {
       console.error("Error adding schedule:", error);
-      // Handle error (show notification, etc.)
+      setScheduleError(error.message || "Failed to add schedule");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,10 +238,11 @@ const TimetableManagement = () => {
   };
 
   const getFilteredData = () => {
-    if (!timetableData) return null;
+    if (!currentTimetableData) return null;
 
-    let filteredData = timetableData;
-
+    let filteredData = currentTimetableData;
+    console.log(currentTimetableData);
+    
     // Filter by class
     if (selectedClass !== "all") {
       filteredData = {
@@ -124,10 +275,26 @@ const TimetableManagement = () => {
   };
 
   const filterOptions = {
-    classes: timetableData?.classes || [],
-    teachers: timetableData?.teachers || [],
-    rooms: timetableData?.rooms || [],
+    classes: currentTimetableData?.classes || [],
+    teachers: currentTimetableData?.teachers || [],
+    rooms: currentTimetableData?.rooms || [],
   };
+
+  // Clear notification messages after 5 seconds
+  useEffect(() => {
+    let timer;
+    
+    if (scheduleError || scheduleSuccess) {
+      timer = setTimeout(() => {
+        setScheduleError(null);
+        setScheduleSuccess(null);
+      }, 5000);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [scheduleError, scheduleSuccess]);
 
   if (error) {
     return (
@@ -153,6 +320,21 @@ const TimetableManagement = () => {
             Manage class schedules, allocations, and exam timetables
           </p>
         </div>
+        
+        {/* Notification Messages */}
+        {scheduleError && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            {scheduleError}
+          </div>
+        )}
+        
+        {scheduleSuccess && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            {scheduleSuccess}
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -164,7 +346,7 @@ const TimetableManagement = () => {
               <Users className="h-5 w-5 text-blue-600" />
             </div>
             <div className="text-2xl font-bold">
-              {timetableData?.classes?.length || 0}
+              {currentTimetableData?.classes?.length || 0}
             </div>
             <p className="text-xs text-gray-600">Active classes</p>
           </div>
@@ -177,7 +359,7 @@ const TimetableManagement = () => {
               <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
             <div className="text-2xl font-bold">
-              {timetableData?.teachers?.length || 0}
+              {currentTimetableData?.teachers?.length || 0}
             </div>
             <p className="text-xs text-gray-600">Assigned teachers</p>
           </div>
@@ -188,7 +370,7 @@ const TimetableManagement = () => {
               <Clock className="h-5 w-5 text-blue-600" />
             </div>
             <div className="text-2xl font-bold">
-              {timetableData?.rooms?.length || 0}
+              {currentTimetableData?.rooms?.length || 0}
             </div>
             <p className="text-xs text-gray-600">Available rooms</p>
           </div>
@@ -255,9 +437,16 @@ const TimetableManagement = () => {
               <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={isLoading}
               >
-                <Plus className="h-5 w-5" />
-                <span>Add Schedule</span>
+                {isLoading ? (
+                  <span>Loading...</span>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    <span>Add Schedule</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -289,23 +478,31 @@ const TimetableManagement = () => {
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onSave={handleAddSchedule}
-          classes={filterOptions.classes}
-          teachers={filterOptions.teachers}
-          rooms={filterOptions.rooms}
+          classes={classes}
+          teachers={teachers}
+          rooms={rooms}
         />
 
         {/* Content Area */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          {activeTab === "weekly" && (
-            <WeeklySchedule
-              timetableData={getFilteredData()}
-              selectedClass={selectedClass}
-              selectedTeacher={selectedTeacher}
-              selectedRoom={selectedRoom}
-            />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <div className="text-gray-500">Loading timetable data...</div>
+            </div>
+          ) : (
+            <>
+              {activeTab === "weekly" && (
+                <WeeklySchedule
+                  timetableData={getFilteredData()}
+                  selectedClass={selectedClass}
+                  selectedTeacher={selectedTeacher}
+                  selectedRoom={selectedRoom}
+                />
+              )}
+              {activeTab === "class" && <ClassAllocation rooms={filterOptions.rooms} />}
+              {activeTab === "exam" && <ExamSchedule />}
+            </>
           )}
-          {activeTab === "class" && <ClassAllocation  rooms={filterOptions.rooms}/>}
-          {activeTab === "exam" && <ExamSchedule />}
         </div>
       </div>
     </Navbar>

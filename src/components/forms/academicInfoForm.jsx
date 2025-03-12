@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import shortid from 'shortid';
 
 const AcademicInfoForm = ({
   formData,
@@ -15,6 +16,8 @@ const AcademicInfoForm = ({
   const [loading, setLoading] = useState(false);
   const [loadingError, setLoadingError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  console.log(streams)
 
   // Fetch data on component mount
   useEffect(() => {
@@ -64,7 +67,7 @@ const AcademicInfoForm = ({
           Authorization: `Bearer ${token}`,
         },
       });
-
+           console.log(response.data)
       if (response.data.success) {
         // Group classes by level
         const groupedClasses = response.data.data.reduce((acc, cls) => {
@@ -101,14 +104,14 @@ const AcademicInfoForm = ({
       const params = formData.class ? 
         { level: formData.class, curriculum_type: classes.find(c => c.level === formData.class)?.curriculum_type } : 
         {};
-      
+         console.log(params)
       const response = await axios.get("/backend/api/classes/subjects", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         params
       });
-      
+         console.log(response.data.data)
       if (response.data.success) {
         setSubjects(response.data.data);
       }
@@ -265,7 +268,7 @@ const AcademicInfoForm = ({
               >
                 <option value="">Select class</option>
                 {classes.map((cls) => (
-                  <option key={cls.level} value={cls.level}>
+                  <option key={cls.id} value={cls.level}>
                     {cls.level} ({cls.curriculum_type === "844" ? "Secondary" : "Primary"})
                   </option>
                 ))}
@@ -296,7 +299,7 @@ const AcademicInfoForm = ({
               >
                 <option value="">Select stream</option>
                 {streams.map((stream) => (
-                  <option key={stream} value={stream}>
+                  <option key={shortid.generate()} value={stream}>
                     {stream}
                   </option>
                 ))}
@@ -404,7 +407,7 @@ const AcademicInfoForm = ({
                   }}
                   className="h-4 w-4 text-blue-600 rounded border-gray-300"
                 />
-                <span className="text-sm text-gray-700">{subject.name}</span>
+                <span className="text-sm text-gray-700">{subject.name + " " + subject.code}</span>
               </label>
             ))}
           </div>
@@ -413,7 +416,7 @@ const AcademicInfoForm = ({
             {formData.subjects && formData.subjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {formData.subjects.map(subject => (
-                  <div key={subject} className="flex items-center">
+                  <div key={shortid.generate()} className="flex items-center">
                     <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm text-gray-800">
                       {typeof subject === 'object' ? subject.name : subject}

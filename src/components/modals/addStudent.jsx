@@ -7,30 +7,32 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    otherNames: "", // Changed from otherName to match backend
+    otherNames: "",
     admissionNo: "",
-    class: "", // Will store the actual class name (e.g., "Grade 7C")
+    class: "",
     stream: "",
     dateOfBirth: "",
     gender: "",
-    nationality: "Kenyan", // Added to match backend
-    nemisUpi: "", // Added to match backend
-    previousSchool: "", // Added to match backend
-    bloodGroup: "", // Added to match backend
+    nationality: "Kenyan",
+    nemisUpi: "",
+    previousSchool: "",
+    bloodGroup: "",
     studentType: "",
     address: "",
     busRoute: "",
     hostel: "",
-    roomNumber: "", // Added to match backend
+    roomNumber: "",
     medicalInfo: "",
     guardianFirstName: "",
     guardianLastName: "",
     guardianPhone: "",
-    guardianPhoneSecondary: "", // Added to match backend
+    guardianPhoneSecondary: "",
     guardianEmail: "",
     guardianRelation: "",
     guardianAddress: "",
-    guardianIdNumber: "", // Added to match backend
+    guardianIdNumber: "",
+    // New field for subject selection
+    selectedSubjects: [],
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,15 +40,52 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const [classes, setClasses] = useState([]);
   const [hostels, setHostels] = useState([]);
   const [busRoutes, setBusRoutes] = useState([]);
+  // New state for subjects
+  const [subjects, setSubjects] = useState([]);
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [currentAcademicSession, setCurrentAcademicSession] = useState(null);
 
-  // Fetch classes, hostels, and bus routes on component mount
-  useEffect(() => {
-    if (showAddModal) {
-      fetchClasses();
-      fetchHostels();
-      fetchBusRoutes();
+
+  const fetchCurrentAcademicSession = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "/backend/api/sessions/academic-sessions/current",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+        console.log(response.data)
+      if (response.data) {
+        setCurrentAcademicSession(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching current academic session:", error);
     }
-  }, [showAddModal]);
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "/backend/api/subjects/subjects",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Subjects fetched successfully:", response.data);
+      if (response.data) {
+        setSubjects(response.data.data);
+        console.log(subjects)
+      }
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -93,41 +132,82 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           },
         }
       );
-
-      if (response.data.success) {
-        setBusRoutes(response.data.data);
+       console.log(response.data)
+      if (response.data) {
+        setBusRoutes(response.data.routes);
       }
     } catch (error) {
       console.error("Error fetching bus routes:", error);
     }
   };
 
+  // Update the input change handler to handle subject selection
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
+    const { name, value, type, checked } = e.target;
+
+    // Special handling for subject checkboxes
+    if (name === "subject") {
+      const subjectId = parseInt(value, 10);
+
+      if (checked) {
+        // Add subject to selectedSubjects
+        setFormData((prev) => ({
+          ...prev,
+          selectedSubjects: [...prev.selectedSubjects, subjectId],
+        }));
+      } else {
+        // Remove subject from selectedSubjects
+        setFormData((prev) => ({
+          ...prev,
+          selectedSubjects: prev.selectedSubjects.filter(
+            (id) => id !== subjectId
+          ),
+        }));
+      }
+      return;
+    }
+
     // Special handling for class selection
     if (name === "class") {
       // Find the selected class from the classes array
-      const selectedClass = classes.find(cls => cls.id.toString() === value);
-      
+      const selectedClass = classes.find((cls) => cls.id.toString() === value);
+      console.log(selectedClass);
       if (selectedClass) {
+        // Try a simpler filter first to debug
+        const classSubjects = subjects?.filter((subject) => true); // This should show all subjects
+        console.log("All subjects (unfiltered):", classSubjects);
+
+        // Then apply your actual filter
+        const filteredSubjects = subjects?.filter(
+          (subject) =>
+            subject.level === selectedClass.level || subject.level === "all"
+        );
+        console.log("Filtered subjects:", filteredSubjects);
+        setAvailableSubjects(classSubjects);
+
         // Store the actual class level instead of id
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [name]: selectedClass.level,
           // If the class has a stream attached, automatically set it
-          ...(selectedClass.stream && { stream: selectedClass.stream })
+          ...(selectedClass.stream && { stream: selectedClass.stream }),
+          // Reset selected subjects when class changes
+          selectedSubjects: [],
         }));
-        
-        console.log(`Selected class: ${selectedClass.level}, Stream: ${selectedClass.stream}`);
+
+        console.log(
+          `Selected class: ${selectedClass.level}, Stream: ${selectedClass.stream}`
+        );
       } else {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [name]: value,
+          selectedSubjects: [],
         }));
+        setAvailableSubjects([]);
       }
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -141,12 +221,12 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
     try {
       const token = localStorage.getItem("token");
-      
+
       // Prepare data for submission - make sure to extract the right class and stream
-      const selectedClass = classes.find(cls => 
-        cls.level === formData.class && cls.stream === formData.stream
+      const selectedClass = classes.find(
+        (cls) => cls.level === formData.class && cls.stream === formData.stream
       );
-      
+
       // Create a new object for submission to ensure it matches the backend format
       const submitData = {
         ...formData,
@@ -156,9 +236,10 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         class: formData.class, // This should be the level from the class
         // Stream is already set by the class selection
       };
-      
+
       console.log("Submitting student data:", submitData);
 
+      // Step 1: Create the student record
       const response = await axios.post(
         "/backend/api/students/add",
         submitData,
@@ -171,6 +252,56 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
       );
 
       if (response.data.success) {
+        const newStudent = response.data.data;
+        console.log("Student created successfully:", newStudent);
+
+        // Step 2: If subjects were selected, create student-subject relationships
+        if (
+          formData.selectedSubjects.length > 0 &&
+          selectedClass &&
+          currentAcademicSession
+        ) {
+          try {
+            // Prepare subject enrollment data
+            const subjectEnrollments = formData.selectedSubjects.map(
+              (subjectId) => ({
+                studentId: newStudent.id,
+                subjectId: subjectId,
+                classId: selectedClass.id,
+                academicSessionId: currentAcademicSession.id,
+                isElective: false, // Set based on your business logic
+                status: "active",
+              })
+            );
+
+            console.log("Creating subject enrollments:", subjectEnrollments);
+
+            // Create student-subject relationships
+            const enrollmentResponse = await axios.post(
+              "/backend/api/students/enroll-subjects",
+              { enrollments: subjectEnrollments },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (enrollmentResponse.data.success) {
+              console.log("Subject enrollments created successfully");
+            } else {
+              console.warn(
+                "Failed to create subject enrollments:",
+                enrollmentResponse.data.error
+              );
+            }
+          } catch (enrollError) {
+            console.error("Error creating subject enrollments:", enrollError);
+            // We don't want to fail the whole operation if subject enrollment fails
+          }
+        }
+
         // Clear form data
         setFormData({
           firstName: "",
@@ -199,12 +330,13 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           guardianRelation: "",
           guardianAddress: "",
           guardianIdNumber: "",
+          selectedSubjects: [],
         });
 
         // Close modal and notify parent component
         setShowAddModal(false);
         if (onSuccess) {
-          onSuccess(response.data.data);
+          onSuccess(newStudent);
         }
       } else {
         setError(response.data.error || "Failed to add student");
@@ -218,6 +350,78 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+    // Fetch classes, hostels, bus routes, and subjects on component mount
+    useEffect(() => {
+      if (showAddModal) {
+        fetchClasses();
+        fetchHostels();
+        fetchBusRoutes();
+        fetchSubjects();
+        fetchCurrentAcademicSession();
+     
+      }
+    }, [showAddModal]);
+  
+    console.log(busRoutes)
+  // Subject Selection UI Component
+  const SubjectSelectionSection = () => {
+    console.log(formData.class, availableSubjects);
+    if (!formData.class || availableSubjects.length === 0) {
+      return (
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-700">
+            Please select a class first to see available subjects.
+          </p>
+        </div>
+      );
+    }
+
+
+
+    return (
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">
+          Subject Selection
+        </h3>
+        <div className="bg-white p-4 border rounded-lg">
+          <p className="text-sm text-gray-600 mb-3">
+            Select the subjects for this student:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {availableSubjects.map((subject) => (
+              <div key={subject.id} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={`subject-${subject.id}`}
+                  name="subject"
+                  value={subject.id}
+                  checked={formData.selectedSubjects.includes(subject.id)}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor={`subject-${subject.id}`}
+                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                >
+                  {subject.name}{" "}
+                  <span className="text-gray-500 text-xs">
+                    ({subject.code})
+                  </span>
+                </label>
+              </div>
+            ))}
+          </div>
+          {formData.selectedSubjects.length > 0 && (
+            <p className="mt-3 text-sm text-gray-600">
+              {formData.selectedSubjects.length} subjects selected
+            </p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -285,7 +489,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                 </label>
                 <input
                   type="text"
-                  name="otherNames" // Changed from otherName to match backend
+                  name="otherNames"
                   value={formData.otherNames}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -338,7 +542,13 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                 </label>
                 <select
                   name="class"
-                  value={classes.find(cls => cls.level === formData.class && cls.stream === formData.stream)?.id || ""}
+                  value={
+                    classes.find(
+                      (cls) =>
+                        cls.level === formData.class &&
+                        cls.stream === formData.stream
+                    )?.id || ""
+                  }
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
@@ -497,7 +707,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                         <option value="">Select bus route</option>
                         {busRoutes?.map((route) => (
                           <option key={route.id} value={route.id}>
-                            {route.route_name} - {route.description || ''}
+                            {route.route_name} - {route.description || ""}
                           </option>
                         ))}
                         <option value="None">No Bus Required</option>
@@ -551,6 +761,9 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
             </div>
           </div>
 
+          {/* Subject Selection Section */}
+          <SubjectSelectionSection />
+
           {/* Medical Information */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-4">
@@ -566,7 +779,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               disabled={loading}
             ></textarea>
           </div>
-
           {/* Guardian Information */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-4">

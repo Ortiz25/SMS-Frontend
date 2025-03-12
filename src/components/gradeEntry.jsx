@@ -141,6 +141,7 @@ const GradeEntry = () => {
             },
           }
         );
+        console.log(response.data)
         setSubjects(response.data);
         setLoading(false);
       } catch (err) {
@@ -168,6 +169,7 @@ const GradeEntry = () => {
             },
           }
         );
+        console.log(response.data)
         setStudents(response.data);
         setLoading(false);
       } catch (err) {
@@ -182,6 +184,7 @@ const GradeEntry = () => {
 
   // Find exam schedule and load existing grades
   useEffect(() => {
+    console.log(selectedExam, selectedClass, selectedSubject)
     if (!selectedExam || !selectedClass || !selectedSubject) return;
 
     const findExamSchedule = async () => {

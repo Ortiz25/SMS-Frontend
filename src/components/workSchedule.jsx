@@ -7,6 +7,8 @@ const WorkloadSchedule = ({ teachers }) => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [rooms, setRooms] = useState([]);
 
+
+
   // New state for form data
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -134,7 +136,7 @@ const WorkloadSchedule = ({ teachers }) => {
           if (!response.ok) throw new Error("Failed to fetch subjects");
           const data = await response.json();
           console.log(data);
-          setSubjects(data);
+          setSubjects(data.data);
         } catch (err) {
           setError(err.message);
         }
@@ -255,6 +257,7 @@ const WorkloadSchedule = ({ teachers }) => {
           }),
         }
       );
+      console.log(teacherSubjectResponse)
 
       if (!teacherSubjectResponse.ok) {
         throw new Error("Failed to assign teacher to subject");
@@ -419,7 +422,7 @@ const WorkloadSchedule = ({ teachers }) => {
                         ></div>
                       </div>
                       <span className="text-sm text-gray-600">
-                        {teacher.currentLoad}/{teacher.maxLoad} hrs
+                        {Number.parseInt(teacher.currentLoad)}/{teacher.maxLoad} hrs
                       </span>
                     </div>
                   </td>
@@ -464,7 +467,7 @@ const WorkloadSchedule = ({ teachers }) => {
                     {selectedTeacher.name}'s Schedule
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Current Load: {selectedTeacher.currentLoad}/
+                    Current Load: {Number.parseInt(selectedTeacher.currentLoad)}/
                     {selectedTeacher.maxLoad} hours
                   </p>
                 </div>
@@ -643,7 +646,7 @@ const WorkloadSchedule = ({ teachers }) => {
                     required
                   >
                     <option value="">Select subject</option>
-                    {subjects.map((subject) => (
+                    {subjects?.map((subject) => (
                       <option key={subject.id} value={subject.id}>
                         {subject.name} ({subject.code})
                       </option>

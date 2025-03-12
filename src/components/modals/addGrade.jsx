@@ -84,6 +84,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
           }
         );
         setClasses(response.data);
+        console.log(response.data)
         setSelectedClass("");
         setLoading(false);
       } catch (err) {
@@ -107,6 +108,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
           }
         );
         setExams(response.data);
+        console.log(response.data)
         setSelectedExam("");
         setLoading(false);
       } catch (err) {
@@ -136,7 +138,9 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
             }
           }
         );
+
         setSubjects(response.data);
+        console.log(response.data)
         setSelectedSubject("");
         setLoading(false);
       } catch (err) {
@@ -160,7 +164,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
           }
         );
         setStudents(response.data);
-
+         console.log(response.data)
         // Initialize grades array with all students having null marks
         const initialGrades = response.data.map((student) => ({
           student_id: student.id,
@@ -379,7 +383,6 @@ const handleSubmit = async () => {
       {
         headers: {
           "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
         }
       }
     );

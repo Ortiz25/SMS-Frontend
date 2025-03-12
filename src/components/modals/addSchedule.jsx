@@ -17,11 +17,23 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     academicSessionId: ""
   };
 
+  // Get time slots for dropdown
+  const timeSlots = [
+    { label: "8:00 AM - 9:00 AM", start: "08:00", end: "09:00" },
+    { label: "9:00 AM - 10:00 AM", start: "09:00", end: "10:00" },
+    { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
+    { label: "11:00 AM - 12:00 PM", start: "11:00", end: "12:00" },
+    { label: "12:00 PM - 1:00 PM", start: "12:00", end: "13:00" },
+    { label: "2:00 PM - 3:00 PM", start: "14:00", end: "15:00" },
+    { label: "3:00 PM - 4:00 PM", start: "15:00", end: "16:00" },
+  ];
+
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subjects, updateSubjects] = useState([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
 
   // Fetch subjects on component mount
   useEffect(() => {
@@ -55,13 +67,14 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     fetchSubjects();
   }, []); // Removed formData dependency to prevent infinite loops
 
-  console.log(subjects);
+  
 
   // Reset form when modal is opened/closed
   useEffect(() => {
     if (isOpen) {
       setFormData(initialState);
       setErrors({});
+      setSelectedTimeSlot("");
     }
   }, [isOpen]);
 
@@ -90,6 +103,25 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
         subject: value,
         subjectId: selectedSubject ? selectedSubject.id : ""
       });
+    } else if (name === "timeSlot") {
+      setSelectedTimeSlot(value);
+      
+      if (value) {
+        const slot = timeSlots.find(slot => `${slot.start}-${slot.end}` === value);
+        if (slot) {
+          setFormData({
+            ...formData,
+            startTime: slot.start,
+            endTime: slot.end
+          });
+        }
+      } else {
+        setFormData({
+          ...formData,
+          startTime: "",
+          endTime: ""
+        });
+      }
     } else {
       setFormData({
         ...formData,
@@ -115,13 +147,8 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     if (!formData.teacherName) newErrors.teacher = "Teacher is required";
     if (!formData.room) newErrors.room = "Room is required";
     if (!formData.day) newErrors.day = "Day is required";
-    if (!formData.startTime) newErrors.startTime = "Start time is required";
-    if (!formData.endTime) newErrors.endTime = "End time is required";
-    
-    // Check if end time is after start time
-    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
-      newErrors.endTime = "End time must be after start time";
-    }
+    if (!formData.startTime) newErrors.timeSlot = "Time slot is required";
+    if (!formData.endTime) newErrors.timeSlot = "Time slot is required";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -129,10 +156,11 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+     console.log(formData)
     if (validateForm()) {
+      console.log(formData)
       onSave(formData);
-      setFormData(initialState);
+       setFormData(initialState);
       onClose();
     }
   };
@@ -244,7 +272,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
               >
                 <option value="">Select Room</option>
                 {rooms && rooms.map((room) => (
-                  <option key={room.name} value={room.name}>
+                  <option key={room.room_number} value={room.room_number}>
                     {room.name}
                   </option>
                 ))}
@@ -272,6 +300,26 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
               {errors.day && <p className="text-red-500 text-xs mt-1">{errors.day}</p>}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Time Slot
+              </label>
+              <select
+                name="timeSlot"
+                value={selectedTimeSlot}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${errors.timeSlot ? 'border-red-500' : ''}`}
+              >
+                <option value="">Select Time Slot</option>
+                {timeSlots.map((slot, index) => (
+                  <option key={index} value={`${slot.start}-${slot.end}`}>
+                    {slot.label}
+                  </option>
+                ))}
+              </select>
+              {errors.timeSlot && <p className="text-red-500 text-xs mt-1">{errors.timeSlot}</p>}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -281,10 +329,10 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   type="time"
                   name="startTime"
                   value={formData.startTime}
-                  onChange={handleChange}
-                  className={`w-full p-2 border rounded-lg ${errors.startTime ? 'border-red-500' : ''}`}
+                  readOnly
+                  className="w-full p-2 border rounded-lg bg-gray-100"
                 />
-                {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+                <p className="text-xs text-gray-500 mt-1">Auto-filled from time slot</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -294,10 +342,10 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   type="time"
                   name="endTime"
                   value={formData.endTime}
-                  onChange={handleChange}
-                  className={`w-full p-2 border rounded-lg ${errors.endTime ? 'border-red-500' : ''}`}
+                  readOnly
+                  className="w-full p-2 border rounded-lg bg-gray-100"
                 />
-                {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
+                <p className="text-xs text-gray-500 mt-1">Auto-filled from time slot</p>
               </div>
             </div>
 
