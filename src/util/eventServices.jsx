@@ -1,7 +1,7 @@
 // services/eventService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5010/api/events';
+const API_URL = '/backend/api/events';
 // Get token from local storage
 const getToken = () => localStorage.getItem('token');
 

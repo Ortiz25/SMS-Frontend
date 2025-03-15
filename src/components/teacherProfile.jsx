@@ -44,7 +44,7 @@ const TeacherProfiles = ({ teachers }) => {
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
-          "http://localhost:5010/api/dashboard/teacher-summary",
+          "/backend/api/dashboard/teacher-summary",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -109,7 +109,7 @@ const TeacherProfiles = ({ teachers }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `http://localhost:5010/api/teachers/${updatedTeacher.id}`,
+        `/backend/api/teachers/${updatedTeacher.id}`,
         updatedTeacher,
         {
           headers: {
