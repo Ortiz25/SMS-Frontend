@@ -118,7 +118,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/backend/api/classes", {
+      const response = await axios.get("http://localhost:5010/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -297,7 +297,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
         // More than just the ID
         const token = localStorage.getItem("token");
         const response = await axios.put(
-          `/backend/api/students/${student.id}`,
+          `http://localhost:5010/api/students/${student.id}`,
           updateData,
           {
             headers: {

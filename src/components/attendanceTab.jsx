@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import axios from "axios";
 
 const AttendanceTab = ({
   attendanceFilterOptions,
@@ -12,6 +13,8 @@ const AttendanceTab = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [paginatedData, setPaginatedData] = useState([]);
+  const[classes, setClasses] = useState()
+  const token = localStorage.getItem("token");
   
   // Calculate pagination whenever attendanceData or pagination settings change
   useEffect(() => {
@@ -19,6 +22,29 @@ const AttendanceTab = ({
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
     setPaginatedData(attendanceData.slice(indexOfFirstRecord, indexOfLastRecord));
   }, [attendanceData, currentPage, recordsPerPage]);
+
+  useEffect(() => {
+
+    const fetchClasses = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5010/api/helpers/classes`,{
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setClasses(response.data.data);
+      } catch (err) {
+    
+        console.error(err);
+      }
+    };
+
+    fetchClasses();
+  }, []);
+
   
   // Total pages
   const totalPages = Math.ceil(attendanceData.length / recordsPerPage);
@@ -45,6 +71,9 @@ const AttendanceTab = ({
     setCurrentPage(1); // Reset to first page when changing records per page
   };
 
+  console.log(attendanceFilterOptions)
+  console.log(paginatedData)
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       {/* Attendance Filters */}
@@ -62,12 +91,13 @@ const AttendanceTab = ({
               onChange={handleAttendanceFilterChange}
               className="w-full border rounded-lg p-2"
             >
-              <option value="">All Classes</option>
-              <option value="1">Grade 1</option>
-              <option value="2">Grade 2</option>
-              <option value="3">Grade 3</option>
-              <option value="4">Grade 4</option>
-              {/* Add more class options */}
+               <option value="">Select Class</option>
+                {classes && classes.map((c) => (
+                  <option key={c.id} value={c.level}>
+                    {c.name}
+                  </option>
+                ))}
+        
             </select>
           </div>
           
@@ -82,7 +112,7 @@ const AttendanceTab = ({
               onChange={handleAttendanceFilterChange}
               className="w-full border rounded-lg p-2"
             >
-              <option value="all">All Statuses</option>
+              <option value="all">All Status</option>
               <option value="present">Present</option>
               <option value="absent">Absent</option>
               <option value="late">Late</option>

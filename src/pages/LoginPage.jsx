@@ -17,6 +17,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const errors = useActionData();
+  console.log(errors)
 
   useEffect(() => {
     if (
@@ -39,7 +40,7 @@ const LoginPage = () => {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 ">
         <div className="absolute top-10 lg:left-20 flex items-center justify-center  bg-gray-100">
           <Building2 className="mr-2 size-12" />
-          <h1 className="text-4xl font-bold">TeqovaSMS</h1>
+          <h1 className="text-4xl font-bold">Shule SMS</h1>
         </div>
 
         <div className="w-full max-w-sm md:max-w-lg ">
@@ -82,20 +83,20 @@ const LoginPage = () => {
               />
               {errors && (
                 <p className="text-red-500 text-md text-bold italic">
-                  {errors.email}
+                  {errors.message}
                 </p>
               )}
               {showPassword ? (
                 <EyeOff
                   className={`absolute right-5 ${
-                    errors?.email ? "bottom-10" : "bottom-5"
+                    errors?.message ? "bottom-10" : "bottom-5"
                   }`}
                   onClick={handleClick}
                 />
               ) : (
                 <Eye
                   className={`absolute right-5 ${
-                    errors?.email ? "bottom-10" : "bottom-5"
+                    errors?.message? "bottom-10" : "bottom-5"
                   }`}
                   onClick={handleClick}
                 />
@@ -122,7 +123,7 @@ const LoginPage = () => {
             </div>
           </Form>
           <p className="text-center text-gray-500 text-md">
-            &copy;2025 Teqova. All rights reserved.
+            &copy;2025 Livecrib. All rights reserved.
           </p>
         </div>
       </div>
@@ -151,7 +152,7 @@ export async function action({ request, params }) {
   }
   try {
     // Set correct API endpoint for our backend
-    let loginUrl = "/backend/api/auth/login";
+    let loginUrl = "http://localhost:5010/api/auth/login";
     const loginResponse = await fetch(loginUrl, {
       method: "POST",
       headers: {
@@ -168,7 +169,7 @@ export async function action({ request, params }) {
       
       // Fetch user profile with the token
       try {
-        const profileUrl = "/backend/api/auth/user-profile";
+        const profileUrl = "http://localhost:5010/api/auth/user-profile";
         const profileResponse = await fetch(profileUrl, {
           method: "GET",
           headers: {
@@ -176,7 +177,7 @@ export async function action({ request, params }) {
             "Authorization": `Bearer ${loginResult.token}` // Using the renamed variable
           }
         });
-        
+        console.log(profileResponse)
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           console.log(profileData)
@@ -195,7 +196,7 @@ export async function action({ request, params }) {
       // Return success and redirect
       return redirect("/dashboard");
     }
-    
+    console.log(loginResponse)
     // Handle specific error responses
     if (loginResponse.status === 404) {
       errors.message = loginResult.error || "User not found"; // Using the renamed variable
@@ -227,7 +228,7 @@ export async function loader() {
   
   try {
     // Set correct API endpoint for our backend
-    const url = "/backend/api/auth/verify-token";
+    const url = "http://localhost:5010/api/auth/verify-token";
     
     const response = await fetch(url, {
       method: "GET",

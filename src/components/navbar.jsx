@@ -58,7 +58,7 @@ const Navbar = ({ children }) => {
     { id: "inventory", name: "Inventory & Asset Management", icon: Layers,route: "/inventory" },
     { id: "communications", name: "Communication & Notifications", icon: Send, route: "/communications"  },
     { id: "transport", name: "Hostel & Transport", icon: BusIcon,route: "/transport" },
-     { id: "alumni", name: "Alumni", icon: GraduationCap, route: "/alumni" },
+     //{ id: "alumni", name: "Alumni", icon: GraduationCap, route: "/alumni" },
     // { id: "health", name: "Health Records", icon: Heart, route: "/" },
   ];
 
@@ -75,7 +75,7 @@ const Navbar = ({ children }) => {
         <div className="flex items-center justify-between mb-6 px-2">
           <div className="flex items-center space-x-3">
             <Building2 className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold">Teqova SMS</span>
+            <span className="text-xl font-bold">Shule SMS</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

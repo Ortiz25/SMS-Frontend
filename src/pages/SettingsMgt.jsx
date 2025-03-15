@@ -24,24 +24,24 @@ const menuItems = [
     icon: Users,
     subItems: [],
   },
-  {
-    id: "security",
-    label: "Security Settings",
-    icon: Shield,
-    subItems: ["Password Policy", "Two-Factor Auth", "Session Management"],
-  },
-  {
-    id: "notifications",
-    label: "Notifications",
-    icon: Bell,
-    subItems: ["Email Templates", "SMS Templates", "Alert Settings"],
-  },
-  {
-    id: "system",
-    label: "System Settings",
-    icon: Settings,
-    subItems: ["General", "Backup & Restore", "Maintenance"],
-  },
+  // {
+  //   id: "security",
+  //   label: "Security Settings",
+  //   icon: Shield,
+  //   subItems: ["Password Policy", "Two-Factor Auth", "Session Management"],
+  // },
+  // {
+  //   id: "notifications",
+  //   label: "Notifications",
+  //   icon: Bell,
+  //   subItems: ["Email Templates", "SMS Templates", "Alert Settings"],
+  // },
+  // {
+  //   id: "system",
+  //   label: "System Settings",
+  //   icon: Settings,
+  //   subItems: ["General", "Backup & Restore", "Maintenance"],
+  // },
 ];
 
 const SettingsModule = () => {
@@ -187,7 +187,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

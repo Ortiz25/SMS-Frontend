@@ -22,9 +22,10 @@ import DeleteStudentModal from "../components/modals/deleteStudent";
 import ViewDetailsModal from "../components/modals/studentDetailModal";
 import AttendanceEntryModal from "../components/modals/attendanceEntry";
 import StudentAttendanceModal from "../components/modals/StudentAttendanceModal";
-import AttendanceTab from "../components/attendanceTab"; // Import the separated component
+import AttendanceTab from "../components/attendanceTab";
 import { useStore } from "../store/store";
 import { getPageNumbers } from "../util/pagination";
+import axios from "axios";
 
 const StudentManagement = () => {
   const { data, count, success, error, message } = useLoaderData();
@@ -33,10 +34,11 @@ const StudentManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showStudentAttendanceModal, setShowStudentAttendanceModal] = useState(false);
+  const [showStudentAttendanceModal, setShowStudentAttendanceModal] =
+    useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentData, updateStudentData] = useState(data);
-  
+
   // Pagination state
   const itemsPerPage = 10;
   const currentPage = parseInt(searchParams.get("page") || "1");
@@ -74,7 +76,7 @@ const StudentManagement = () => {
     busRoute: "",
     hostel: "",
     allergies: [],
-    previous_school:""
+    previous_school: "",
   });
 
   // Attendance state
@@ -87,16 +89,61 @@ const StudentManagement = () => {
     presentPercentage: 0,
     absentPercentage: 0,
     latePercentage: 0,
-    leavePercentage: 0
+    leavePercentage: 0,
   });
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [attendanceFilterOptions, setAttendanceFilterOptions] = useState({
-    class: '',
-    status: 'all',
-    dateRange: 'today',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0]
+    class: "",
+    status: "all",
+    dateRange: "today",
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date().toISOString().split("T")[0],
   });
+  const [loading, setLoading] = useState(true);
+  const [errorStats, setError] = useState(null);
+  const [stats, setStats] = useState({
+    students: { total: 0, newThisTerm: 0 },
+    attendance: { current: 0, previous: 0, change: 0 },
+    performance: { currentGrade: "", previousGrade: "" },
+  });
+
+  useEffect(() => {
+    const fetchStudentStats = async () => {
+      try {
+        setLoading(true);
+
+        // Get token from localStorage or your auth context
+        const token = localStorage.getItem("token");
+
+        const response = await axios.get(
+          "http://localhost:5010/api/dashboard/studentstats",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log(response.data);
+        if (response.data.success) {
+          setStats(response.data.data);
+        } else {
+          setError(response.data.message || "Failed to fetch student stats");
+        }
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while fetching stats"
+        );
+        console.error("Student stats error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentStats();
+  }, []);
 
   // Calculate pagination details
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -159,7 +206,7 @@ const StudentManagement = () => {
     { id: "active", label: "Active" },
     { id: "alumni", label: "Alumni" },
     { id: "suspended", label: "Suspended" },
-    { id: "attendance", label: "Attendance" }, // New attendance tab
+    { id: "attendance", label: "Attendance" },
   ];
 
   const handleEdit = (student) => {
@@ -218,38 +265,38 @@ const StudentManagement = () => {
       // Construct query parameters based on filters
       let queryParams = new URLSearchParams();
       if (attendanceFilterOptions.class) {
-        queryParams.append('class', attendanceFilterOptions.class);
+        queryParams.append("class", attendanceFilterOptions.class);
       }
-      if (attendanceFilterOptions.status !== 'all') {
-        queryParams.append('status', attendanceFilterOptions.status);
+      if (attendanceFilterOptions.status !== "all") {
+        queryParams.append("status", attendanceFilterOptions.status);
       }
-      
+
       // Handle date range
-      if (attendanceFilterOptions.dateRange === 'custom') {
-        queryParams.append('startDate', attendanceFilterOptions.startDate);
-        queryParams.append('endDate', attendanceFilterOptions.endDate);
-      } else if (attendanceFilterOptions.dateRange === 'today') {
-        const today = new Date().toISOString().split('T')[0];
-        queryParams.append('date', today);
-      } else if (attendanceFilterOptions.dateRange === 'week') {
+      if (attendanceFilterOptions.dateRange === "custom") {
+        queryParams.append("startDate", attendanceFilterOptions.startDate);
+        queryParams.append("endDate", attendanceFilterOptions.endDate);
+      } else if (attendanceFilterOptions.dateRange === "today") {
+        const today = new Date().toISOString().split("T")[0];
+        queryParams.append("date", today);
+      } else if (attendanceFilterOptions.dateRange === "week") {
         // Calculate one week ago
         const today = new Date();
         const weekAgo = new Date();
         weekAgo.setDate(today.getDate() - 7);
-        queryParams.append('startDate', weekAgo.toISOString().split('T')[0]);
-        queryParams.append('endDate', today.toISOString().split('T')[0]);
-      } else if (attendanceFilterOptions.dateRange === 'month') {
+        queryParams.append("startDate", weekAgo.toISOString().split("T")[0]);
+        queryParams.append("endDate", today.toISOString().split("T")[0]);
+      } else if (attendanceFilterOptions.dateRange === "month") {
         // Calculate one month ago
         const today = new Date();
         const monthAgo = new Date();
         monthAgo.setMonth(today.getMonth() - 1);
-        queryParams.append('startDate', monthAgo.toISOString().split('T')[0]);
-        queryParams.append('endDate', today.toISOString().split('T')[0]);
+        queryParams.append("startDate", monthAgo.toISOString().split("T")[0]);
+        queryParams.append("endDate", today.toISOString().split("T")[0]);
       }
 
       // Fetch attendance data
       const response = await fetch(
-        `/backend/api/attendance?${queryParams.toString()}`,
+        `http://localhost:5010/api/attendance?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -271,15 +318,21 @@ const StudentManagement = () => {
       }
 
       setAttendanceData(data.data || []);
-      
+
       // Calculate summary statistics
       if (data.data && data.data.length > 0) {
-        const presentCount = data.data.filter(r => r.status === 'present').length;
-        const absentCount = data.data.filter(r => r.status === 'absent').length;
-        const lateCount = data.data.filter(r => r.status === 'late').length;
-        const leaveCount = data.data.filter(r => r.status === 'on-leave').length;
+        const presentCount = data.data.filter(
+          (r) => r.status === "present"
+        ).length;
+        const absentCount = data.data.filter(
+          (r) => r.status === "absent"
+        ).length;
+        const lateCount = data.data.filter((r) => r.status === "late").length;
+        const leaveCount = data.data.filter(
+          (r) => r.status === "on-leave"
+        ).length;
         const totalCount = data.data.length;
-        
+
         setAttendanceSummary({
           presentCount,
           absentCount,
@@ -288,7 +341,7 @@ const StudentManagement = () => {
           presentPercentage: totalCount ? (presentCount / totalCount) * 100 : 0,
           absentPercentage: totalCount ? (absentCount / totalCount) * 100 : 0,
           latePercentage: totalCount ? (lateCount / totalCount) * 100 : 0,
-          leavePercentage: totalCount ? (leaveCount / totalCount) * 100 : 0
+          leavePercentage: totalCount ? (leaveCount / totalCount) * 100 : 0,
         });
       }
     } catch (error) {
@@ -298,13 +351,13 @@ const StudentManagement = () => {
 
   useEffect(() => {
     updateActiveModule("students");
-    
+
     if (activeTab === "attendance") {
       // Fetch attendance data when attendance tab is selected
       fetchAttendanceData();
     } else {
       // Original logic for other tabs
-      let filtered  = [...studentData];
+      let filtered = [...studentData];
       // Filter by tab/status
       if (activeTab !== "all") {
         filtered = filtered?.filter((student) => student.status === activeTab);
@@ -313,7 +366,7 @@ const StudentManagement = () => {
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         console.log("Search term:", term);
-        
+
         filtered = filtered?.filter(
           (student) =>
             student.first_name.toLowerCase().includes(term) ||
@@ -321,7 +374,7 @@ const StudentManagement = () => {
             student.admissionNo.toLowerCase().includes(term) ||
             `${student.class} ${student.stream}`.toLowerCase().includes(term)
         );
-        
+
         console.log("Filtered results:", filtered);
       }
 
@@ -332,7 +385,14 @@ const StudentManagement = () => {
       const end = Math.min(start + itemsPerPage, filtered?.length);
       setDisplayedData(filtered?.slice(start, end));
     }
-  }, [data, activeTab, searchTerm, currentPage, searchParams, attendanceFilterOptions.dateRange === 'today' ? selectedDate : null]);
+  }, [
+    data,
+    activeTab,
+    searchTerm,
+    currentPage,
+    searchParams,
+    attendanceFilterOptions.dateRange === "today" ? selectedDate : null,
+  ]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -341,6 +401,20 @@ const StudentManagement = () => {
       [name]: value,
     }));
   };
+
+  function isGradeImproved(current, previous) {
+    // Grade order from best to worst (simplified)
+    const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E', 'F'];
+    
+    const currentIndex = gradeOrder.indexOf(current);
+    const previousIndex = gradeOrder.indexOf(previous);
+    
+    if (currentIndex === -1 || previousIndex === -1) return false;
+    
+    // Lower index means better grade
+    return currentIndex < previousIndex;
+  }
+  
 
   return (
     <Navbar>
@@ -357,8 +431,6 @@ const StudentManagement = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {/* Stats cards... */}
-          {/* Total Students */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-600">
@@ -366,8 +438,10 @@ const StudentManagement = () => {
               </h3>
               <Users className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">{count}</div>
-            <p className="text-xs text-green-600">+15 this term</p>
+            <div className="text-2xl font-bold">{stats.students.total}</div>
+            <p className="text-xs text-green-600">
+              +{stats.students.newThisTerm} this term
+            </p>
           </div>
 
           {/* Attendance Rate */}
@@ -378,8 +452,17 @@ const StudentManagement = () => {
               </h3>
               <Calendar className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">95%</div>
-            <p className="text-xs text-green-600">+2% from last term</p>
+            <div className="text-2xl font-bold">
+              {stats.attendance.current}%
+            </div>
+            <p
+              className={`text-xs ${
+                stats.attendance.change >= 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {stats.attendance.change > 0 ? "+" : ""}
+              {stats.attendance.change}% from last term
+            </p>
           </div>
 
           {/* Average Performance */}
@@ -390,20 +473,17 @@ const StudentManagement = () => {
               </h3>
               <Activity className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold">B+</div>
-            <p className="text-xs text-green-600">Improved from B</p>
-          </div>
-
-          {/* Medical Cases */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
-                Medical Cases
-              </h3>
-              <Heart className="h-5 w-5 text-blue-600" />
+            <div className="text-2xl font-bold">
+              {stats.performance.currentGrade}
             </div>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-yellow-600">2 need attention</p>
+            <p className="text-xs text-green-600">
+              {isGradeImproved(
+                stats.performance.currentGrade,
+                stats.performance.previousGrade
+              )
+                ? `Improved from ${stats.performance.previousGrade}`
+                : `Was ${stats.performance.previousGrade} last term`}
+            </p>
           </div>
         </div>
 
@@ -673,7 +753,7 @@ const StudentManagement = () => {
           }}
         />
       )}
-      
+
       {showEditModal && (
         <EditStudentModal
           isOpen={showEditModal}
@@ -691,7 +771,7 @@ const StudentManagement = () => {
           }}
         />
       )}
-      
+
       <ViewDetailsModal
         isOpen={showDetailsModal}
         tads={tabs}
@@ -701,7 +781,7 @@ const StudentManagement = () => {
           setSelectedStudent(null);
         }}
       />
-      
+
       <AttendanceEntryModal
         isOpen={showAttendanceModal}
         student={studentData}
@@ -710,7 +790,7 @@ const StudentManagement = () => {
           setSelectedStudent(null);
         }}
       />
-      
+
       <StudentAttendanceModal
         isOpen={showStudentAttendanceModal}
         student={selectedStudent}
@@ -736,7 +816,7 @@ export async function loader({ params, request }) {
 
   try {
     // Set correct API endpoint for detailed student data
-    const apiUrl = `/backend/api/students/detailed`;
+    const apiUrl = `http://localhost:5010/api/students/detailed`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -747,8 +827,8 @@ export async function loader({ params, request }) {
     });
 
     // If token is invalid or expired
-    console.log(response.status)
-    if (response.status === 401 || response.status === 403  ) {
+    console.log(response.status);
+    if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       return redirect("/");
@@ -756,7 +836,7 @@ export async function loader({ params, request }) {
 
     // Get response data
     const data = await response.json();
-    console.log(data)
+    console.log(data);
     // If there's an error in the response
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to fetch detailed student data");

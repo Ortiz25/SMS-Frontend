@@ -24,24 +24,48 @@ const LeaveManagement = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalAction, setApprovalAction] = useState(null);
-
-  // New state variables
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [leaveStats, setLeaveStats] = useState({
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    balance: 0,
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentTeacherId, setCurrentTeacherId] = useState(userInfo.teacher.teacher_id);
   const [isAdmin, setIsAdmin] = useState(false);
- 
+  const [leaveStats, setLeaveStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    total: 0
+  });
 
   useEffect(() => {
-   
-    
+    const fetchLeaveStats = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.get('http://localhost:5010/api/dashboard/leavestats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+          console.log(response.data)
+        if (response.data.success) {
+          setLeaveStats(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch leave stats');
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'An error occurred while fetching stats');
+        console.error('Leave stats error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaveStats();
+  }, []);
+ 
+
+  useEffect(() => { 
     if (userInfo.teacher) {
       setCurrentTeacherId(userInfo.teacher.teacherId);
     } else {
@@ -65,7 +89,7 @@ const LeaveManagement = () => {
           params.teacher_id = currentTeacherId;
         }
          console.log()
-        const response = await axios.get("/backend/api/leaves", {
+        const response = await axios.get("http://localhost:5010/api/leaves", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -92,7 +116,7 @@ const LeaveManagement = () => {
   // Fetch leave stats
   const fetchLeaveStats = async () => {
     try {
-      const statsResponse = await axios.get("/backend/api/leaves/", {
+      const statsResponse = await axios.get("http://localhost:5010/api/leaves/", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -103,7 +127,7 @@ const LeaveManagement = () => {
 
       const balanceResponse =
         !isAdmin && currentTeacherId
-          ? await axios.get(`/backend/api/leaves/balances/${currentTeacherId}`, {
+          ? await axios.get(`http://localhost:5010/api/leaves/balances/${currentTeacherId}`, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -137,7 +161,7 @@ const LeaveManagement = () => {
   const handleApproveLeave = async (data) => {
     try {
       const response = await axios.patch(
-        `/backend/api/leaves/${data.id}/status`,
+        `http://localhost:5010/api/leaves/${data.id}/status`,
         {
           status: "approved",
         },
@@ -176,7 +200,7 @@ const LeaveManagement = () => {
       }
 
       const response = await axios.patch(
-        `/backend/api/leaves/${data.id}/status`,
+        `http://localhost:5010/api/leaves/${data.id}/status`,
         {
           status: "rejected",
           rejection_reason: data.rejection_reason,
@@ -214,7 +238,7 @@ const LeaveManagement = () => {
     console.log(currentTeacherId)
     try {
       await axios.post(
-        "/backend/api/leaves", 
+        "http://localhost:5010/api/leaves", 
         {
           ...formData,
           teacher_id: userInfo.teacher.teacher_id,
@@ -259,14 +283,7 @@ const LeaveManagement = () => {
       icon: XCircle,
       color: "text-red-600",
       bgColor: "bg-red-50",
-    },
-    {
-      title: "Leave Balance",
-      count: `${leaveStats.balance} days`,
-      icon: Calendar,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-    },
+    }
   ];
 
   return (

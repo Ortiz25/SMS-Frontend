@@ -36,7 +36,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
         setLoading(true);
 
         // Get sessions
-        const sessionsResponse = await axios.get("/backend/api/grading/sessions",{
+        const sessionsResponse = await axios.get("http://localhost:5010/api/grading/sessions",{
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -75,7 +75,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/classes?academic_session_id=${selectedSession}`,{
+          `http://localhost:5010/api/grading/classes?academic_session_id=${selectedSession}`,{
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -99,7 +99,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/examgrading?academic_session_id=${selectedSession}`,{
+          `http://localhost:5010/api/examgrading?academic_session_id=${selectedSession}`,{
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -130,7 +130,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/subjects/${selectedClass}`,{
+          `http://localhost:5010/api/grading/subjects/${selectedClass}`,{
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -155,7 +155,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/students/${selectedClass}`,{
+          `http://localhost:5010/api/grading/students/${selectedClass}`,{
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -198,7 +198,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
 
         // Check if a schedule already exists
         const schedulesResponse = await axios.get(
-          `/backend/api/examgrading/${selectedExam}/schedules`,{
+          `http://localhost:5010/api/examgrading/${selectedExam}/schedules`,{
             method: "GET",
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -219,7 +219,7 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
 
           // Load existing grades for this schedule
           const gradesResponse = await axios.get(
-            `/backend/api/examgrading/schedules/${schedule.id}/results`,{
+            `http://localhost:5010/api/examgrading/schedules/${schedule.id}/results`,{
               method: "GET",
               headers: {
                 "Authorization": `Bearer ${token}`,
@@ -341,7 +341,7 @@ const handleSubmit = async () => {
     // Create schedule if one doesn't exist
     if (!examSchedule) {
       const scheduleResponse = await axios.post(
-        `/backend/api/examgrading/${selectedExam}/schedules`,
+        `http://localhost:5010/api/examgrading/${selectedExam}/schedules`,
         {
           subject_id: selectedSubject,
           class_id: selectedClass,
@@ -376,7 +376,7 @@ const handleSubmit = async () => {
 
     // Save grades - FIXED: Added proper headers and removed incorrect method parameter
     await axios.post(
-      `/backend/api/examgrading/schedules/${scheduleId}/results`, 
+      `http://localhost:5010/api/examgrading/schedules/${scheduleId}/results`, 
       {
         results: gradesToSave,
       },

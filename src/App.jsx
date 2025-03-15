@@ -19,6 +19,7 @@ import AlumniManagement from './pages/AlumniPages';
 import LoginPage from './pages/LoginPage';
 import ForgotPass from './pages/ForgotPassPage';
 import FinanceMgt from './pages/FinanceMgt';
+import Borrowers from './pages/LibraryBorrowers';
 import { action as LoginAction, loader as LoginLoader } from './pages/LoginPage';
 import { loader as DashLoader } from './pages/Dashboard';
 import { loader as StudentLoader } from './pages/StudentMgt';
@@ -52,6 +53,7 @@ const router = createBrowserRouter([
   { path: "/transport", element: <HostelTransportManagement/>, loader:loaderTransport },
   { path: "/settings", element: <SettingsModule/>, loader:loaderSettings},
   { path: "/alumni", element: <AlumniManagement/> },
+  { path: "/borrowers", element: <Borrowers/> },
   { path: "/finance", element: <FinanceMgt/>, loader:financeLoader },
   { path: "/forgotpassword", element: <ForgotPass/> },
   { path: "*", element: <ErrorPage/> }

@@ -7,10 +7,13 @@ import {
   Plus,
   Pencil,
   Trash2,
+  BookmarkIcon,
+  Library,
 } from "lucide-react";
 import { useStore } from "../store/store";
 import Navbar from "../components/navbar";
-import { redirect, useLoaderData } from "react-router-dom";
+import shortid from 'shortid';
+import { redirect, useLoaderData, Link } from "react-router-dom";
 
 const LibraryManagement = () => {
   const data = useLoaderData();
@@ -62,6 +65,15 @@ const LibraryManagement = () => {
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
+  // Calculate available copies for a book
+  const getAvailableCopies = (book) => {
+    const totalCopies = book.total_copies ? parseInt(book.total_copies) : 0;
+    const borrowedCount = books.filter(
+      (b) => b.id === book.id && b.borrower
+    ).length;
+    return totalCopies - borrowedCount;
+  };
+
   // Borrow book function
   const handleBorrow = async () => {
     if (!selectedBook || !borrowerDetails.name) return;
@@ -71,7 +83,7 @@ const LibraryManagement = () => {
       dueDate.setDate(dueDate.getDate() + 14); // 2 weeks borrowing period
 
       const response = await fetch(
-        `/backend/api/library/books/${selectedBook.id}/borrow`,
+        `http://localhost:5010/api/library/books/${selectedBook.id}/borrow`,
         {
           method: "POST",
           headers: {
@@ -91,14 +103,16 @@ const LibraryManagement = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to borrow book");
 
+      // Update the books state to reflect the changes
       setBooks(
         books.map((book) =>
           book.id === selectedBook.id
             ? {
                 ...book,
-                status: "borrowed",
                 borrower: borrowerDetails.name,
-                dueDate: dueDate.toISOString().split("T")[0],
+                borrowed_by_contact: borrowerDetails.adminNo,
+                due_date: dueDate.toISOString().split("T")[0],
+                borrow_date: new Date().toISOString().split("T")[0],
               }
             : book
         )
@@ -113,12 +127,14 @@ const LibraryManagement = () => {
       console.error("Error borrowing book:", error);
     }
   };
+  
   // Book management functions
   const handleAddBook = () => {
     setIsEditing(false);
     setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
     setShowBookDialog(true);
   };
+  
   const handleEditBook = (book) => {
     setIsEditing(true);
     setBookFormData({
@@ -136,7 +152,7 @@ const LibraryManagement = () => {
 
     try {
       const response = await fetch(
-        `/backend/api/library/books/${bookId}`,
+        `http://localhost:5010/api/library/books/${bookId}`,
         {
           method: "DELETE",
           headers: {
@@ -156,9 +172,15 @@ const LibraryManagement = () => {
 
   const handleSaveBook = async () => {
     try {
+      // Ensure total_copies is a number
+      const formattedData = {
+        ...bookFormData,
+        total_copies: parseInt(bookFormData.total_copies) || 0
+      };
+
       const url = isEditing
-        ? `/backend/api/library/books/${bookFormData.id}`
-        : `/backend/api/library/books`;
+        ? `http://localhost:5010/api/library/books/${formattedData.id}`
+        : `http://localhost:5010/api/library/books`;
 
       const method = isEditing ? "PUT" : "POST";
 
@@ -168,7 +190,7 @@ const LibraryManagement = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(bookFormData),
+        body: JSON.stringify(formattedData),
       });
 
       const data = await response.json();
@@ -177,7 +199,7 @@ const LibraryManagement = () => {
       if (isEditing) {
         setBooks(
           books.map((book) =>
-            book.id === bookFormData.id ? { ...book, ...bookFormData } : book
+            book.id === formattedData.id ? { ...book, ...formattedData } : book
           )
         );
       } else {
@@ -185,39 +207,14 @@ const LibraryManagement = () => {
       }
 
       setShowBookDialog(false);
-      setBookFormData({ title: "", author: "", isbn: "" });
+      setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
     } catch (error) {
       console.error("Error saving book:", error);
     }
   };
-  // Return book function
-  const handleReturn = async (bookId) => {
-    try {
-      const response = await fetch(
-        `/backend/api/library/books/${bookId}/return`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to return book");
-
-      setBooks(
-        books.map((book) =>
-          book.id === bookId
-            ? { ...book, status: "available", borrower: null, dueDate: null }
-            : book
-        )
-      );
-    } catch (error) {
-      console.error("Error returning book:", error);
-    }
-  };
+  
+  // This function has been moved to the Borrowers component
+  // The Library Management component now focuses only on book inventory
 
   return (
     <Navbar>
@@ -232,9 +229,20 @@ const LibraryManagement = () => {
               {books.length} Books
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-              <Users className="w-4 h-4 mr-2" />
-              {books.filter((b) => b.status === "borrowed").length} Borrowed
+              <Library className="w-4 h-4 mr-2" />
+              {books.reduce((total, book) => total + (parseInt(book.total_copies) || 0), 0)} Total Copies
             </span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+              <Users className="w-4 h-4 mr-2" />
+              {books.filter((b) => b.borrower).length} Borrowed
+            </span>
+            <Link
+              to="/borrowers"
+              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200"
+            >
+              <BookmarkIcon className="w-4 h-4 mr-2" />
+              Manage Borrowers
+            </Link>
           </div>
         </div>
 
@@ -243,7 +251,7 @@ const LibraryManagement = () => {
             <AlertCircle className="h-5 w-5 text-red-600" />
             <p className="text-sm text-red-600">
               {overdueBooks.length} book(s) are overdue. Please check the list
-              below.
+              below or visit the Borrowers page.
             </p>
           </div>
         )}
@@ -287,7 +295,7 @@ const LibraryManagement = () => {
                   }
                 />
                 <input
-                  type="text"
+                  type="number"
                   placeholder="Total Copies"
                   className="w-full rounded-md border border-gray-300 py-2 px-3"
                   value={bookFormData.total_copies}
@@ -297,12 +305,13 @@ const LibraryManagement = () => {
                       total_copies: e.target.value,
                     })
                   }
+                  min="0"
                 />
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
                       setShowBookDialog(false);
-                      setBookFormData({ title: "", author: "", isbn: "" });
+                      setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
                     }}
                     className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
@@ -315,7 +324,7 @@ const LibraryManagement = () => {
                       !bookFormData.author ||
                       !bookFormData.isbn
                     }
-                    className="px-4 py-2 border rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="px-4 py-2 border rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:bg-blue-400"
                   >
                     {isEditing ? "Save Changes" : "Add Book"}
                   </button>
@@ -368,16 +377,13 @@ const LibraryManagement = () => {
                       ISBN
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Copies Available
+                      Total Copies
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Available Copies
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Borrower
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Due Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -385,84 +391,77 @@ const LibraryManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentBooks.map((book) => (
-                    <tr key={book.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {book.title}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {book.author}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {book.isbn}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {book.total_copies ? book.total_copies : 0}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            !book.borrower
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {book.borrower ? "Unavailable" : "Available"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {book.borrower || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span
-                          className={
-                            book.due_date &&
-                            new Date(book.due_date) < new Date()
-                              ? "text-red-600 font-medium"
-                              : "text-gray-900"
-                          }
-                        >
-                          {book.due_date
-                            ? new Date(book.due_date)
-                                .toISOString()
-                                .split("T")[0]
-                            : "-"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                        <button
-                          onClick={() => handleEditBook(book)}
-                          className="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBook(book.id)}
-                          className="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        {!book.borrower ? (
-                          <button
-                            onClick={() => {
-                              setSelectedBook(book);
-                              setShowBorrowDialog(true);
-                            }}
-                            className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  {currentBooks.map((book) => {
+                    // Calculate available copies
+                    const availableCopies = getAvailableCopies(book);
+                    const isBorrowed = availableCopies < (book.total_copies || 0);
+                    
+                    return (
+                      <tr key={shortid.generate()}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.title}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.author}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.isbn}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {book.total_copies || 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className={availableCopies === 0 ? "text-red-600 font-medium" : ""}>
+                            {availableCopies}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                              availableCopies > 0
+                                ? "bg-green-100 text-green-800"
+                                : isBorrowed
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-gray-100 text-gray-800"
+                            }`}
                           >
-                            Borrow
-                          </button>
-                        ) : (
+                            {availableCopies > 0 
+                              ? "Available" 
+                              : isBorrowed 
+                                ? "All Copies Borrowed" 
+                                : "Out of Stock"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                           <button
-                            onClick={() => handleReturn(book.id)}
-                            className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={() => handleEditBook(book)}
+                            className="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            title="Edit Book"
                           >
-                            Return
+                            <Pencil className="w-4 h-4" />
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          <button
+                            onClick={() => handleDeleteBook(book.id)}
+                            className="inline-flex items-center p-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            title="Delete Book"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          {availableCopies > 0 && (
+                            <button
+                              onClick={() => {
+                                setSelectedBook(book);
+                                setShowBorrowDialog(true);
+                              }}
+                              className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              Borrow
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -477,13 +476,13 @@ const LibraryManagement = () => {
               Previous
             </button>
             <span className="px-3 py-1 border rounded-md text-gray-700 bg-gray-100">
-              Page {currentPage} of {totalPages}
+              Page {currentPage} of {totalPages || 1}
             </span>
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || totalPages === 0}
               className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
               Next
@@ -507,7 +506,7 @@ const LibraryManagement = () => {
               <div className="mt-4 space-y-4">
                 <input
                   type="text"
-                  placeholder="Borrower's Admission No:"
+                  placeholder="Borrower's Admission No"
                   className="w-full rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={borrowerDetails.adminNo}
                   onChange={(e) =>
@@ -538,7 +537,7 @@ const LibraryManagement = () => {
                   <button
                     onClick={() => {
                       setShowBorrowDialog(false);
-                      setBorrowerName("");
+                      setBorrowerDetails({ adminNo: "", name: "" });
                       setSelectedBook(null);
                     }}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -547,7 +546,7 @@ const LibraryManagement = () => {
                   </button>
                   <button
                     onClick={handleBorrow}
-                    disabled={!borrowerDetails}
+                    disabled={!borrowerDetails.name || !borrowerDetails.adminNo}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Confirm Borrow
@@ -573,10 +572,8 @@ export async function loader({ params, request }) {
     return redirect("/");
   }
 
-  
   try {
-
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
@@ -587,7 +584,7 @@ export async function loader({ params, request }) {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log(tokenData)
+    
     // If token is invalid or expired
     if (!tokenResponse.ok || tokenData.error) {
       // Clear invalid token
@@ -597,7 +594,7 @@ export async function loader({ params, request }) {
     }
 
     // API endpoint for fetching books
-    const apiUrl = `/backend/api/library/books`;
+    const apiUrl = `http://localhost:5010/api/library/books`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -606,8 +603,6 @@ export async function loader({ params, request }) {
         "Content-Type": "application/json",
       },
     });
-
-    console.log("Response Status:", response.status);
 
     // Handle authentication failure
     if (response.status === 401 || response.status === 403) {
@@ -618,7 +613,6 @@ export async function loader({ params, request }) {
 
     // Parse the response data
     const data = await response.json();
-    console.log("API Response:", data);
 
     // Check if the response contains a valid book list
     if (!response.ok || !data.success) {

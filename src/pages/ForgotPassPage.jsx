@@ -46,7 +46,7 @@ const ForgotPass = () => {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 ">
         <div className="absolute top-10 lg:left-20 flex items-center justify-center  bg-gray-100">
           <Building2 className="mr-2 size-12" />
-          <h1 className="text-4xl font-bold">TeqovaSMS</h1>
+          <h1 className="text-4xl font-bold">Shule SMS</h1>
         </div>
 
         <div className="w-full max-w-sm md:max-w-lg ">
@@ -108,7 +108,7 @@ const ForgotPass = () => {
             )}
           </form>
           <p className="text-center text-gray-500 text-md">
-            &copy;2025 Teqova. All rights reserved.
+            &copy;2025 Livecrib. All rights reserved.
           </p>
         </div>
       </div>

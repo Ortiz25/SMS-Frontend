@@ -1,4 +1,4 @@
-// src/components/incidentList.jsx
+
 import React, { useState } from "react";
 import { 
   Search, 
@@ -23,6 +23,7 @@ const IncidentList = ({
   error
 }) => {
   const [showFilters, setShowFilters] = useState(false);
+  console.log(incidents)
 
   const getSeverityColor = (severity) => {
     switch (severity?.toLowerCase()) {
@@ -162,7 +163,7 @@ const IncidentList = ({
                 <tr key={incident.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="font-medium text-gray-900">{incident.studentName}</div>
+                      <div className="font-medium text-gray-900">{incident.student_name}</div>
                       <div className="text-xs text-gray-500">{incident.grade} • {incident.admission_number}</div>
                     </div>
                   </td>

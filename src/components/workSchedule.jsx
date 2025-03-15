@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Clock, Plus, X, Users, BookOpen } from "lucide-react";
+import { Calendar, Clock, Plus, X, Users, BookOpen, CheckCircle } from "lucide-react";
+import axios from "axios";
 
 const WorkloadSchedule = ({ teachers }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [rooms, setRooms] = useState([]);
-
-
-
-  // New state for form data
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
@@ -24,6 +21,41 @@ const WorkloadSchedule = ({ teachers }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [conflicts, setConflicts] = useState([]);
+  const [stats, setStats] = useState({
+    teacherLoad: { avgHoursPerWeek: 0 },
+    classes: { total: 0 },
+    subjects: { total: 0 },
+    utilization: { percentage: 0 }
+  });
+
+  useEffect(() => {
+    const fetchAcademicStats = async () => {
+      try {
+        setLoading(true);
+        
+        // Get token from localStorage or your auth context
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.get('http://localhost:5010/api/dashboard/workschedule', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (response.data.success) {
+          setStats(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch stats');
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'An error occurred while fetching stats');
+        console.error('Academic stats error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAcademicStats();
+  }, []);
 
   // Convert day name to day number
   const dayToNumber = {
@@ -53,7 +85,7 @@ const WorkloadSchedule = ({ teachers }) => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch("/backend/api/rooms", {
+        const response = await fetch("http://localhost:5010/api/rooms", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,7 +110,7 @@ const WorkloadSchedule = ({ teachers }) => {
       try {
         // Get current academic session
         const sessionResponse = await fetch(
-          "/backend/api/academic/current",
+          "http://localhost:5010/api/academic/current",
           {
             method: "GET",
             headers: {
@@ -94,7 +126,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
         // Get classes for current session
         const classesResponse = await fetch(
-          `/backend/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          `http://localhost:5010/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
           {
             method: "GET",
             headers: {
@@ -123,7 +155,7 @@ const WorkloadSchedule = ({ teachers }) => {
         try {
           // Use the teacher_id to get subjects based on their specialization in the database
           const response = await fetch(
-            `/backend/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
+            `http://localhost:5010/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
             {
               method: "GET",
               headers: {
@@ -186,7 +218,7 @@ const WorkloadSchedule = ({ teachers }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        "/backend/api/timetable/check-conflicts",
+        "http://localhost:5010/api/timetable/check-conflicts",
         {
           method: "POST",
           headers: {
@@ -245,7 +277,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // First, assign the teacher to the subject and class
       const teacherSubjectResponse = await fetch(
-        "/backend/api/subjects/teacher-subjects",
+        "http://localhost:5010/api/subjects/teacher-subjects",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -265,7 +297,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // Then, create the timetable entry
       const timetableResponse = await fetch(
-        "/backend/api/timetable/entry",
+        "http://localhost:5010/api/timetable/entry",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -307,47 +339,66 @@ const WorkloadSchedule = ({ teachers }) => {
     }
   };
 
+  // if (loading) {
+  //   return (
+  //     <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg flex items-center">
+  //       <CheckCircle className="h-5 w-5 mr-2" />
+  //       Loading stats..
+  //     </div>
+  //   );
+  // }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+          Error loading profile: {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Average Load</h3>
-            <Clock className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold">26 hrs/week</div>
-          <p className="text-xs text-gray-600">Per teacher</p>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-600">Average Load</h3>
+          <Clock className="h-5 w-5 text-blue-600" />
         </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Total Classes</h3>
-            <Users className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold">24</div>
-          <p className="text-xs text-gray-600">Active classes</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Subjects</h3>
-            <BookOpen className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold">12</div>
-          <p className="text-xs text-gray-600">Teaching subjects</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-600">Utilization</h3>
-            <Calendar className="h-5 w-5 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold">85%</div>
-          <p className="text-xs text-green-600">Optimal load</p>
-        </div>
+        <div className="text-2xl font-bold">{stats.teacherLoad.avgHoursPerWeek} hrs/week</div>
+        <p className="text-xs text-gray-600">Per teacher</p>
       </div>
-
+      
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-600">Total Classes</h3>
+          <Users className="h-5 w-5 text-blue-600" />
+        </div>
+        <div className="text-2xl font-bold">{stats.classes.total}</div>
+        <p className="text-xs text-gray-600">Active classes</p>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-600">Subjects</h3>
+          <BookOpen className="h-5 w-5 text-blue-600" />
+        </div>
+        <div className="text-2xl font-bold">{stats.subjects.total}</div>
+        <p className="text-xs text-gray-600">Teaching subjects</p>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-gray-600">Utilization</h3>
+          <Calendar className="h-5 w-5 text-blue-600" />
+        </div>
+        <div className="text-2xl font-bold">{stats.utilization.percentage}%</div>
+        <p className="text-xs text-green-600">
+          {stats.utilization.percentage >= 80 ? 'Optimal load' : 'Below optimal'}
+        </p>
+      </div>
+    </div>
       {/* Workload Table */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="overflow-x-auto">
