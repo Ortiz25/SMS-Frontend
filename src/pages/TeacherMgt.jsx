@@ -29,11 +29,13 @@ const TeacherManagement = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
+  const[teachers, updateTeachers] = useState()
   const data = useLoaderData();
   
   useEffect(() => {
     updateActiveModule("teachers");
-    let filtered = [...data.teachers];
+    let filtered = [...(data?.teachers ?? [])];
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       console.log("Search term:", term);
@@ -248,8 +250,6 @@ export async function loader({ params, request }) {
         };
   } catch (error) {
     console.error("Error fetching teachers:", error);
-
-    // Return error information
-    return redirect("/");
+    return null;
   }
 }

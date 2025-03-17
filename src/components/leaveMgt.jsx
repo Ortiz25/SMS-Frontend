@@ -27,7 +27,7 @@ const LeaveManagement = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentTeacherId, setCurrentTeacherId] = useState(userInfo.teacher.teacher_id);
+  const [currentTeacherId, setCurrentTeacherId] = useState(userInfo?.teacher?.teacher_id );
   const [isAdmin, setIsAdmin] = useState(false);
   const [leaveStats, setLeaveStats] = useState({
     pending: 0,
