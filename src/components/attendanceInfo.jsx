@@ -48,7 +48,7 @@ const AttendanceInfo = ({ student }) => {
     if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
     
     const { summary, recent } = attendanceData;
-    
+   
     return (
         <div className="space-y-6">
             {/* Attendance Summary */}
@@ -88,7 +88,7 @@ const AttendanceInfo = ({ student }) => {
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {recent.length > 0 ? (
-                                recent.map((record, index) => (
+                                recent?.slice(0,5).map((record, index) => (
                                     <tr key={index}>
                                         <td className="px-6 py-4 text-sm text-gray-900">{record.date}</td>
                                         <td className="px-6 py-4 text-sm text-gray-900">{record.session_type || 'Full day'}</td>

@@ -34,6 +34,44 @@ const EditTeacherModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+   const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [subjects, updateSubjects] = useState([]);
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+    const token = localStorage.getItem("token");
+  
+    useEffect(() => {
+      const fetchSubjects = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch("/backend/api/helpers", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+  
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+  
+          const data = await response.json();
+          console.log(data);
+          updateSubjects(data.data);
+          setError(null);
+        } catch (err) {
+          setError(`Failed to fetch users: ${err.message}`);
+          console.error("Error fetching users:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchSubjects();
+    }, []);
+  console.log(subjects)
+
   const steps = [
     { id: 1, title: "Personal Info" },
     { id: 2, title: "Employment" },
@@ -46,17 +84,6 @@ const EditTeacherModal = ({
     "Languages",
     "Humanities",
     "Technical Subjects",
-  ];
-
-  const subjects = [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "English",
-    "Kiswahili",
-    "History",
-    "Geography",
   ];
 
   // Fetch teacher details when modal opens

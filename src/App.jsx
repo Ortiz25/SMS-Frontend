@@ -20,6 +20,7 @@ import LoginPage from './pages/LoginPage';
 import ForgotPass from './pages/ForgotPassPage';
 import FinanceMgt from './pages/FinanceMgt';
 import Borrowers from './pages/LibraryBorrowers';
+import PasswordRecovery from './pages/ResetPassword';
 import { action as LoginAction, loader as LoginLoader } from './pages/LoginPage';
 import { loader as DashLoader } from './pages/Dashboard';
 import { loader as StudentLoader } from './pages/StudentMgt';
@@ -33,6 +34,7 @@ import { loader as commsLoader } from './pages/CommunicationMgt';
 import { loader as loaderSettings  } from './pages/SettingsMgt';
 import { loader as inventoryLoader } from './pages/InventoryMgt';
 import { loader as financeLoader } from './pages/FinanceMgt';
+import { action as resetAction } from './pages/ResetPassword';
 
 
 
@@ -56,6 +58,7 @@ const router = createBrowserRouter([
   { path: "/borrowers", element: <Borrowers/> },
   { path: "/finance", element: <FinanceMgt/>, loader:financeLoader },
   { path: "/forgotpassword", element: <ForgotPass/> },
+  { path: "/resetpassword", element: <PasswordRecovery/>, action:resetAction },
   { path: "*", element: <ErrorPage/> }
 ]);
 

@@ -10,7 +10,7 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 import EditTeacherModal, {
   ViewTeacherModal,
@@ -102,6 +102,28 @@ const TeacherProfiles = ({ teachers }) => {
   const handleRecordsPerPageChange = (e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page when changing records per page
+  };
+
+  const handleDeleteTeacher = async (teacherId) => {
+    try {
+      const response = await fetch(`/backend/api/teachers/${teacherId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete teacher");
+      }
+
+      console.log("Teacher deleted successfully");
+      setShowDeleteModal(false);
+      setSelectedTeacher(null);
+      // Refresh teacher list (if applicable)
+    } catch (error) {
+      console.error("Error deleting teacher:", error);
+    }
   };
 
   const handleSave = async (updatedTeacher) => {
@@ -388,12 +410,7 @@ const TeacherProfiles = ({ teachers }) => {
           isOpen={showDeleteModal}
           teacher={selectedTeacher}
           onClose={() => setShowDeleteModal(false)}
-          onConfirm={(teacherId) => {
-            console.log("Deleting teacher:", teacherId);
-            // Add your delete logic here
-            setShowDeleteModal(false);
-            setSelectedTeacher(null);
-          }}
+          onConfirm={handleDeleteTeacher}
         />
       )}
 

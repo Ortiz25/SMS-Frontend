@@ -8,7 +8,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
     absentDays: 0,
     lateDays: 0,
     leaveDays: 0,
-    totalSchoolDays: 0,
+    totalDays: 0,
     attendancePercentage: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
       // Get first and last day of the selected month
       const firstDay = new Date(selectedYear, selectedMonth, 1);
       const lastDay = new Date(selectedYear, selectedMonth + 1, 0);
-      
+
       const startDate = firstDay.toISOString().split("T")[0];
       const endDate = lastDay.toISOString().split("T")[0];
 
@@ -55,6 +55,8 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
         }
       );
 
+      console.log(response);
+
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -62,21 +64,23 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
       }
 
       const data = await response.json();
+
+      console.log(data);
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to fetch attendance data");
       }
 
       setAttendanceData(data.data || []);
-      
+
       // Set summary data if available
-      if (data.summary) {
+      if (data.statistics) {
         setAttendanceSummary({
-          presentDays: data.summary.present_days || 0,
-          absentDays: data.summary.absent_days || 0,
-          lateDays: data.summary.late_days || 0,
-          leaveDays: data.summary.leave_days || 0,
-          totalSchoolDays: data.summary.total_school_days || 0,
-          attendancePercentage: data.summary.attendance_percentage || 0,
+          presentDays: data.statistics.presentDays || 0,
+          absentDays: data.statistics.absentDays || 0,
+          lateDays: data.statistics.lateDays || 0,
+          leaveDays: data.statistics.leaveDays || 0,
+          totalDays: data.statistics.totalDays || 0,
+          attendancePercentage: data.statistics.attendancePercentage || 0,
         });
       }
     } catch (error) {
@@ -89,28 +93,30 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
   const generateCalendarDays = () => {
     // Get number of days in the month
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-    
+
     // Get the day of the week for the first day of the month (0 = Sunday, 1 = Monday, etc.)
     const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1).getDay();
-    
+
     // Create array of day objects for the calendar
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push({ day: null, isEmpty: true });
     }
-    
+
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(selectedYear, selectedMonth, day).toISOString().split("T")[0];
-      
+      const date = new Date(selectedYear, selectedMonth, day)
+        .toISOString()
+        .split("T")[0];
+
       // Find attendance record for this day
-      const dayRecord = attendanceData?.find(record => {
+      const dayRecord = attendanceData?.find((record) => {
         const recordDate = new Date(record.date).toISOString().split("T")[0];
         return recordDate === date;
       });
-      
+
       days.push({
         day,
         date,
@@ -120,14 +126,14 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
         reason: dayRecord ? dayRecord.reason : null,
       });
     }
-    
+
     setCalendarDays(days);
   };
 
   const handlePrevMonth = () => {
-    setSelectedMonth(prev => {
+    setSelectedMonth((prev) => {
       if (prev === 0) {
-        setSelectedYear(year => year - 1);
+        setSelectedYear((year) => year - 1);
         return 11;
       }
       return prev - 1;
@@ -135,9 +141,9 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
   };
 
   const handleNextMonth = () => {
-    setSelectedMonth(prev => {
+    setSelectedMonth((prev) => {
       if (prev === 11) {
-        setSelectedYear(year => year + 1);
+        setSelectedYear((year) => year + 1);
         return 0;
       }
       return prev + 1;
@@ -145,21 +151,24 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
   };
 
   // Get month name
-  const monthName = new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long' });
-  
+  const monthName = new Date(selectedYear, selectedMonth).toLocaleString(
+    "default",
+    { month: "long" }
+  );
+
   // Get attendance status color
   const getStatusColor = (status) => {
     switch (status) {
-      case 'present':
-        return 'bg-green-100 text-green-800';
-      case 'absent':
-        return 'bg-red-100 text-red-800';
-      case 'late':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'on-leave':
-        return 'bg-blue-100 text-blue-800';
+      case "present":
+        return "bg-green-100 text-green-800";
+      case "absent":
+        return "bg-red-100 text-red-800";
+      case "late":
+        return "bg-yellow-100 text-yellow-800";
+      case "on-leave":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -167,7 +176,10 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-         <div className="bg-black opacity-50 w-full h-full absolute" onClick={onClose}></div>
+      <div
+        className="bg-black opacity-50 w-full h-full absolute"
+        onClick={onClose}
+      ></div>
       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
@@ -220,13 +232,16 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                   </div>
                   <div className="bg-white p-3 rounded-lg border text-center">
                     <div className="text-2xl font-bold text-gray-800">
-                      {attendanceSummary.totalSchoolDays}
+                      {attendanceSummary.totalDays}
                     </div>
                     <div className="text-sm text-gray-600">Total Days</div>
                   </div>
                   <div className="bg-white p-3 rounded-lg border text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {attendanceSummary.attendancePercentage.toFixed(1)}%
+                      {Number(attendanceSummary.attendancePercentage).toFixed(
+                        1
+                      )}
+                      %
                     </div>
                     <div className="text-sm text-gray-600">Attendance Rate</div>
                   </div>
@@ -257,11 +272,16 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                 <div className="p-4">
                   {/* Day labels */}
                   <div className="grid grid-cols-7 gap-1 mb-1">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                        {day}
-                      </div>
-                    ))}
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      (day) => (
+                        <div
+                          key={day}
+                          className="text-center text-sm font-medium text-gray-500 py-2"
+                        >
+                          {day}
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Calendar days */}
@@ -270,9 +290,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                       <div
                         key={index}
                         className={`p-1 aspect-square ${
-                          dayObj.isEmpty
-                            ? "bg-gray-50"
-                            : "border rounded-lg"
+                          dayObj.isEmpty ? "bg-gray-50" : "border rounded-lg"
                         }`}
                       >
                         {!dayObj.isEmpty && (
@@ -286,22 +304,22 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                                   dayObj.attendance
                                 )}`}
                               >
-                                {dayObj.attendance === 'present'
-                                  ? 'P'
-                                  : dayObj.attendance === 'absent'
-                                  ? 'A'
-                                  : dayObj.attendance === 'late'
-                                  ? 'L'
-                                  : dayObj.attendance === 'on-leave'
-                                  ? 'OL'
-                                  : ''}
+                                {dayObj.attendance === "present"
+                                  ? "P"
+                                  : dayObj.attendance === "absent"
+                                  ? "A"
+                                  : dayObj.attendance === "late"
+                                  ? "L"
+                                  : dayObj.attendance === "on-leave"
+                                  ? "OL"
+                                  : ""}
                                 {dayObj.sessionType && (
                                   <span className="text-[8px] block">
-                                    {dayObj.sessionType === 'morning'
-                                      ? 'AM'
-                                      : dayObj.sessionType === 'afternoon'
-                                      ? 'PM'
-                                      : 'Full'}
+                                    {dayObj.sessionType === "morning"
+                                      ? "AM"
+                                      : dayObj.sessionType === "afternoon"
+                                      ? "PM"
+                                      : "Full"}
                                   </span>
                                 )}
                               </div>
@@ -319,7 +337,9 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
               {/* Recent Attendance Records */}
               <div className="bg-white rounded-lg border">
                 <div className="flex items-center justify-between p-4 border-b">
-                  <h3 className="text-lg font-medium">Recent Attendance Records</h3>
+                  <h3 className="text-lg font-medium">
+                    Recent Attendance Records
+                  </h3>
                   <button className="flex items-center space-x-2 px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-50">
                     <Download className="h-4 w-4" />
                     <span>Export</span>
@@ -329,11 +349,21 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">Date</th>
-                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">Session</th>
-                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">Status</th>
-                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">Reason</th>
-                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">Recorded By</th>
+                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">
+                          Date
+                        </th>
+                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">
+                          Session
+                        </th>
+                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">
+                          Status
+                        </th>
+                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">
+                          Reason
+                        </th>
+                        <th className="py-3 px-4 text-left text-sm font-medium text-gray-500">
+                          Recorded By
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -344,11 +374,11 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                               {new Date(record.date).toLocaleDateString()}
                             </td>
                             <td className="py-3 px-4 text-sm text-gray-600">
-                              {record.session_type === 'morning'
-                                ? 'Morning'
-                                : record.session_type === 'afternoon'
-                                ? 'Afternoon'
-                                : 'Whole Day'}
+                              {record.session_type === "morning"
+                                ? "Morning"
+                                : record.session_type === "afternoon"
+                                ? "Afternoon"
+                                : "Whole Day"}
                             </td>
                             <td className="py-3 px-4">
                               <span
@@ -356,20 +386,24 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                                   record.status
                                 )}`}
                               >
-                                {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                {record.status.charAt(0).toUpperCase() +
+                                  record.status.slice(1)}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-sm text-gray-600">
-                              {record.reason || '-'}
+                              {record.reason || "-"}
                             </td>
                             <td className="py-3 px-4 text-sm text-gray-600">
-                              {record.recorded_by_name || 'System'}
+                              {record.recorded_by_name || "System"}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="py-6 text-center text-gray-500">
+                          <td
+                            colSpan="5"
+                            className="py-6 text-center text-gray-500"
+                          >
                             No attendance records found for this month.
                           </td>
                         </tr>

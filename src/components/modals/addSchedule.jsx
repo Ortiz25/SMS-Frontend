@@ -65,7 +65,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     };
 
     fetchSubjects();
-  }, []); // Removed formData dependency to prevent infinite loops
+  }, []); 
 
   
 

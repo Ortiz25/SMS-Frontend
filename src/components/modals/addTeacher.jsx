@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Upload } from "lucide-react";
 import axios from "axios";
 
@@ -12,6 +12,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     email: "",
     phone_primary: "",
     phone_secondary: "",
+    gender: "",
 
     // Employment Details
     staff_id: "", // Auto-generated
@@ -32,7 +33,44 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     documents: [],
   });
 
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [subjects, updateSubjects] = useState([]);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [files, setFiles] = useState([]);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/backend/api/helpers", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(data);
+        updateSubjects(data.data);
+        setError(null);
+      } catch (err) {
+        setError(`Failed to fetch users: ${err.message}`);
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
 
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
@@ -75,22 +113,14 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     "Technical Subjects",
   ];
 
-  const subjects = [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "English",
-    "Kiswahili",
-    "History",
-    "Geography",
-  ];
-
-  const handleSubjectChange = (subject) => {
+  const handleSubjectChange = (subjectName) => {
     const currentSubjects = formData.subject_specialization || [];
-    const updatedSubjects = currentSubjects.includes(subject)
-      ? currentSubjects.filter((s) => s !== subject)
-      : [...currentSubjects, subject];
+
+    // Check using subjectName (strings)
+    const updatedSubjects = currentSubjects.includes(subjectName)
+      ? currentSubjects.filter((s) => s !== subjectName) // Remove if exists
+      : [...currentSubjects, subjectName]; // Add if not exists
+
     handleChange("subject_specialization", updatedSubjects);
   };
 
@@ -133,13 +163,17 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post("/backend/api/teachers", formDataUpload, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const response = await axios.post(
+        "/backend/api/teachers",
+        formDataUpload,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
       onSubmit(response.data);
       onClose();
     } catch (error) {
@@ -148,6 +182,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
   if (!isOpen) return null;
+  const uniqueSubjects = Array.from(new Set(subjects.map((subject) => subject.name)));
+  console.log(uniqueSubjects)
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -287,6 +323,22 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                         required
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender*
+                      </label>
+                      <select
+                        value={formData.gender || ""}
+                        onChange={(e) => handleChange("gender", e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
+                        required
+                      >
+                        <option value="">Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -417,12 +469,13 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                   </div>
 
                   {/* Teaching Subjects */}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Teaching Subjects*
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {subjects.map((subject) => (
+                      {uniqueSubjects.map((subject) => (
                         <label
                           key={subject}
                           className="flex items-center space-x-2"

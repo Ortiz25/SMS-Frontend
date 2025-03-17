@@ -35,6 +35,7 @@ import { extractDate } from "../util/helperFunctions";
 const Dashboard = () => {
   const token = localStorage.getItem("token");
   const data = useLoaderData();
+  console.log(data)
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { updateActiveModule, activeModule } = useStore();
@@ -53,7 +54,10 @@ const Dashboard = () => {
   });
   const [teacherData, updateTeacherData] = useState({
     total_teachers: 0,
-    active_teachers: 0
+    active_teachers: 0,
+    male_teachers: 0,
+    female_teachers: 0,
+    inactive_teachers: 0
   });
   const [activities, updateActivities] = useState([]);
   const [performance, updatePerformance] = useState([]);
@@ -87,6 +91,7 @@ const Dashboard = () => {
       }
     }
   }, [data]);
+  console.log(teacherData)
 
   useEffect(() => {
     setIsLoading(true);
@@ -288,6 +293,24 @@ const Dashboard = () => {
                 </div>
                 <span className="text-lg font-bold">
                   {teacherData?.total_teachers || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-600">Male Teachers</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {teacherData?.male_teachers || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4 text-pink-500" />
+                  <span className="text-sm text-gray-600">Female Teachers</span>
+                </div>
+                <span className="text-lg font-bold">
+                  {teacherData?.female_teachers || 0}
                 </span>
               </div>
 
