@@ -83,7 +83,7 @@ const LibraryManagement = () => {
       dueDate.setDate(dueDate.getDate() + 14); // 2 weeks borrowing period
 
       const response = await fetch(
-        `/backend/api/library/books/${selectedBook.id}/borrow`,
+        `http://localhost:5010/api/library/books/${selectedBook.id}/borrow`,
         {
           method: "POST",
           headers: {
@@ -152,7 +152,7 @@ const LibraryManagement = () => {
 
     try {
       const response = await fetch(
-        `/backend/api/library/books/${bookId}`,
+        `http://localhost:5010/api/library/books/${bookId}`,
         {
           method: "DELETE",
           headers: {
@@ -179,8 +179,8 @@ const LibraryManagement = () => {
       };
 
       const url = isEditing
-        ? `/backend/api/library/books/${formattedData.id}`
-        : `/backend/api/library/books`;
+        ? `http://localhost:5010/api/library/books/${formattedData.id}`
+        : `http://localhost:5010/api/library/books`;
 
       const method = isEditing ? "PUT" : "POST";
 
@@ -573,7 +573,7 @@ export async function loader({ params, request }) {
   }
 
   try {
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
@@ -594,7 +594,7 @@ export async function loader({ params, request }) {
     }
 
     // API endpoint for fetching books
-    const apiUrl = `/backend/api/library/books`;
+    const apiUrl = `http://localhost:5010/api/library/books`;
 
     const response = await fetch(apiUrl, {
       method: "GET",

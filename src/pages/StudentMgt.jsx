@@ -40,7 +40,9 @@ const StudentManagement = () => {
   const [studentData, updateStudentData] = useState(data);
 
   // Pagination state
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(
+    parseInt(searchParams.get("perPage") || "10")
+  );
   const currentPage = parseInt(searchParams.get("page") || "1");
   const totalPages = Math.ceil(count / itemsPerPage);
 
@@ -118,7 +120,7 @@ const StudentManagement = () => {
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
-          "/backend/api/dashboard/studentstats",
+          "http://localhost:5010/api/dashboard/studentstats",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -148,6 +150,15 @@ const StudentManagement = () => {
   // Calculate pagination details
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, count);
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newSize) => {
+    // Update URL params
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("perPage", newSize.toString());
+    newParams.set("page", "1"); // Reset to first page when changing items per page
+    setSearchParams(newParams);
+  };
 
   // Pagination navigation handlers
   const goToPage = (page) => {
@@ -296,7 +307,7 @@ const StudentManagement = () => {
 
       // Fetch attendance data
       const response = await fetch(
-        `/backend/api/attendance?${queryParams.toString()}`,
+        `http://localhost:5010/api/attendance?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -350,6 +361,13 @@ const StudentManagement = () => {
   };
 
   useEffect(() => {
+    // Parse the perPage parameter from the URL and update state
+    const perPage = parseInt(searchParams.get("perPage") || "10");
+    setItemsPerPage(perPage);
+  }, [searchParams]);
+  
+
+  useEffect(() => {
     updateActiveModule("students");
 
     if (activeTab === "attendance") {
@@ -390,6 +408,7 @@ const StudentManagement = () => {
     activeTab,
     searchTerm,
     currentPage,
+    itemsPerPage, // Add itemsPerPage as a dependency
     searchParams,
     attendanceFilterOptions.dateRange === "today" ? selectedDate : null,
   ]);
@@ -404,17 +423,31 @@ const StudentManagement = () => {
 
   function isGradeImproved(current, previous) {
     // Grade order from best to worst (simplified)
-    const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E', 'F'];
-    
+    const gradeOrder = [
+      "A+",
+      "A",
+      "A-",
+      "B+",
+      "B",
+      "B-",
+      "C+",
+      "C",
+      "C-",
+      "D+",
+      "D",
+      "D-",
+      "E",
+      "F",
+    ];
+
     const currentIndex = gradeOrder.indexOf(current);
     const previousIndex = gradeOrder.indexOf(previous);
-    
+
     if (currentIndex === -1 || previousIndex === -1) return false;
-    
+
     // Lower index means better grade
     return currentIndex < previousIndex;
   }
-  
 
   return (
     <Navbar>
@@ -664,13 +697,34 @@ const StudentManagement = () => {
               </table>
             </div>
 
-            {/* Pagination */}
+            {/* Pagination with Items Per Page Control */}
             <div className="px-4 py-3 border-t">
               <div className="flex flex-col sm:flex-row items-center justify-between">
-                <span className="text-sm text-gray-600 mb-3 sm:mb-0">
-                  Showing {filteredData?.length > 0 ? startIndex + 1 : 0} to{" "}
-                  {endIndex} of {count} students
-                </span>
+                <div className="flex items-center space-x-4 mb-3 sm:mb-0">
+                  <span className="text-sm text-gray-600">
+                    Showing {filteredData?.length > 0 ? startIndex + 1 : 0} to{" "}
+                    {endIndex} of {count} students
+                  </span>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Show:</span>
+                    <div className="flex border rounded-md overflow-hidden">
+                      {[10, 20, 50].map((size) => (
+                        <button
+                          key={`size-${size}`}
+                          onClick={() => handleItemsPerPageChange(size)}
+                          className={`px-3 py-1 text-sm ${
+                            itemsPerPage === size
+                              ? "bg-blue-600 text-white"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="flex items-center">
                   <button
@@ -685,7 +739,7 @@ const StudentManagement = () => {
                     <ChevronLeft className="h-4 w-4" />
                   </button>
 
-                  {getPageNumbers(searchParams, count).map((page, index) =>
+                  {getPageNumbers(currentPage, totalPages).map((page, index) =>
                     page === "..." ? (
                       <span
                         key={`ellipsis-${index}`}
@@ -816,7 +870,7 @@ export async function loader({ params, request }) {
 
   try {
     // Set correct API endpoint for detailed student data
-    const apiUrl = `/backend/api/students/detailed`;
+    const apiUrl = `http://localhost:5010/api/students/detailed`;
 
     const response = await fetch(apiUrl, {
       method: "GET",

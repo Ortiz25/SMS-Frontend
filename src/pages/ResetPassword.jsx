@@ -182,7 +182,7 @@ export async function action({ request, params }) {
   const data = { token: token, newPassword: newPassword };
   try {
     const response = await fetch(
-      "/backend/api/password/resetpassword",
+      "http://localhost:5010/api/password/resetpassword",
       {
         method: "POST",
         headers: {
