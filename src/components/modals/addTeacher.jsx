@@ -45,7 +45,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     const fetchSubjects = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5010/api/helpers", {
+        const response = await fetch("/backend/api/helpers", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -164,7 +164,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5010/api/teachers",
+        "/backend/api/teachers",
         formDataUpload,
         {
           headers: {

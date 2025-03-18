@@ -22,7 +22,7 @@ const AttendanceInfo = ({ student }) => {
                 setLoading(true);
                 const token = localStorage.getItem('token');
                 const response = await axios.get(
-                    `http://localhost:5010/api/attendance/student/${student.id}`,
+                    `/backend/api/attendance/student/${student.id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`

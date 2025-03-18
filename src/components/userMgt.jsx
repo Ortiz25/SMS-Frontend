@@ -45,7 +45,7 @@ const UserManagement = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5010/api/users", {
+        const response = await fetch("/backend/api/users", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ const UserManagement = () => {
       if (selectedUser) {
         // Update existing user
         response = await fetch(
-          `http://localhost:5010/api/users/${selectedUser.id}`,
+          `/backend/api/users/${selectedUser.id}`,
           {
             method: "PUT",
             headers: {
@@ -113,7 +113,7 @@ const UserManagement = () => {
         );
       } else {
         // Create new user
-        response = await fetch("http://localhost:5010/api/users", {
+        response = await fetch("/backend/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -158,7 +158,7 @@ const UserManagement = () => {
   const handleDeleteConfirm = async (userId) => {
     try {
       const response = await fetch(
-        `http://localhost:5010/api/users/${userId}`,
+        `/backend/api/users/${userId}`,
         {
           method: "DELETE",
           headers: {
