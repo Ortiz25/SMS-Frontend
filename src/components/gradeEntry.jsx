@@ -46,7 +46,7 @@ const GradeEntry = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log(response.data)
+      
         setSessions(response.data);
 
         // Set current session as default if available
@@ -58,7 +58,7 @@ const GradeEntry = () => {
         } else if (response.data.length > 0) {
           setSelectedSession(response.data[0].id);
         }
-
+         
         setLoading(false);
       } catch (err) {
         setError("Failed to load academic sessions");
@@ -85,7 +85,6 @@ const GradeEntry = () => {
             },
           }
         );
-        console.log(response)
         setExams(response.data);
         setLoading(false);
       } catch (err) {
@@ -113,7 +112,7 @@ const GradeEntry = () => {
             },
           }
         );
-        console.log(response)
+        console.log(response.data)
         setClasses(response.data);
         setLoading(false);
       } catch (err) {
@@ -126,33 +125,35 @@ const GradeEntry = () => {
     fetchClasses();
   }, [selectedSession]);
 
-  // Load subjects when class changes
-  useEffect(() => {
-    if (!selectedClass) return;
+  // Load subjects when both class AND exam are selected
+useEffect(() => {
+  if (!selectedClass || !selectedExam) return;
 
-    const fetchSubjects = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `/backend/api/grading/subjects/${selectedClass}`,{
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log(response.data)
-        setSubjects(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load subjects");
-        setLoading(false);
-        console.error(err);
-      }
-    };
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      console.log(selectedExam, selectedClass)
+      const response = await axios.get(
+        `/backend/api/grading/exam-subjects/${selectedClass}/${selectedExam}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setSubjects(response.data);
+      console.log(response.data)
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load subjects with scheduled exams");
+      setLoading(false);
+      console.error(err);
+    }
+  };
 
-    fetchSubjects();
-  }, [selectedClass]);
+  fetchSubjects();
+}, [selectedClass, selectedExam]); // Now depends on both class and exam
 
   // Load students when class changes
   useEffect(() => {
@@ -313,7 +314,7 @@ const GradeEntry = () => {
 
       // Refresh grades to get updated calculated fields
       const refreshResponse = await axios.get(
-        `/backend/api/exams/schedules/${examSchedule.id}/results`,{
+        `/backend/api/examgrading/schedules/${examSchedule.id}/results`,{
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -457,6 +458,25 @@ const GradeEntry = () => {
               ))}
             </select>
           </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Examination
+            </label>
+            <select
+              value={selectedExam}
+              onChange={(e) => setSelectedExam(e.target.value)}
+              className="w-full border border-gray-300 rounded-md py-2 px-3"
+              disabled={loading || !selectedSession}
+            >
+              <option value="">Select Examination</option>
+              {exams.map((exam) => (
+                <option key={exam.id} value={exam.id}>
+                  {exam.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -477,24 +497,6 @@ const GradeEntry = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Examination
-            </label>
-            <select
-              value={selectedExam}
-              onChange={(e) => setSelectedExam(e.target.value)}
-              className="w-full border border-gray-300 rounded-md py-2 px-3"
-              disabled={loading || !selectedSession}
-            >
-              <option value="">Select Examination</option>
-              {exams.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.name}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 

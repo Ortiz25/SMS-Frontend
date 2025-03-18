@@ -9,11 +9,13 @@ const AcademicInfo = ({ student }) => {
             averageGrade: '',
             average_score: 0
         },
-        subjects: []
+        subjects: {},
+        availableExams: []
     });
+    const [selectedExam, setSelectedExam] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
     useEffect(() => {
         const fetchAcademicData = async () => {
             try {
@@ -27,8 +29,23 @@ const AcademicInfo = ({ student }) => {
                         }
                     }
                 );
-                
-                setAcademicData(response.data.data);
+
+                let fetchedData = response.data.data;
+
+                if (fetchedData && fetchedData.subjects) {
+                    const examNames = Object.keys(fetchedData.subjects);
+                    setAcademicData({
+                        academicStatus: fetchedData.academicStatus || {},
+                        subjects: fetchedData.subjects,
+                        availableExams: examNames
+                    });
+
+                    // Auto-select the most recent exam
+                    if (examNames.length > 0) {
+                        setSelectedExam(examNames[0]);
+                    }
+                }
+
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching academic data:', err);
@@ -36,18 +53,18 @@ const AcademicInfo = ({ student }) => {
                 setLoading(false);
             }
         };
-        
+
         if (student?.id) {
             fetchAcademicData();
         }
-        console.log(academicData)
     }, [student]);
-    
+
     if (loading) return <div className="p-4 text-center">Loading academic data...</div>;
     if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
-    
-    const { academicStatus, subjects } = academicData;
-    
+
+    const { academicStatus, subjects, availableExams } = academicData;
+    const selectedSubjects = subjects[selectedExam] || [];
+
     // Helper function to get grade color
     const getGradeColor = (grade) => {
         if (!grade) return 'bg-gray-100 text-gray-800';
@@ -59,8 +76,7 @@ const AcademicInfo = ({ student }) => {
         if (firstChar === 'D') return 'bg-orange-100 text-orange-800';
         return 'bg-red-100 text-red-800';
     };
-    console.log(academicStatus)
-    
+
     return (
         <div className="space-y-6">
             {/* Current Academic Status */}
@@ -84,10 +100,26 @@ const AcademicInfo = ({ student }) => {
                     </div>
                 </div>
             </div>
-            
+
+            {/* Exam Selector */}
+            {availableExams.length > 0 && (
+                <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Select Examination</h3>
+                    <select
+                        value={selectedExam}
+                        onChange={(e) => setSelectedExam(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    >
+                        {availableExams.map((exam) => (
+                            <option key={exam} value={exam}>{exam}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
             {/* Recent Performance */}
             <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Performance</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Exam Performance - {selectedExam}</h3>
                 <div className="bg-white border rounded-lg overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
@@ -99,11 +131,11 @@ const AcademicInfo = ({ student }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {subjects.length > 0 ? (
-                                subjects.map((subject, index) => (
+                            {selectedSubjects.length > 0 ? (
+                                selectedSubjects.map((subject, index) => (
                                     <tr key={index}>
                                         <td className="px-6 py-4 text-sm text-gray-900">{subject.subject}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{subject.score}%</td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">{subject.score} / {subject.outOf}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${getGradeColor(subject.grade)}`}>
                                                 {subject.grade}
@@ -115,7 +147,7 @@ const AcademicInfo = ({ student }) => {
                             ) : (
                                 <tr>
                                     <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                                        No academic records found
+                                        No academic records found for {selectedExam}
                                     </td>
                                 </tr>
                             )}

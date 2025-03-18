@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Loader } from "lucide-react";
 
 const ScheduleExamModal = ({
   isOpen,
@@ -27,12 +27,15 @@ const ScheduleExamModal = ({
     startDate: "",
     endDate: ""
   };
+  console.log(classes)
 
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [isCreatingNewExam, setIsCreatingNewExam] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   // Reset form when modal is opened
   useEffect(() => {
@@ -40,6 +43,7 @@ const ScheduleExamModal = ({
       setFormData(initialState);
       setErrors({});
       setIsCreatingNewExam(false);
+      setSubmitError(null);
       // Fetch subjects and teachers when the modal opens
       fetchSubjectsAndTeachers();
     }
@@ -60,7 +64,6 @@ const ScheduleExamModal = ({
       if (!subjectsResponse.ok) throw new Error('Failed to fetch subjects');
       
       const subjectsData = await subjectsResponse.json();
-      console.log(subjectsData)
       setSubjects(subjectsData.data);
       
       // Fetch teachers
@@ -74,7 +77,6 @@ const ScheduleExamModal = ({
       if (!teachersResponse.ok) throw new Error('Failed to fetch teachers');
       
       const teachersData = await teachersResponse.json();
-      console.log(teachersData.data)
       setTeachers(teachersData.data);
     } catch (error) {
       console.error('Error fetching subjects and teachers:', error);
@@ -168,11 +170,30 @@ const ScheduleExamModal = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      onSubmit(formData);
+      setIsSubmitting(true);
+      setSubmitError(null);
+      
+      try {
+        // Call the parent onSubmit function and wait for it to complete
+        await onSubmit(formData);
+        
+        // If successful, close the modal
+        onClose();
+      } catch (error) {
+        // If there's an error, set the error message
+        console.error("Error submitting exam schedule:", error);
+        setSubmitError(
+          error.response?.data?.msg || 
+          error.message || 
+          "Failed to schedule exam. Please try again."
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -187,10 +208,18 @@ const ScheduleExamModal = ({
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            disabled={isSubmitting}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Submit Error Message */}
+        {submitError && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+            {submitError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
@@ -208,6 +237,7 @@ const ScheduleExamModal = ({
                     value={formData.examinationId}
                     onChange={handleChange}
                     className={`w-full p-2 border rounded-lg ${errors.examinationId ? "border-red-500" : ""}`}
+                    disabled={isSubmitting}
                   >
                     <option value="">Select Examination</option>
                     {examinations.map((exam) => (
@@ -233,6 +263,7 @@ const ScheduleExamModal = ({
                         onChange={handleChange}
                         className={`w-full p-2 border rounded-lg ${errors.examinationName ? "border-red-500" : ""}`}
                         placeholder="e.g., End Term Examination Term 1 2023"
+                        disabled={isSubmitting}
                       />
                       {errors.examinationName && <p className="text-red-500 text-xs mt-1">{errors.examinationName}</p>}
                     </div>
@@ -246,6 +277,7 @@ const ScheduleExamModal = ({
                         value={formData.examTypeId}
                         onChange={handleChange}
                         className={`w-full p-2 border rounded-lg ${errors.examTypeId ? "border-red-500" : ""}`}
+                        disabled={isSubmitting}
                       >
                         <option value="">Select Exam Type</option>
                         {examTypes.map((type) => (
@@ -268,6 +300,7 @@ const ScheduleExamModal = ({
                           value={formData.startDate}
                           onChange={handleChange}
                           className={`w-full p-2 border rounded-lg ${errors.startDate ? "border-red-500" : ""}`}
+                          disabled={isSubmitting}
                         />
                         {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
                       </div>
@@ -282,6 +315,7 @@ const ScheduleExamModal = ({
                           onChange={handleChange}
                           className={`w-full p-2 border rounded-lg ${errors.endDate ? "border-red-500" : ""}`}
                           min={formData.startDate}
+                          disabled={isSubmitting}
                         />
                         {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
                       </div>
@@ -306,6 +340,7 @@ const ScheduleExamModal = ({
                       value={formData.subjectId}
                       onChange={handleChange}
                       className={`w-full p-2 border rounded-lg ${errors.subjectId ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
                     >
                       <option value="">Select Subject</option>
                       {subjects.map((subject) => (
@@ -325,6 +360,7 @@ const ScheduleExamModal = ({
                       value={formData.classId}
                       onChange={handleChange}
                       className={`w-full p-2 border rounded-lg ${errors.classId ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
                     >
                       <option value="">Select Class</option>
                       {classes.map((cls) => (
@@ -349,6 +385,7 @@ const ScheduleExamModal = ({
                     className={`w-full p-2 border rounded-lg ${errors.examDate ? "border-red-500" : ""}`}
                     min={formData.startDate || ""}
                     max={formData.endDate || ""}
+                    disabled={isSubmitting}
                   />
                   {errors.examDate && <p className="text-red-500 text-xs mt-1">{errors.examDate}</p>}
                 </div>
@@ -364,6 +401,7 @@ const ScheduleExamModal = ({
                       value={formData.startTime}
                       onChange={handleChange}
                       className={`w-full p-2 border rounded-lg ${errors.startTime ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
                     />
                     {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
                   </div>
@@ -377,6 +415,7 @@ const ScheduleExamModal = ({
                       value={formData.endTime}
                       onChange={handleChange}
                       className={`w-full p-2 border rounded-lg ${errors.endTime ? "border-red-500" : ""}`}
+                      disabled={isSubmitting}
                     />
                     {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
                   </div>
@@ -391,6 +430,7 @@ const ScheduleExamModal = ({
                     value={formData.venue}
                     onChange={handleChange}
                     className={`w-full p-2 border rounded-lg ${errors.venue ? "border-red-500" : ""}`}
+                    disabled={isSubmitting}
                   >
                     <option value="">Select Venue</option>
                     {rooms.map((room) => (
@@ -411,6 +451,7 @@ const ScheduleExamModal = ({
                     value={formData.supervisorId}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-lg"
+                    disabled={isSubmitting}
                   >
                     <option value="">Select Supervisor</option>
                     {teachers.map((teacher) => (
@@ -434,6 +475,7 @@ const ScheduleExamModal = ({
                       className="w-full p-2 border rounded-lg"
                       min="1"
                       max="100"
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
@@ -448,6 +490,7 @@ const ScheduleExamModal = ({
                       className="w-full p-2 border rounded-lg"
                       min="1"
                       max={formData.totalMarks}
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
@@ -459,14 +502,23 @@ const ScheduleExamModal = ({
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                disabled={isSubmitting}
               >
-                Schedule Exam
+                {isSubmitting ? (
+                  <>
+                    <Loader className="h-4 w-4 mr-2 animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  "Schedule Exam"
+                )}
               </button>
             </div>
           </div>
