@@ -20,7 +20,7 @@ const DeleteStudentModal = ({ student, onClose, onSuccess, isOpen }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.delete(
-        `http://localhost:5010/api/students/${student.id}`,
+        `/backend/api/students/${student.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
