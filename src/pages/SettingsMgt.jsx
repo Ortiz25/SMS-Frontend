@@ -6,10 +6,11 @@ import {
   Key,
   Bell,
   ArrowLeftToLine,
+  BookOpen
 } from "lucide-react";
 import UserManagement from "../components/userMgt";
-import SecuritySettings from "../components/securitySettings";
-import NotificationSettings from "../components/notificationSettings";
+import AcademicSettings from "../components/academicSettings";
+import SchoolStructureTab from "../components/schoolStructureSetting";
 import SystemSettings from "../components/systemSettings";
 import RoleFormModal from "../components/modals/roleForm";
 import UserFormModal from "../components/modals/userForm";
@@ -24,18 +25,18 @@ const menuItems = [
     icon: Users,
     subItems: [],
   },
-  // {
-  //   id: "security",
-  //   label: "Security Settings",
-  //   icon: Shield,
-  //   subItems: ["Password Policy", "Two-Factor Auth", "Session Management"],
-  // },
-  // {
-  //   id: "notifications",
-  //   label: "Notifications",
-  //   icon: Bell,
-  //   subItems: ["Email Templates", "SMS Templates", "Alert Settings"],
-  // },
+  {
+    id: "academic",
+    label: "Academic Settings",
+    icon: BookOpen,
+    subItems: [],
+  },
+  {
+    id: "structure",
+    label: "School Structure",
+    icon: Bell,
+    subItems: [],
+  },
   // {
   //   id: "system",
   //   label: "System Settings",
@@ -122,8 +123,8 @@ const SettingsModule = () => {
         {/* Content Area */}
         <div>
           {activeSection === "users" && <UserManagement userData={userData}/>}
-          {activeSection === "security" && <SecuritySettings />}
-          {activeSection === "notifications" && <NotificationSettings />}
+          {activeSection === "academic" && <AcademicSettings />}
+          {activeSection === "structure" && <SchoolStructureTab  />}
           {activeSection === "system" && <SystemSettings />}
         </div>
       </div>
