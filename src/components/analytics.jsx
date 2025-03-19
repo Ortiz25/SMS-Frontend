@@ -92,7 +92,7 @@ const Analytics = () => {
     const fetchAcademicSessions = async () => {
       try {
         const response = await axios.get(
-          "/backend/api/grading/sessions",
+          "http://localhost:5010/api/grading/sessions",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -130,7 +130,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/classes?academic_session_id=${selectedSession}`,
+          `http://localhost:5010/api/grading/classes?academic_session_id=${selectedSession}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -157,7 +157,7 @@ const Analytics = () => {
     const fetchExams = async () => {
       try {
         const response = await axios.get(
-          `/backend/api/examgrading?academic_session_id=${selectedSession}`,
+          `http://localhost:5010/api/examgrading?academic_session_id=${selectedSession}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -193,7 +193,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/subjects/${selectedClass}`,
+          `http://localhost:5010/api/grading/subjects/${selectedClass}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -227,7 +227,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/analytics/class-summary/${selectedClass}?academic_session_id=${selectedSession}`,
+          `http://localhost:5010/api/analytics/class-summary/${selectedClass}?academic_session_id=${selectedSession}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -270,7 +270,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/examgrading/subject-performance/${selectedClass}?examination_id=${selectedExam}`,
+          `http://localhost:5010/api/examgrading/subject-performance/${selectedClass}?examination_id=${selectedExam}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -297,7 +297,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/analytics/subject-analysis/${selectedSubject}?class_id=${selectedClass}&academic_session_id=${selectedSession}`,
+          `http://localhost:5010/api/analytics/subject-analysis/${selectedSubject}?class_id=${selectedClass}&academic_session_id=${selectedSession}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

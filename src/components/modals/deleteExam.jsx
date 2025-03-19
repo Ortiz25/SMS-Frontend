@@ -29,8 +29,9 @@ const DeleteExamModal = ({ isOpen, onClose, onConfirm, examData }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className="bg-black opacity-50 w-full h-full absolute"></div>
+      <div className="relative bg-white rounded-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Delete Exam Schedule</h2>
           <button

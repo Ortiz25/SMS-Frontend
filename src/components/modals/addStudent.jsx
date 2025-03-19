@@ -50,7 +50,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "/backend/api/sessions/academic-sessions/current",
+        "http://localhost:5010/api/sessions/academic-sessions/current",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "/backend/api/subjects/subjects",
+        "http://localhost:5010/api/subjects/subjects",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -90,7 +90,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/backend/api/classes", {
+      const response = await axios.get("http://localhost:5010/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -107,7 +107,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const fetchHostels = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/backend/api/hostels", {
+      const response = await axios.get("http://localhost:5010/api/hostels", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -125,7 +125,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "/backend/api/hostel-transport/routes",
+        "http://localhost:5010/api/hostel-transport/routes",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -241,7 +241,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
       // Step 1: Create the student record
       const response = await axios.post(
-        "/backend/api/students/add",
+        "http://localhost:5010/api/students/add",
         submitData,
         {
           headers: {
@@ -278,7 +278,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
             // Create student-subject relationships
             const enrollmentResponse = await axios.post(
-              "/backend/api/students/enroll-subjects",
+              "http://localhost:5010/api/students/enroll-subjects",
               { enrollments: subjectEnrollments },
               {
                 headers: {
