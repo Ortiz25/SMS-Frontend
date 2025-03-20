@@ -497,6 +497,7 @@ const TimetableManagement = () => {
                   selectedClass={selectedClass}
                   selectedTeacher={selectedTeacher}
                   selectedRoom={selectedRoom}
+                  refetchTimetableData={refetchTimetableData}
                 />
               )}
               {activeTab === "class" && <ClassAllocation rooms={filterOptions.rooms} />}

@@ -4,7 +4,7 @@ import EditScheduleModal from "./modals/editSchedule";
 import DeleteConfirmationModal from "./modals/deleteSchedule";
 import { redirect } from "react-router-dom";
 
-const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selectedRoom }) => {
+const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selectedRoom, refetchTimetableData }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -37,7 +37,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
   const handleEditSave = async (editedData) => {
     try {
       const token = localStorage.getItem("token");
-      
+       console.log(editedData)
       // API call to update the schedule
       const response = await fetch(`/backend/api/timetable/${editedData.id}`, {
         method: "PUT",
@@ -51,6 +51,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
           start_time: editedData.startTime,
           end_time: editedData.endTime,
           room_number: editedData.room,
+          subject_name: editedData.subject
         }),
       });
 
@@ -69,7 +70,12 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       setSelectedSchedule(null);
 
       // Reload the page to refresh data
-      window.location.reload();
+      // Refetch the timetable data
+      const refetchSuccess = await refetchTimetableData();
+      
+      // if (!refetchSuccess) {
+      //   setScheduleSuccess("Schedule was added, but the timetable couldn't be refreshed. Please reload the page.");
+      // }
     } catch (error) {
       console.error("Error updating schedule:", error);
       setNotification({

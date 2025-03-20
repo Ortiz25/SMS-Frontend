@@ -365,45 +365,45 @@ export const ViewTeacherModal = ({ teacher, isOpen, onClose }) => (
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-extrabold text-gray-900 mb-4">
               Personal Information
             </h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Email
+                <label className="text-sm font-bold text-gray-800">
+                  Email :
                 </label>
-                <p className="mt-1">{teacher?.email}</p>
+                <p className="mt-1 text-gray-500">{teacher?.email}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Phone
+                <label className="text-sm font-bold text-gray-800">
+                  Phone :
                 </label>
-                <p className="mt-1">{teacher?.phone}</p>
+                <p className="mt-1 text-gray-500">{teacher?.phone}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Join Date
+                <label className="text-sm font-bold text-gray-800">
+                  Join Date :
                 </label>
-                <p className="mt-1">{extractDate(teacher?.joinDate)}</p>
+                <p className="mt-1 text-gray-500">{extractDate(teacher?.joinDate)}</p>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-extrabold text-gray-900 mb-4">
               Professional Details
             </h3>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Department
+                <label className="text-sm font-bold text-gray-800">
+                  Department :
                 </label>
-                <p className="mt-1">{teacher?.department}</p>
+                <p className="mt-1 text-gray-500">{teacher?.department}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Subjects
+                <label className="text-sm font-bold text-gray-800">
+                  Subjects :
                 </label>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {teacher?.subjects.map((subject, index) => (
@@ -417,12 +417,12 @@ export const ViewTeacherModal = ({ teacher, isOpen, onClose }) => (
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Qualifications
+                <label className="text-sm font-bold text-gray-800">
+                  Qualifications :
                 </label>
                 <div className="mt-1">
                   {teacher?.qualifications.map((qual, index) => (
-                    <p key={index} className="text-sm">
+                    <p key={index} className="text-sm text-gray-500">
                       {qual}
                     </p>
                   ))}
