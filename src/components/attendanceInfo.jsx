@@ -15,6 +15,7 @@ const AttendanceInfo = ({ student }) => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     
     useEffect(() => {
         const fetchAttendanceData = async () => {
@@ -22,7 +23,7 @@ const AttendanceInfo = ({ student }) => {
                 setLoading(true);
                 const token = localStorage.getItem('token');
                 const response = await axios.get(
-                    `/backend/api/attendance/student/${student.id}`,
+                    `http://localhost:5010/api/attendance/student/${student.id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
@@ -31,6 +32,7 @@ const AttendanceInfo = ({ student }) => {
                 );
                 
                 setAttendanceData(response.data.data);
+                console.log(response)
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching attendance data:', err);
@@ -39,6 +41,7 @@ const AttendanceInfo = ({ student }) => {
             }
         };
         
+        console.log()
         if (student?.id) {
             fetchAttendanceData();
         }

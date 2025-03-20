@@ -44,7 +44,7 @@ const TeacherProfiles = ({ teachers }) => {
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
-          "/backend/api/dashboard/teacher-summary",
+          "http://localhost:5010/api/dashboard/teacher-summary",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ const TeacherProfiles = ({ teachers }) => {
 
   const handleDeleteTeacher = async (teacherId) => {
     try {
-      const response = await fetch(`/backend/api/teachers/${teacherId}`, {
+      const response = await fetch(`http://localhost:5010/api/teachers/${teacherId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -131,7 +131,7 @@ const TeacherProfiles = ({ teachers }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `/backend/api/teachers/${updatedTeacher.id}`,
+        `http://localhost:5010/api/teachers/${updatedTeacher.id}`,
         updatedTeacher,
         {
           headers: {

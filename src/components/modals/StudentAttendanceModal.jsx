@@ -45,7 +45,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
 
       // Fetch attendance data
       const response = await fetch(
-        `/backend/api/students/student/${student.id}?startDate=${startDate}&endDate=${endDate}`,
+        `http://localhost:5010/api/students/student/${student.id}?startDate=${startDate}&endDate=${endDate}`,
         {
           method: "GET",
           headers: {

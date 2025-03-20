@@ -13,15 +13,14 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
   // Define time slots and days
   const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const timeSlots = [
-    "8:00 AM",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
+    "8:00 AM - 9:00 AM",
+    "9:00 AM  - 10:00 AM",
+    "10:00 AM - 11:00 AM",
+    "11:00 AM - 12:00 PM",
+    "12:00 PM - 1:00 PM",
+    "1:00 PM - 2:00 PM",
+    "2:00 PM - 3:00 PM",
+    "3:00 PM - 4:00 PM",
   ];
 
   // Handler for edit button click
@@ -40,7 +39,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       const token = localStorage.getItem("token");
       
       // API call to update the schedule
-      const response = await fetch(`/backend/api/timetable/${editedData.id}`, {
+      const response = await fetch(`http://localhost:5010/api/timetable/${editedData.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +91,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       const token = localStorage.getItem("token");
       
       // API call to delete the schedule
-      const response = await fetch(`/backend/api/timetable/${selectedSchedule.id}`, {
+      const response = await fetch(`http://localhost:5010/api/timetable/${selectedSchedule.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -114,7 +113,7 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
       setSelectedSchedule(null);
 
       // Reload the page to refresh data
-        redirect("/timetable")
+      redirect("/timetable")
     } catch (error) {
       console.error("Error deleting schedule:", error);
       setNotification({
@@ -243,27 +242,84 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
 
   // Helper to check if a class is within a time slot
   const isWithinTimeSlot = (classStart, classEnd, timeSlotLabel) => {
-    // Extract hour from the timeSlot label (e.g., "8:00 AM" -> 8)
-    const timeSlotHour = parseInt(timeSlotLabel.split(':')[0]);
-    const isPM = timeSlotLabel.includes('PM') && timeSlotHour !== 12;
-    const timeSlotHour24 = isPM ? timeSlotHour + 12 : timeSlotHour;
+    // Parse the UI time slot (e.g., "11:00 AM - 12:00 PM")
+    const [startPart, endPart] = timeSlotLabel.split(' - ');
     
-    // Convert to minutes for comparison
-    const timeSlotStartMinutes = timeSlotHour24 * 60;
-    const timeSlotEndMinutes = timeSlotStartMinutes + 60; // Assume 1-hour slots
+    // Parse the start time (e.g., "11:00 AM")
+    const startTimeParts = startPart.split(':');
+    let startHour = parseInt(startTimeParts[0]);
+    const startMinute = parseInt(startTimeParts[1].split(' ')[0]);
+    const startIsPM = startPart.includes('PM') && startHour !== 12;
     
-    // Parse class start/end times (assumed to be in 24-hour format like "08:00")
+    // Convert to 24-hour format
+    startHour = startIsPM ? startHour + 12 : startHour;
+    if (startPart.includes('AM') && startHour === 12) startHour = 0;
+    
+    // Parse the end time (e.g., "12:00 PM")
+    const endTimeParts = endPart.split(':');
+    let endHour = parseInt(endTimeParts[0]);
+    const endMinute = parseInt(endTimeParts[1].split(' ')[0]);
+    const endIsPM = endPart.includes('PM') && endHour !== 12;
+    
+    // Convert to 24-hour format
+    endHour = endIsPM ? endHour + 12 : endHour;
+    if (endPart.includes('AM') && endHour === 12) endHour = 0;
+    
+    // Convert to minutes for easier comparison
+    const uiStartMinutes = startHour * 60 + startMinute;
+    const uiEndMinutes = endHour * 60 + endMinute;
+    
+    // Parse class start/end times (in 24-hour format, e.g., "11:00")
     const [classStartHour, classStartMin] = classStart.split(':').map(Number);
     const [classEndHour, classEndMin] = classEnd.split(':').map(Number);
     
     const classStartMinutes = classStartHour * 60 + classStartMin;
     const classEndMinutes = classEndHour * 60 + classEndMin;
     
-    // Check for overlap
+    // Check for overlap between time periods
+    // A time period overlaps if:
+    // 1. The class starts during the UI time slot, OR
+    // 2. The class ends during the UI time slot, OR
+    // 3. The class completely envelops the UI time slot
     return (
-      (classStartMinutes < timeSlotEndMinutes) && 
-      (classEndMinutes > timeSlotStartMinutes)
+      (classStartMinutes >= uiStartMinutes && classStartMinutes < uiEndMinutes) || // Class starts during the slot
+      (classEndMinutes > uiStartMinutes && classEndMinutes <= uiEndMinutes) || // Class ends during the slot
+      (classStartMinutes <= uiStartMinutes && classEndMinutes >= uiEndMinutes) // Class spans the entire slot
     );
+  };
+
+  // Check if the time slot is lunch time or break time
+  const isLunchTime = (timeSlot) => {
+    return timeSlot === "1:00 PM - 2:00 PM";
+  };
+  
+  const isBreakTime = (timeSlot) => {
+    return timeSlot === "10:00 AM - 11:00 AM";
+  };
+  
+  const isSpecialTimeSlot = (timeSlot) => {
+    return isLunchTime(timeSlot) || isBreakTime(timeSlot);
+  };
+
+  // Get background color for special time slots
+  const getSpecialSlotBgColor = (timeSlot) => {
+    if (isLunchTime(timeSlot)) return "bg-slate-100";
+    if (isBreakTime(timeSlot)) return "bg-blue-50";
+    return "";
+  };
+
+  // Get text color for special time slots
+  const getSpecialSlotTextColor = (timeSlot) => {
+    if (isLunchTime(timeSlot)) return "text-slate-800";
+    if (isBreakTime(timeSlot)) return "text-blue-800";
+    return "text-gray-900";
+  };
+
+  // Get label for special time slots
+  const getSpecialSlotLabel = (timeSlot) => {
+    if (isLunchTime(timeSlot)) return "(Lunch Break)";
+    if (isBreakTime(timeSlot)) return "(Break Time)";
+    return "";
   };
 
   // Get all teachers for the legend
@@ -308,49 +364,62 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {timeSlots.map((time) => (
-              <tr key={time}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tr key={time} className={getSpecialSlotBgColor(time)}>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getSpecialSlotTextColor(time)}`}>
                   {time}
+                  {isSpecialTimeSlot(time) && 
+                    <span className={`ml-2 ${isLunchTime(time) ? "text-slate-700" : "text-blue-700"} font-semibold`}>
+                      {getSpecialSlotLabel(time)}
+                    </span>
+                  }
                 </td>
                 {weekDays.map((day) => (
                   <td
                     key={`${day}-${time}`}
-                    className="px-6 py-4 whitespace-nowrap"
+                    className={`px-6 py-4 whitespace-nowrap ${getSpecialSlotBgColor(time)}`}
                   >
-                    <div className="space-y-2">
-                      {getScheduleForTimeSlot(day, time).map((scheduleItem, index) => (
-                        <div
-                          key={index}
-                          className={`rounded-lg p-2 border ${scheduleItem.color || "bg-gray-50 border-gray-100"}`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-sm font-medium">{`${scheduleItem.class} - ${scheduleItem.subject}`}</p>
-                              <p className="text-xs text-gray-500">
-                                {scheduleItem.teacherName}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {scheduleItem.room}
-                              </p>
-                            </div>
-                            <div className="flex space-x-1">
-                              <button
-                                onClick={() => handleEdit(scheduleItem, day, time)}
-                                className="text-gray-400 hover:text-blue-600"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(scheduleItem)}
-                                className="text-gray-400 hover:text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                    {isSpecialTimeSlot(time) ? (
+                      <div className="flex justify-center items-center h-full">
+                        <span className={`font-medium ${isLunchTime(time) ? "text-slate-700" : "text-blue-700"}`}>
+                          {isLunchTime(time) ? "LUNCH BREAK" : "BREAK TIME"}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {getScheduleForTimeSlot(day, time).map((scheduleItem, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-lg p-2 border ${scheduleItem.color || "bg-gray-50 border-gray-100"}`}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm font-medium">{`${scheduleItem.class} - ${scheduleItem.subject}`}</p>
+                                <p className="text-xs text-gray-500">
+                                  {scheduleItem.teacherName}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {scheduleItem.room}
+                                </p>
+                              </div>
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => handleEdit(scheduleItem, day, time)}
+                                  className="text-gray-400 hover:text-blue-600"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClick(scheduleItem)}
+                                  className="text-gray-400 hover:text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </td>
                 ))}
               </tr>
@@ -392,6 +461,14 @@ const WeeklySchedule = ({ timetableData, selectedClass, selectedTeacher, selecte
               <span className="text-sm text-gray-600">{teacher.name}</span>
             </div>
           ))}
+          <div className="flex items-center space-x-2 ml-4">
+            <div className="w-4 h-4 rounded bg-slate-100"></div>
+            <span className="text-sm text-gray-600">Lunch Break (1:00 PM - 2:00 PM)</span>
+          </div>
+          <div className="flex items-center space-x-2 ml-4">
+            <div className="w-4 h-4 rounded bg-blue-50"></div>
+            <span className="text-sm text-gray-600">Break Time (10:00 AM - 11:00 AM)</span>
+          </div>
         </div>
       </div>
     </div>

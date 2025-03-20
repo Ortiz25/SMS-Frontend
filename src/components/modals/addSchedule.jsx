@@ -21,7 +21,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
   const timeSlots = [
     { label: "8:00 AM - 9:00 AM", start: "08:00", end: "09:00" },
     { label: "9:00 AM - 10:00 AM", start: "09:00", end: "10:00" },
-    { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
+   // { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
     { label: "11:00 AM - 12:00 PM", start: "11:00", end: "12:00" },
     { label: "12:00 PM - 1:00 PM", start: "12:00", end: "13:00" },
     { label: "2:00 PM - 3:00 PM", start: "14:00", end: "15:00" },
@@ -40,7 +40,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     const fetchSubjects = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/backend/api/helpers", {
+        const response = await fetch("http://localhost:5010/api/helpers", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,

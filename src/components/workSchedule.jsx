@@ -36,7 +36,7 @@ const WorkloadSchedule = ({ teachers }) => {
         // Get token from localStorage or your auth context
         const token = localStorage.getItem('token');
         
-        const response = await axios.get('/backend/api/dashboard/workschedule', {
+        const response = await axios.get('http://localhost:5010/api/dashboard/workschedule', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -72,7 +72,7 @@ const WorkloadSchedule = ({ teachers }) => {
   const timeSlots = [
     { label: "8:00 AM - 9:00 AM", start: "08:00", end: "09:00" },
     { label: "9:00 AM - 10:00 AM", start: "09:00", end: "10:00" },
-    { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
+    // { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
     { label: "11:00 AM - 12:00 PM", start: "11:00", end: "12:00" },
     { label: "12:00 PM - 1:00 PM", start: "12:00", end: "13:00" },
     { label: "2:00 PM - 3:00 PM", start: "14:00", end: "15:00" },
@@ -85,7 +85,7 @@ const WorkloadSchedule = ({ teachers }) => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await fetch("/backend/api/rooms", {
+        const response = await fetch("http://localhost:5010/api/rooms", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -110,7 +110,7 @@ const WorkloadSchedule = ({ teachers }) => {
       try {
         // Get current academic session
         const sessionResponse = await fetch(
-          "/backend/api/academic/current",
+          "http://localhost:5010/api/academic/current",
           {
             method: "GET",
             headers: {
@@ -126,7 +126,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
         // Get classes for current session
         const classesResponse = await fetch(
-          `/backend/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          `http://localhost:5010/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
           {
             method: "GET",
             headers: {
@@ -155,7 +155,7 @@ const WorkloadSchedule = ({ teachers }) => {
         try {
           // Use the teacher_id to get subjects based on their specialization in the database
           const response = await fetch(
-            `/backend/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
+            `http://localhost:5010/api/subjects/subjects?teacher_id=${selectedTeacher.id}`,
             {
               method: "GET",
               headers: {
@@ -218,7 +218,7 @@ const WorkloadSchedule = ({ teachers }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        "/backend/api/timetable/check-conflicts",
+        "http://localhost:5010/api/timetable/check-conflicts",
         {
           method: "POST",
           headers: {
@@ -277,7 +277,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // First, assign the teacher to the subject and class
       const teacherSubjectResponse = await fetch(
-        "/backend/api/subjects/teacher-subjects",
+        "http://localhost:5010/api/subjects/teacher-subjects",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -297,7 +297,7 @@ const WorkloadSchedule = ({ teachers }) => {
 
       // Then, create the timetable entry
       const timetableResponse = await fetch(
-        "/backend/api/timetable/entry",
+        "http://localhost:5010/api/timetable/entry",
         {
           method: "POST",
           headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

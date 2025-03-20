@@ -30,7 +30,7 @@ const TransportSection = () => {
     const fetchRoutes = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/routes', {
+        const response = await fetch('http://localhost:5010/api/hostel-transport/routes', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -53,7 +53,7 @@ const TransportSection = () => {
     const fetchStops = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/stops', {
+        const response = await fetch('http://localhost:5010/api/hostel-transport/stops', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -76,7 +76,7 @@ const TransportSection = () => {
     const fetchAllocations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/allocations', {
+        const response = await fetch('http://localhost:5010/api/hostel-transport/allocations', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,

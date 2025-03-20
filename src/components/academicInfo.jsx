@@ -16,13 +16,15 @@ const AcademicInfo = ({ student }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    console.log(student)
+
     useEffect(() => {
         const fetchAcademicData = async () => {
             try {
                 setLoading(true);
                 const token = localStorage.getItem('token');
                 const response = await axios.get(
-                    `/backend/api/academic/student/${student.id}`,
+                    `http://localhost:5010/api/academic/student/${student.id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
