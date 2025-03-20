@@ -52,10 +52,10 @@ const Borrowers = () => {
   
       // Use the dedicated borrowers endpoint we created
       const endpoint = filter === "overdue" 
-        ? "http://localhost:5010/api/library/borrowers/overdue"
+        ? "/backend/api/library/borrowers/overdue"
         : searchQuery
-          ? `http://localhost:5010/api/library/borrowers/search?search=${encodeURIComponent(searchQuery)}`
-          : "http://localhost:5010/api/library/borrowers";
+          ? `/backend/api/library/borrowers/search?search=${encodeURIComponent(searchQuery)}`
+          : "/backend/api/library/borrowers";
       
       console.log("Requesting endpoint:", endpoint);
       console.log("Using token:", token.substring(0, 10) + "..." + (token.length > 20 ? token.substring(token.length - 10) : ""));
@@ -113,7 +113,7 @@ const Borrowers = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5010/api/library/books/${bookId}/return`,
+        `/backend/api/library/books/${bookId}/return`,
         {
           method: "POST",
           headers: {
@@ -161,7 +161,7 @@ const Borrowers = () => {
       
       // Send extension request to server
       const response = await fetch(
-        `http://localhost:5010/api/library/books/${book.book_id}/extend`,
+        `/backend/api/library/books/${book.book_id}/extend`,
         {
           method: "POST",
           headers: {
@@ -523,7 +523,7 @@ export async function loader() {
   }
 
   try {
-    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
+    const tokenUrl = "/backend/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
