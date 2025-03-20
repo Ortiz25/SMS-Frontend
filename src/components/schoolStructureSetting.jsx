@@ -20,10 +20,11 @@ const BASE_URL = "/backend/api";
 const SchoolStructureTab = () => {
   // Active tab state
   const [activeTab, setActiveTab] = useState("departments");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   // Token from localStorage
   const token = localStorage.getItem("token");
-
+  if(user.role !== "admin"){return null}
   return (
     <div className="p-2 sm:p-4">
       <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">

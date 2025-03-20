@@ -123,9 +123,9 @@ const SettingsModule = () => {
         {/* Content Area */}
         <div>
           {activeSection === "users" && <UserManagement userData={userData}/>}
-          {activeSection === "academic" && <AcademicSettings />}
-          {activeSection === "structure" && <SchoolStructureTab  />}
-          {activeSection === "system" && <SystemSettings />}
+          {activeSection === "academic" && <AcademicSettings userData={userData} />}
+          {activeSection === "structure" && <SchoolStructureTab userData={userData} />}
+          {activeSection === "system" && <SystemSettings userData={userData} />}
         </div>
       </div>
 
