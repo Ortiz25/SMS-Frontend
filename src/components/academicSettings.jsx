@@ -7,11 +7,12 @@ import ExaminationsTab from "./ui/examinationsTab";
 import GradingSystemsTab from "../components/ui/gradingSystemTabs";
 import ExamTypesTab from "../components/ui/examTypesTab";
 
-const user = JSON.parse(localStorage.getItem("user") || "{}");
+
 
 // Main Academic Settings component - integrates all tabs
 const AcademicSettings = () => {
   const [activeTab, setActiveTab] = useState("academic-sessions");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   if(user.role !== "admin"){return null}
 
