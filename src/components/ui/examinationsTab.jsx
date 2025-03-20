@@ -338,15 +338,16 @@ const ExaminationsTab = () => {
   };
   
   return (
-    <div>
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex justify-between items-center">
+
+    <div className="w-full">
+      <div className="p-4 md:p-6 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-xl font-semibold">Examinations</h2>
             <p className="text-sm text-gray-500">Manage school examinations and assessments</p>
           </div>
           <button 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start"
             onClick={() => {
               resetForm();
               setShowAddExamForm(!showAddExamForm);
@@ -358,9 +359,9 @@ const ExaminationsTab = () => {
         </div>
       </div>
       
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="academicSessionId">Academic Session</label>
             <select
@@ -396,7 +397,7 @@ const ExaminationsTab = () => {
             </select>
           </div>
           
-          <div>
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="block text-sm font-medium mb-1" htmlFor="search">Search</label>
             <input
               type="text"
@@ -415,8 +416,8 @@ const ExaminationsTab = () => {
           <div className="bg-blue-50 p-4 mb-6 rounded-lg border border-blue-100">
             <h3 className="font-semibold mb-4">{editingExam ? `Edit Examination: ${editingExam.name}` : 'Add New Examination'}</h3>
             <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="md:col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium mb-1" htmlFor="name">Examination Name</label>
                   <input 
                     type="text" 
@@ -511,10 +512,10 @@ const ExaminationsTab = () => {
                 </div>
               </div>
               
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col sm:flex-row justify-end gap-2">
                 <button 
                   type="button"
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md"
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md order-2 sm:order-1"
                   onClick={() => {
                     setShowAddExamForm(false);
                     resetForm();
@@ -525,7 +526,7 @@ const ExaminationsTab = () => {
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md order-1 sm:order-2"
                   disabled={loading}
                 >
                   {loading ? 'Saving...' : (editingExam ? 'Update Examination' : 'Save Examination')}
@@ -542,141 +543,239 @@ const ExaminationsTab = () => {
           </div>
         )}
         
-        {/* Examinations Table */}
+        {/* Examinations Table - Responsive handling */}
         {!loading && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Exam Type</th>
-                  <th className="py-3 px-4 text-left">Session</th>
-                  <th className="py-3 px-4 text-left">Start Date</th>
-                  <th className="py-3 px-4 text-left">End Date</th>
-                  <th className="py-3 px-4 text-left">Status</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredExaminations.map(exam => (
-                  <tr key={exam.id}>
-                    <td className="py-3 px-4">{exam.name}</td>
-                    <td className="py-3 px-4">{getExamTypeName(exam.exam_type_id)}</td>
-                    <td className="py-3 px-4">{getAcademicSessionName(exam.academic_session_id)}</td>
-                    <td className="py-3 px-4">{new Date(exam.start_date).toLocaleDateString()}</td>
-                    <td className="py-3 px-4">{new Date(exam.end_date).toLocaleDateString()}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(exam.status)}`}>
-                        {getStatusIcon(exam.status)}
-                        {exam.status.charAt(0).toUpperCase() + exam.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-center flex-wrap gap-1">
-                        {/* Status Update Buttons - Only show for non-completed exams */}
-                        <div className="flex flex-wrap justify-center gap-1 mb-1">
-                          {/* For completed exams, only show View Results button */}
-                          {exam.status === 'completed' ? (
-                            <button 
-                              className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2"
-                              onClick={() => handleManageResults(exam)}
-                              title="View exam results"
-                            >
-                              <FileText size={14} className="inline mr-1" />
-                              View Results
-                            </button>
-                          ) : (
-                            <>
-                              {/* For scheduled exams */}
-                              {exam.status === 'scheduled' && (
-                                <>
-                                  <button 
-                                    className="p-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 rounded px-2"
-                                    onClick={() => updateExamStatus(Number(exam.id), 'ongoing')}
-                                    title="Mark as ongoing"
-                                  >
-                                    <Calendar size={14} className="inline mr-1" />
-                                    Start
-                                  </button>
-                                  <button 
-                                    className="p-1 text-xs bg-red-50 hover:bg-red-100 text-red-800 rounded px-2"
-                                    onClick={() => updateExamStatus(Number(exam.id), 'cancelled')}
-                                    title="Cancel examination"
-                                  >
-                                    <XCircle size={14} className="inline mr-1" />
-                                    Cancel
-                                  </button>
-                                </>
-                              )}
-                              
-                              {/* For ongoing exams */}
-                              {exam.status === 'ongoing' && (
-                                <button 
-                                  className="p-1 text-xs bg-green-50 hover:bg-green-100 text-green-800 rounded px-2"
-                                  onClick={() => updateExamStatus(Number(exam.id), 'completed')}
-                                  title="Mark as completed"
-                                >
-                                  <CheckCircle size={14} className="inline mr-1" />
-                                  Complete
-                                </button>
-                              )}
-                              
-                              {/* Manage Schedule button - for non-completed/non-cancelled exams */}
-                              {exam.status !== 'cancelled' && (
-                                <button 
-                                  className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2"
-                                  onClick={() => handleManageResults(exam)}
-                                  title="Manage exam schedule"
-                                >
-                                  <FileText size={14} className="inline mr-1" />
-                                  Manage Schedule
-                                </button>
-                              )}
-                              
-                              {/* Edit button - only for non-completed/non-cancelled exams */}
-                              {(exam.status !== 'cancelled') && (
-                                <button 
-                                  className="p-1 hover:bg-gray-100 rounded"
-                                  onClick={() => handleEditClick(exam)}
-                                  title="Edit examination"
-                                >
-                                  <Edit size={16} className="text-blue-600" />
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                
-                {filteredExaminations.length === 0 && !loading && (
+          <>
+            {/* Desktop/Tablet view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan="7" className="py-4 px-4 text-center text-gray-500">
-                      No examinations found matching your filters.
-                    </td>
+                    <th className="py-3 px-4 text-left">Name</th>
+                    <th className="py-3 px-4 text-left">Exam Type</th>
+                    <th className="py-3 px-4 text-left">Session</th>
+                    <th className="py-3 px-4 text-left">Start Date</th>
+                    <th className="py-3 px-4 text-left">End Date</th>
+                    <th className="py-3 px-4 text-left">Status</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredExaminations.map(exam => (
+                    <tr key={exam.id}>
+                      <td className="py-3 px-4">{exam.name}</td>
+                      <td className="py-3 px-4">{getExamTypeName(exam.exam_type_id)}</td>
+                      <td className="py-3 px-4">{getAcademicSessionName(exam.academic_session_id)}</td>
+                      <td className="py-3 px-4">{new Date(exam.start_date).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">{new Date(exam.end_date).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(exam.status)}`}>
+                          {getStatusIcon(exam.status)}
+                          {exam.status.charAt(0).toUpperCase() + exam.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center flex-wrap gap-1">
+                          {/* Status Update Buttons - Only show for non-completed exams */}
+                          <div className="flex flex-wrap justify-center gap-1 mb-1">
+                            {/* For completed exams, only show View Results button */}
+                            {exam.status === 'completed' ? (
+                              <button 
+                                className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2"
+                                onClick={() => handleManageResults(exam)}
+                                title="View exam results"
+                              >
+                                <FileText size={14} className="inline mr-1" />
+                                View Results
+                              </button>
+                            ) : (
+                              <>
+                                {/* For scheduled exams */}
+                                {exam.status === 'scheduled' && (
+                                  <>
+                                    <button 
+                                      className="p-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 rounded px-2"
+                                      onClick={() => updateExamStatus(Number(exam.id), 'ongoing')}
+                                      title="Mark as ongoing"
+                                    >
+                                      <Calendar size={14} className="inline mr-1" />
+                                      Start
+                                    </button>
+                                    <button 
+                                      className="p-1 text-xs bg-red-50 hover:bg-red-100 text-red-800 rounded px-2"
+                                      onClick={() => updateExamStatus(Number(exam.id), 'cancelled')}
+                                      title="Cancel examination"
+                                    >
+                                      <XCircle size={14} className="inline mr-1" />
+                                      Cancel
+                                    </button>
+                                  </>
+                                )}
+                                
+                                {/* For ongoing exams */}
+                                {exam.status === 'ongoing' && (
+                                  <button 
+                                    className="p-1 text-xs bg-green-50 hover:bg-green-100 text-green-800 rounded px-2"
+                                    onClick={() => updateExamStatus(Number(exam.id), 'completed')}
+                                    title="Mark as completed"
+                                  >
+                                    <CheckCircle size={14} className="inline mr-1" />
+                                    Complete
+                                  </button>
+                                )}
+                                
+                                {/* Manage Schedule button - for non-completed/non-cancelled exams */}
+                                {exam.status !== 'cancelled' && (
+                                  <button 
+                                    className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2"
+                                    onClick={() => handleManageResults(exam)}
+                                    title="Manage exam schedule"
+                                  >
+                                    <FileText size={14} className="inline mr-1" />
+                                    {window.innerWidth < 1024 ? "Schedule" : "Manage Schedule"}
+                                  </button>
+                                )}
+                                
+                                {/* Edit button - only for non-completed/non-cancelled exams */}
+                                {(exam.status !== 'cancelled') && (
+                                  <button 
+                                    className="p-1 hover:bg-gray-100 rounded"
+                                    onClick={() => handleEditClick(exam)}
+                                    title="Edit examination"
+                                  >
+                                    <Edit size={16} className="text-blue-600" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  
+                  {filteredExaminations.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan="7" className="py-4 px-4 text-center text-gray-500">
+                        No examinations found matching your filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Mobile view - Card layout */}
+            <div className="md:hidden space-y-4">
+              {filteredExaminations.map(exam => (
+                <div key={exam.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{exam.name}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(exam.status)}`}>
+                      {getStatusIcon(exam.status)}
+                      {exam.status.charAt(0).toUpperCase() + exam.status.slice(1)}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1 text-sm mb-4">
+                    <p><span className="font-medium text-gray-500">Type:</span> {getExamTypeName(exam.exam_type_id)}</p>
+                    <p><span className="font-medium text-gray-500">Session:</span> {getAcademicSessionName(exam.academic_session_id)}</p>
+                    <p><span className="font-medium text-gray-500">Dates:</span> {new Date(exam.start_date).toLocaleDateString()} - {new Date(exam.end_date).toLocaleDateString()}</p>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {/* For completed exams, only show View Results button */}
+                    {exam.status === 'completed' ? (
+                      <button 
+                        className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2 flex-1"
+                        onClick={() => handleManageResults(exam)}
+                      >
+                        <FileText size={14} className="inline mr-1" />
+                        View Results
+                      </button>
+                    ) : (
+                      <>
+                        {/* For scheduled exams */}
+                        {exam.status === 'scheduled' && (
+                          <>
+                            <button 
+                              className="p-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 rounded px-2 flex-1"
+                              onClick={() => updateExamStatus(Number(exam.id), 'ongoing')}
+                            >
+                              <Calendar size={14} className="inline mr-1" />
+                              Start
+                            </button>
+                            <button 
+                              className="p-1 text-xs bg-red-50 hover:bg-red-100 text-red-800 rounded px-2 flex-1"
+                              onClick={() => updateExamStatus(Number(exam.id), 'cancelled')}
+                            >
+                              <XCircle size={14} className="inline mr-1" />
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                        
+                        {/* For ongoing exams */}
+                        {exam.status === 'ongoing' && (
+                          <button 
+                            className="p-1 text-xs bg-green-50 hover:bg-green-100 text-green-800 rounded px-2 flex-1"
+                            onClick={() => updateExamStatus(Number(exam.id), 'completed')}
+                          >
+                            <CheckCircle size={14} className="inline mr-1" />
+                            Complete
+                          </button>
+                        )}
+                        
+                        {/* Manage Schedule button - for non-completed/non-cancelled exams */}
+                        {exam.status !== 'cancelled' && (
+                          <button 
+                            className="p-1 text-xs bg-purple-50 hover:bg-purple-100 text-purple-800 rounded px-2 flex-1"
+                            onClick={() => handleManageResults(exam)}
+                          >
+                            <FileText size={14} className="inline mr-1" />
+                            Manage Schedule
+                          </button>
+                        )}
+                        
+                        {/* Edit button - only for non-completed/non-cancelled exams */}
+                        {(exam.status !== 'cancelled') && (
+                          <button 
+                            className="p-1 hover:bg-gray-100 rounded"
+                            onClick={() => handleEditClick(exam)}
+                          >
+                            <Edit size={16} className="text-blue-600" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {filteredExaminations.length === 0 && !loading && (
+                <div className="text-center text-gray-500 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+                  No examinations found matching your filters.
+                </div>
+              )}
+            </div>
+          </>
         )}
         
         {/* Help information */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
           <h4 className="font-medium mb-2">Examination Status Guide:</h4>
-          <ul className="list-disc list-inside space-y-1">
-            <li><span className="font-medium text-yellow-700">Scheduled</span> - Examination is planned but has not yet started</li>
-            <li><span className="font-medium text-blue-700">Ongoing</span> - Examination is currently in progress</li>
-            <li><span className="font-medium text-green-700">Completed</span> - Examination has been concluded</li>
-            <li><span className="font-medium text-red-700">Cancelled</span> - Examination was cancelled and did not take place</li>
-          </ul>
+          <div className="space-y-1">
+            <p><span className="font-medium text-yellow-700">Scheduled</span> - Examination is planned but has not yet started</p>
+            <p><span className="font-medium text-blue-700">Ongoing</span> - Examination is currently in progress</p>
+            <p><span className="font-medium text-green-700">Completed</span> - Examination has been concluded</p>
+            <p><span className="font-medium text-red-700">Cancelled</span> - Examination was cancelled and did not take place</p>
+          </div>
           <p className="mt-2">You can view and manage examination schedules by clicking the "Manage Schedule" button.</p>
           <p className="mt-1">Once an examination is marked as completed, you can view and analyze results by clicking "View Results".</p>
         </div>
       </div>
     </div>
+
   );
 };
 

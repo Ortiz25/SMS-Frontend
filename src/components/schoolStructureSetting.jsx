@@ -25,64 +25,53 @@ const SchoolStructureTab = () => {
   const token = localStorage.getItem("token");
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-semibold mb-6">School Structure Settings</h2>
+    <div className="p-2 sm:p-4">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">
+        School Structure Settings
+      </h2>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <ul className="flex flex-wrap -mb-px">
-          <li className="mr-2">
+      {/* Tab Navigation - Scrollable on mobile */}
+      <div className="border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto">
+        <ul className="flex flex-nowrap min-w-full -mb-px">
+          <li className="mr-1 sm:mr-2">
             <button
-              className={`inline-flex items-center py-2 px-4 text-sm font-medium rounded-t-lg border-b-2 ${
+              className={`inline-flex items-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-medium rounded-t-lg border-b-2 whitespace-nowrap ${
                 activeTab === "departments"
                   ? "text-blue-600 border-blue-600"
                   : "border-transparent hover:text-gray-600 hover:border-gray-300"
               }`}
               onClick={() => setActiveTab("departments")}
             >
-              <Building className="w-4 h-4 mr-2" />
+              <Building className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Departments
             </button>
           </li>
-          <li className="mr-2">
+          <li className="mr-1 sm:mr-2">
             <button
-              className={`inline-flex items-center py-2 px-4 text-sm font-medium rounded-t-lg border-b-2 ${
+              className={`inline-flex items-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-medium rounded-t-lg border-b-2 whitespace-nowrap ${
                 activeTab === "classes"
                   ? "text-blue-600 border-blue-600"
                   : "border-transparent hover:text-gray-600 hover:border-gray-300"
               }`}
               onClick={() => setActiveTab("classes")}
             >
-              <Users className="w-4 h-4 mr-2" />
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Classes & Streams
             </button>
           </li>
-          <li className="mr-2">
+          <li className="mr-1 sm:mr-2">
             <button
-              className={`inline-flex items-center py-2 px-4 text-sm font-medium rounded-t-lg border-b-2 ${
+              className={`inline-flex items-center py-2 px-2 sm:px-4 text-xs sm:text-sm font-medium rounded-t-lg border-b-2 whitespace-nowrap ${
                 activeTab === "rooms"
                   ? "text-blue-600 border-blue-600"
                   : "border-transparent hover:text-gray-600 hover:border-gray-300"
               }`}
               onClick={() => setActiveTab("rooms")}
             >
-              <Home className="w-4 h-4 mr-2" />
+              <Home className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Rooms & Facilities
             </button>
           </li>
-          {/* <li>
-            <button 
-              className={`inline-flex items-center py-2 px-4 text-sm font-medium rounded-t-lg border-b-2 ${
-                activeTab === 'timetable' 
-                  ? 'text-blue-600 border-blue-600' 
-                  : 'border-transparent hover:text-gray-600 hover:border-gray-300'
-              }`}
-              onClick={() => setActiveTab('timetable')}
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Timetable Config
-            </button>
-          </li> */}
         </ul>
       </div>
 
@@ -126,16 +115,19 @@ const DepartmentTab = () => {
       try {
         const [deptResponse, teachersResponse] = await Promise.all([
           axios.get(`${BASE_URL}/inventory/departments`, { headers }),
-          axios.get(`${BASE_URL}/teachers`, { headers })
+          axios.get(`${BASE_URL}/teachers`, { headers }),
         ]);
-    
+
         if (deptResponse.status === 200) setDepartments(deptResponse.data);
-        if (teachersResponse.status === 200) setTeachers(teachersResponse.data.data);
+        if (teachersResponse.status === 200)
+          setTeachers(teachersResponse.data.data);
       } catch (error) {
         if (error.response) {
-          toast.error(`Error: ${error.response.status} - ${error.response.data.message}`);
+          toast.error(
+            `Error: ${error.response.status} - ${error.response.data.message}`
+          );
         } else {
-          toast.error('Network error: Failed to fetch data');
+          toast.error("Network error: Failed to fetch data");
         }
       } finally {
         setLoading(false);
@@ -232,18 +224,17 @@ const DepartmentTab = () => {
   };
 
   const getTeacherName = (id) => {
-    if (!id) return 'Not Assigned';
-    const teacher = teachers.find(t => t.id === parseInt(id));
-    return teacher ? teacher.name : 'Unknown';
+    if (!id) return "Not Assigned";
+    const teacher = teachers.find((t) => t.id === parseInt(id));
+    return teacher ? teacher.name : "Unknown";
   };
-  
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
         <h3 className="text-xl font-semibold">Department Configuration</h3>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto"
           onClick={() => {
             setEditingDepartment(null);
             setFormData({
@@ -271,7 +262,7 @@ const DepartmentTab = () => {
             {editingDepartment ? "Edit Department" : "Add New Department"}
           </h4>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label
                   className="block text-sm font-medium mb-1"
@@ -311,7 +302,7 @@ const DepartmentTab = () => {
                   ))}
                 </select>
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label
                   className="block text-sm font-medium mb-1"
                   htmlFor="description"
@@ -353,61 +344,116 @@ const DepartmentTab = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="py-3 px-4 text-left">Department Name</th>
-                <th className="py-3 px-4 text-left">Department Head</th>
-                <th className="py-3 px-4 text-left">Description</th>
-                <th className="py-3 px-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {departments.length === 0 ? (
+        <>
+          {/* Desktop and tablet view */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-full bg-white">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td
-                    colSpan="4"
-                    className="py-4 px-4 text-center text-gray-500"
-                  >
-                    No departments found. Add your first department to get
-                    started.
-                  </td>
+                  <th className="py-3 px-4 text-left">Department Name</th>
+                  <th className="py-3 px-4 text-left">Department Head</th>
+                  <th className="py-3 px-4 text-left">Description</th>
+                  <th className="py-3 px-4 text-center">Actions</th>
                 </tr>
-              ) : (
-                departments.map((department) => (
-                  <tr key={department.id}>
-                    <td className="py-3 px-4">{department.name}</td>
-                    <td className="py-3 px-4">
-                      {getTeacherName(department.head_teacher_id)}
-                    </td>
-                    <td className="py-3 px-4">
-                      {department.description || "No description"}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(department)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Edit department"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(department.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          title="Delete department"
-                        >
-                          <Trash size={18} />
-                        </button>
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {departments.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="4"
+                      className="py-4 px-4 text-center text-gray-500"
+                    >
+                      No departments found. Add your first department to get
+                      started.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  departments.map((department) => (
+                    <tr key={department.id}>
+                      <td className="py-3 px-4">{department.name}</td>
+                      <td className="py-3 px-4">
+                        {getTeacherName(department.head_teacher_id)}
+                      </td>
+                      <td className="py-3 px-4">
+                        {department.description || "No description"}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(department)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Edit department"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(department.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            title="Delete department"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile view - Card layout */}
+          <div className="sm:hidden space-y-4">
+            {departments.length === 0 ? (
+              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                No departments found. Add your first department to get started.
+              </div>
+            ) : (
+              departments.map((department) => (
+                <div
+                  key={department.id}
+                  className="bg-white p-4 rounded-lg border border-gray-200"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium">{department.name}</h4>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(department)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(department.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-500">Head:</span>{" "}
+                      {getTeacherName(department.head_teacher_id) ||
+                        "Not assigned"}
+                    </div>
+                    {department.description && (
+                      <div>
+                        <span className="font-medium text-gray-500">
+                          Description:
+                        </span>
+                        <p className="mt-1 text-gray-700">
+                          {department.description}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
     </div>
   );
@@ -698,11 +744,11 @@ const RoomsTab = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <h3 className="text-xl font-semibold">Room & Facility Management</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
           <button
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
             onClick={() => {
               setEditingCategory(null);
               setCategoryFormData({
@@ -722,7 +768,7 @@ const RoomsTab = () => {
             )}
           </button>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
             onClick={() => {
               setEditingRoom(null);
               setFormData({
@@ -758,7 +804,7 @@ const RoomsTab = () => {
             {editingCategory ? "Edit Room Category" : "Add New Room Category"}
           </h4>
           <form onSubmit={handleCategorySubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label
                   className="block text-sm font-medium mb-1"
@@ -814,7 +860,7 @@ const RoomsTab = () => {
             {editingRoom ? "Edit Room" : "Add New Room"}
           </h4>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div>
                 <label
                   className="block text-sm font-medium mb-1"
@@ -959,7 +1005,7 @@ const RoomsTab = () => {
                 </label>
               </div>
 
-              <div className="md:col-span-3">
+              <div className="sm:col-span-2 lg:col-span-3">
                 <label
                   className="block text-sm font-medium mb-1"
                   htmlFor="notes"
@@ -997,57 +1043,100 @@ const RoomsTab = () => {
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-4 text-left">Category Name</th>
-                  <th className="py-3 px-4 text-left">Description</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {roomCategories.length === 0 ? (
+          <>
+            {/* Desktop/Tablet View for Categories */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td
-                      colSpan="3"
-                      className="py-4 px-4 text-center text-gray-500"
-                    >
-                      No room categories found. Add your first category to get
-                      started.
-                    </td>
+                    <th className="py-3 px-4 text-left">Category Name</th>
+                    <th className="py-3 px-4 text-left">Description</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
-                ) : (
-                  roomCategories.map((category) => (
-                    <tr key={category.id}>
-                      <td className="py-3 px-4">{category.name}</td>
-                      <td className="py-3 px-4">
-                        {category.description || "No description"}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit category"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(category.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete category"
-                          >
-                            <Trash size={18} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {roomCategories.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="3"
+                        className="py-4 px-4 text-center text-gray-500"
+                      >
+                        No room categories found. Add your first category to get
+                        started.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : (
+                    roomCategories.map((category) => (
+                      <tr key={category.id}>
+                        <td className="py-3 px-4">{category.name}</td>
+                        <td className="py-3 px-4">
+                          {category.description || "No description"}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              title="Edit category"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(category.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              title="Delete category"
+                            >
+                              <Trash size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View for Categories */}
+            <div className="sm:hidden space-y-3">
+              {roomCategories.length === 0 ? (
+                <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                  No room categories found. Add your first category to get
+                  started.
+                </div>
+              ) : (
+                roomCategories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="bg-white p-4 rounded-lg border border-gray-200"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h5 className="font-medium">{category.name}</h5>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {category.description || "No description"}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditCategory(category)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -1059,80 +1148,167 @@ const RoomsTab = () => {
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-4 text-left">Room Number</th>
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Category</th>
-                  <th className="py-3 px-4 text-left">Building</th>
-                  <th className="py-3 px-4 text-center">Capacity</th>
-                  <th className="py-3 px-4 text-center">Lab</th>
-                  <th className="py-3 px-4 text-center">Available</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {rooms.length === 0 ? (
+          <>
+            {/* Desktop/Tablet View for Rooms */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td
-                      colSpan="8"
-                      className="py-4 px-4 text-center text-gray-500"
-                    >
-                      No rooms found. Add your first room to get started.
-                    </td>
+                    <th className="py-3 px-4 text-left">Room Number</th>
+                    <th className="py-3 px-4 text-left">Name</th>
+                    <th className="py-3 px-4 text-left">Category</th>
+                    <th className="py-3 px-4 text-left">Building</th>
+                    <th className="py-3 px-4 text-center">Capacity</th>
+                    <th className="py-3 px-4 text-center">Lab</th>
+                    <th className="py-3 px-4 text-center">Available</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
-                ) : (
-                  rooms.map((room) => (
-                    <tr key={room.id}>
-                      <td className="py-3 px-4">{room.room_number}</td>
-                      <td className="py-3 px-4">{room.name}</td>
-                      <td className="py-3 px-4">
-                        {getCategoryName(room.category_id)}
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {rooms.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="8"
+                        className="py-4 px-4 text-center text-gray-500"
+                      >
+                        No rooms found. Add your first room to get started.
                       </td>
-                      <td className="py-3 px-4">{room.building || "N/A"}</td>
-                      <td className="py-3 px-4 text-center">
-                        {room.capacity || "Not set"}
-                      </td>
-                      <td className="py-3 px-4 text-center">
+                    </tr>
+                  ) : (
+                    rooms.map((room) => (
+                      <tr key={room.id}>
+                        <td className="py-3 px-4">{room.room_number}</td>
+                        <td className="py-3 px-4">{room.name}</td>
+                        <td className="py-3 px-4">
+                          {getCategoryName(room.category_id)}
+                        </td>
+                        <td className="py-3 px-4">{room.building || "N/A"}</td>
+                        <td className="py-3 px-4 text-center">
+                          {room.capacity || "Not set"}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {room.is_lab ? (
+                            <span className="text-green-600">Yes</span>
+                          ) : (
+                            <span className="text-gray-400">No</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {room.is_available !== false ? (
+                            <span className="text-green-600">Yes</span>
+                          ) : (
+                            <span className="text-red-600">No</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => handleEditRoom(room)}
+                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              title="Edit room"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRoom(room.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              title="Delete room"
+                            >
+                              <Trash size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View for Rooms */}
+            <div className="sm:hidden space-y-3">
+              {rooms.length === 0 ? (
+                <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                  No rooms found. Add your first room to get started.
+                </div>
+              ) : (
+                rooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="bg-white p-4 rounded-lg border border-gray-200"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h5 className="font-medium">{room.name}</h5>
+                        <p className="text-sm text-gray-500">
+                          {room.room_number}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditRoom(room)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoom(room.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Category:</span>
+                        <p>{getCategoryName(room.category_id)}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Building:</span>
+                        <p>{room.building || "N/A"}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Capacity:</span>
+                        <p>{room.capacity || "Not set"}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Floor:</span>
+                        <p>{room.floor || "N/A"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-4 mt-2 text-sm">
+                      <div className="flex items-center">
+                        <span className="text-gray-500 mr-1">Lab:</span>
                         {room.is_lab ? (
                           <span className="text-green-600">Yes</span>
                         ) : (
                           <span className="text-gray-400">No</span>
                         )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-500 mr-1">Available:</span>
                         {room.is_available !== false ? (
                           <span className="text-green-600">Yes</span>
                         ) : (
                           <span className="text-red-600">No</span>
                         )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => handleEditRoom(room)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit room"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRoom(room.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete room"
-                          >
-                            <Trash size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    {room.notes && (
+                      <div className="mt-2 text-sm">
+                        <span className="text-gray-500">Notes:</span>
+                        <p className="mt-1 text-gray-600">{room.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -1158,9 +1334,8 @@ const ClassesTab = () => {
     capacity: "",
   });
   const [searchTerm, setSearchTerm] = useState("");
-const [selectedLevel, setSelectedLevel] = useState("");
-const [selectedTeacher, setSelectedTeacher] = useState("");
-
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState("");
 
   // Token from localStorage
   const token = localStorage.getItem("token");
@@ -1381,21 +1556,22 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
       </span>
     );
   };
-  const filteredClasses = classes.filter(cls => {
+  const filteredClasses = classes.filter((cls) => {
     return (
       cls.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (selectedLevel ? cls.level === selectedLevel : true) &&
-      (selectedTeacher ? cls.class_teacher_id?.toString() === selectedTeacher : true)
+      (selectedTeacher
+        ? cls.class_teacher_id?.toString() === selectedTeacher
+        : true)
     );
   });
-  
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
         <h3 className="text-xl font-semibold">Class & Stream Setup</h3>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 w-full sm:w-auto"
           onClick={() => {
             setEditingClass(null);
             setFormData({
@@ -1431,7 +1607,7 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
               : "Add New Class"}
           </h4>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div>
                 <label
                   className="block text-sm font-medium mb-1"
@@ -1492,7 +1668,7 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
                 />
               </div>
 
-              <div className="md:col-span-3">
+              <div className="sm:col-span-2 lg:col-span-3">
                 <label
                   className="block text-sm font-medium mb-1"
                   htmlFor="name"
@@ -1582,10 +1758,10 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
               <button
                 type="button"
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md order-2 sm:order-1"
                 onClick={() => {
                   setShowForm(false);
                   setEditingClass(null);
@@ -1595,7 +1771,7 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md order-1 sm:order-2 mb-2 sm:mb-0"
               >
                 {editingClass ? "Update Class" : "Save Class"}
               </button>
@@ -1605,7 +1781,7 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
       )}
 
       {/* Filter Controls */}
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label
             className="block text-sm font-medium mb-1"
@@ -1679,104 +1855,178 @@ const [selectedTeacher, setSelectedTeacher] = useState("");
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="py-3 px-4 text-left border-b">Class Name</th>
-                <th className="py-3 px-4 text-left border-b">Curriculum</th>
-                <th className="py-3 px-4 text-left border-b">Level</th>
-                <th className="py-3 px-4 text-left border-b">Stream</th>
-                <th className="py-3 px-4 text-left border-b">Class Teacher</th>
-                <th className="py-3 px-4 text-left border-b">
-                  Academic Session
-                </th>
-                <th className="py-3 px-4 text-center border-b">Capacity</th>
-                <th className="py-3 px-4 text-center border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classes.length === 0 ? (
+        <>
+          {/* Desktop/Tablet View */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td
-                    colSpan="8"
-                    className="py-4 px-4 text-center text-gray-500"
-                  >
-                    No classes found. Add your first class to get started.
-                  </td>
+                  <th className="py-3 px-4 text-left border-b">Class Name</th>
+                  <th className="py-3 px-4 text-left border-b">Curriculum</th>
+                  <th className="py-3 px-4 text-left border-b">Level</th>
+                  <th className="py-3 px-4 text-left border-b">Stream</th>
+                  <th className="py-3 px-4 text-left border-b">
+                    Class Teacher
+                  </th>
+                  <th className="py-3 px-4 text-left border-b">
+                    Academic Session
+                  </th>
+                  <th className="py-3 px-4 text-center border-b">Capacity</th>
+                  <th className="py-3 px-4 text-center border-b">Actions</th>
                 </tr>
-              ) : (
-                filteredClasses.map((classItem, index) => (
-                  <tr
-                    key={classItem.id}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="py-3 px-4 border-b">{classItem.name}</td>
-                    <td className="py-3 px-4 border-b">
-                      {getCurriculumTypeBadge(classItem.curriculum_type)}
-                    </td>
-                    <td className="py-3 px-4 border-b">{classItem.level}</td>
-                    <td className="py-3 px-4 border-b">
-                      {classItem.stream || "N/A"}
-                    </td>
-                    <td className="py-3 px-4 border-b">
-                      {getTeacherName(classItem.class_teacher_id)}
-                    </td>
-                    <td className="py-3 px-4 border-b">
-                      {getSessionName(classItem.academic_session_id)}
-                    </td>
-                    <td className="py-3 px-4 text-center border-b">
-                      {classItem.capacity ? (
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
-                          {classItem.capacity}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">Not set</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 border-b">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleEdit(classItem)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Edit class"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(classItem.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          title="Delete class"
-                        >
-                          <Trash size={18} />
-                        </button>
-                      </div>
+              </thead>
+              <tbody>
+                {classes.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="8"
+                      className="py-4 px-4 text-center text-gray-500"
+                    >
+                      No classes found. Add your first class to get started.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filteredClasses.map((classItem, index) => (
+                    <tr
+                      key={classItem.id}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="py-3 px-4 border-b">{classItem.name}</td>
+                      <td className="py-3 px-4 border-b">
+                        {getCurriculumTypeBadge(classItem.curriculum_type)}
+                      </td>
+                      <td className="py-3 px-4 border-b">{classItem.level}</td>
+                      <td className="py-3 px-4 border-b">
+                        {classItem.stream || "N/A"}
+                      </td>
+                      <td className="py-3 px-4 border-b">
+                        {getTeacherName(classItem.class_teacher_id)}
+                      </td>
+                      <td className="py-3 px-4 border-b">
+                        {getSessionName(classItem.academic_session_id)}
+                      </td>
+                      <td className="py-3 px-4 text-center border-b">
+                        {classItem.capacity ? (
+                          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
+                            {classItem.capacity}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Not set</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 border-b">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(classItem)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Edit class"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(classItem.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            title="Delete class"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile View - Card Layout */}
+          <div className="sm:hidden space-y-4">
+            {classes.length === 0 ? (
+              <div className="p-4 bg-white border border-gray-200 rounded-lg text-center text-gray-500">
+                No classes found. Add your first class to get started.
+              </div>
+            ) : (
+              filteredClasses.map((classItem) => (
+                <div
+                  key={classItem.id}
+                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-medium text-lg">{classItem.name}</h4>
+                      <div className="mt-1">
+                        {getCurriculumTypeBadge(classItem.curriculum_type)}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(classItem)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(classItem.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">Level:</span>
+                      <p>{classItem.level}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Stream:</span>
+                      <p>{classItem.stream || "N/A"}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Teacher:</span>
+                      <p>{getTeacherName(classItem.class_teacher_id)}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Session:</span>
+                      <p>{getSessionName(classItem.academic_session_id)}</p>
+                    </div>
+                    {classItem.capacity && (
+                      <div className="mt-1">
+                        <span className="text-gray-500">Capacity:</span>
+                        <span className="ml-2 px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs">
+                          {classItem.capacity} students
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Help/Info Section */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
         <h4 className="font-medium mb-2">Class Naming Guide:</h4>
-        <ul className="list-disc list-inside space-y-1 ml-2">
-          <li>
+        <div className="space-y-1 ml-2">
+          <p>
+            <span className="font-medium">•</span>{" "}
             <span className="font-medium">CBC Classes</span>: PP1, PP2, Grade
             1-6, Junior 1-3, Senior 1-3
-          </li>
-          <li>
+          </p>
+          <p>
+            <span className="font-medium">•</span>{" "}
             <span className="font-medium">8-4-4 Classes</span>: Standard 1-8,
             Form 1-4
-          </li>
-          <li>
+          </p>
+          <p>
+            <span className="font-medium">•</span>{" "}
             <span className="font-medium">Streams</span>: Usually represented as
             letters (A, B, C) or colors/names
-          </li>
-        </ul>
+          </p>
+        </div>
         <p className="mt-2">
           Each class must be associated with an academic session. Classes for
           new academic sessions should be created separately.
