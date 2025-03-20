@@ -138,7 +138,7 @@ export async function action({ request, params }) {
   const errors = {};
   // Get form data
   const loginData = {
-    username: data.get("username"),
+    username: data.get("username").trim().toLocaleLowerCase(),
     password: data.get("password").trim(),
   };
   // Validate input (optional)
