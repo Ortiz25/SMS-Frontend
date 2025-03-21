@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, CheckCircle, XCircle } from "lucide-react";
+import { X, CheckCircle, XCircle, AlertCircle, Info } from "lucide-react";
 
 const LeaveApprovalModal = ({ 
   isOpen, 
@@ -63,8 +63,24 @@ const LeaveApprovalModal = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
-              {error}
+            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm flex items-start">
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Status Change Information */}
+          {action === "approve" && (
+            <div className="bg-blue-50 text-blue-700 p-4 rounded-md text-sm flex items-start mb-4">
+              <Info className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium mb-1">Teacher Status Change</p>
+                <p>
+                  Approving this leave will automatically change the teacher's status to "on_leave" 
+                  for the duration of the leave period. When the leave ends, the system will 
+                  automatically restore the status to "active".
+                </p>
+              </div>
             </div>
           )}
 

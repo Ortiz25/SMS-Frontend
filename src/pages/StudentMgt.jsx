@@ -659,7 +659,7 @@ const StudentManagement = () => {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                        <span className={`px-2 py-1 text-xs font-medium ${student.status === "active"? "bg-blue-100 text-blue-700": "bg-red-200 text-gray-800"}  rounded-full`}>
                           {student.status}
                         </span>
                       </td>
