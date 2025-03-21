@@ -1,295 +1,582 @@
-// src/components/modals/incidentForm.jsx
-import React, { useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Save, AlertCircle, CheckCircle, Calendar, Clock, AlertTriangle, User } from "lucide-react";
+import LoadingSpinner from "../../util/loaderSpinner";
 
-const IncidentFormDialog = ({
-  show,
-  onClose,
-  formData,
-  setFormData,
-  onSave,
-  isEditing,
-  studentOptions,
-  loading
+const IncidentFormDialog = ({ 
+  show, 
+  onClose, 
+  formData, 
+  setFormData, 
+  onSave, 
+  onActionChange,
+  isEditing, 
+  loading,
+  actionStatusMappings = []
 }) => {
-  // Handle click outside to close
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (show) {
-      document.addEventListener('keydown', handleEscape);
-    }
-    
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [show, onClose]);
+  const [localFormData, setLocalFormData] = useState(formData);
+  const [previewStatus, setPreviewStatus] = useState(null);
+  const [requiresApproval, setRequiresApproval] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [searchingStudent, setSearchingStudent] = useState(false);
+  
+  // Severity options
+  const severityOptions = ["Minor", "Moderate", "Severe"];
+  
+  // Status options
+  const statusOptions = ["Pending", "In Progress", "Resolved"];
+  
+  // Student status options
+  const studentStatusOptions = ["active", "inactive", "suspended", "on_probation", "expelled"];
+  
+  // Common action types
+  const actionOptions = [
+    "Verbal Warning",
+    "Written Warning",
+    "Detention",
+    "Parent Conference",
+    "Counseling Referral",
+    "Suspension",
+    "Expulsion",
+    "Community Service",
+    "Behavior Contract",
+    "Probation",
+    "Restorative Justice"
+  ];
 
-  // Prevent scrolling when modal is open
+  // Reset local form data when formData changes
   useEffect(() => {
-    if (show) {
-      document.body.style.overflow = 'hidden';
+    setLocalFormData(formData);
+    
+    // Set preview status if editing an incident with status change
+    if (formData.affectsStatus && formData.statusChange) {
+      setPreviewStatus(formData.statusChange);
     } else {
-      document.body.style.overflow = 'auto';
+      setPreviewStatus(null);
+    }
+  }, [formData]);
+
+  // Check for severe status changes
+  useEffect(() => {
+    // Determine if this action requires approval
+    const requiresHigherApproval = 
+      localFormData.affectsStatus && 
+      (localFormData.statusChange === 'expelled' || 
+       (localFormData.statusChange === 'suspended' && 
+       (localFormData.endDate && new Date(localFormData.endDate) > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))));
+    
+    setRequiresApproval(requiresHigherApproval);
+  }, [localFormData]);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    // Handle checkboxes
+    if (type === "checkbox") {
+      setLocalFormData({
+        ...localFormData,
+        [name]: checked
+      });
+      
+      // If unchecking affectsStatus, clear status change fields
+      if (name === "affectsStatus" && !checked) {
+        setLocalFormData({
+          ...localFormData,
+          affectsStatus: false,
+          statusChange: "",
+          effectiveDate: new Date().toISOString().split('T')[0],
+          endDate: "",
+          autoRestore: true
+        });
+        setPreviewStatus(null);
+      }
+      return;
     }
     
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [show]);
+    // Special case for action field
+    if (name === "action") {
+      // Call the action change handler to check for status mappings
+      if (onActionChange) {
+        onActionChange(value);
+        
+        // Find mapping to preview status change
+        const mapping = actionStatusMappings.find(m => m.action_type === value);
+        if (mapping) {
+          setPreviewStatus(mapping.resulting_status);
+        }
+      } else {
+        // If no handler provided, just update the action
+        setLocalFormData({
+          ...localFormData,
+          action: value
+        });
+      }
+      return;
+    }
+    
+    // Handle status change preview
+    if (name === "statusChange") {
+      setPreviewStatus(value);
+    }
+    
+    // Handle all other fields
+    setLocalFormData({
+      ...localFormData,
+      [name]: value
+    });
+  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // Search for student by admission number
+  const searchStudent = async () => {
+    if (!localFormData.admissionNumber) return;
+    
+    try {
+      setSearchingStudent(true);
+      // In real implementation, this would call an API
+      // Mock implementation for now
+      setTimeout(() => {
+        // Mock student data
+        const student = {
+          id: 123,
+          first_name: "John",
+          last_name: "Doe",
+          admission_number: localFormData.admissionNumber,
+          current_class: "Grade 8",
+          stream: "B"
+        };
+        
+        setLocalFormData({
+          ...localFormData,
+          studentName: `${student.first_name} ${student.last_name}`,
+          grade: `${student.current_class} ${student.stream}`,
+          student_id: student.id
+        });
+        
+        setSearchingStudent(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Error searching for student:", error);
+      setSearchingStudent(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    const required = [
+      "studentName",
+      "admissionNumber",
+      "date", 
+      "type", 
+      "severity", 
+      "description",
+      "status"
+    ];
+    
+    const missingFields = required.filter(field => !localFormData[field]);
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields: ${missingFields.join(", ")}`);
+      return;
+    }
+    
+    // Validate status change fields if affectsStatus is checked
+    if (localFormData.affectsStatus) {
+      if (!localFormData.statusChange) {
+        alert("Please select a status change type");
+        return;
+      }
+      
+      if (!localFormData.effectiveDate) {
+        alert("Please select an effective date for the status change");
+        return;
+      }
+      
+      // If not a permanent change, end date is required
+      if (localFormData.statusChange !== "expelled" && !localFormData.endDate) {
+        alert("Please select an end date for the temporary status change");
+        return;
+      }
+    }
+    
+    // Pass the form data to the parent component
+    setFormData(localFormData);
+    onSave();
   };
 
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-black opacity-50 w-full h-full absolute"></div>
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 relative">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">
+      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Modal Header */}
+        <div className="p-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-semibold">
             {isEditing ? "Edit Incident Record" : "New Incident Record"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700"
           >
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
+            <X className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Form content */}
-        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid gap-4">
-            {!isEditing && (
-              <div className="mb-4">
-                <label htmlFor="admissionNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                  Student Admission Number
-                </label>
-                <input
-                  id="admissionNumber"
-                  name="admissionNumber"
-                  value={formData.admissionNumber}
-                  onChange={handleChange}
-                  placeholder="Enter student admission number"
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-                  Date
-                </label>
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
-                </label>
-                <input
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Where did it happen?"
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+        {/* Modal Content */}
+        <div className="p-6 overflow-y-auto flex-grow">
+          {loading && <LoadingSpinner />}
+
+          <form onSubmit={handleSubmit}>
+            {/* Student Information */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Student Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Admission Number*
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="text"
+                      name="admissionNumber"
+                      value={localFormData.admissionNumber || ""}
+                      onChange={handleInputChange}
+                      className="flex-grow border border-gray-300 rounded-l-md py-2 px-3"
+                      placeholder="e.g. ADM/2023/001"
+                    />
+                    <button
+                      type="button"
+                      onClick={searchStudent}
+                      className="bg-blue-600 text-white px-3 py-2 rounded-r-md"
+                      disabled={searchingStudent || !localFormData.admissionNumber}
+                    >
+                      {searchingStudent ? "..." : "Find"}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Student Name*
+                  </label>
+                  <input
+                    type="text"
+                    name="studentName"
+                    value={localFormData.studentName || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    placeholder="Full name"
+                    readOnly={searchingStudent}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Class/Grade
+                  </label>
+                  <input
+                    type="text"
+                    name="grade"
+                    value={localFormData.grade || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    placeholder="e.g. Grade 8B"
+                    readOnly={searchingStudent}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Status
+                  </label>
+                  <div className="px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+                    Active
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="" disabled>Select type</option>
-                  <option value="Misconduct">Misconduct</option>
-                  <option value="Bullying">Bullying</option>
-                  <option value="Academic">Academic</option>
-                  <option value="Attendance">Attendance</option>
-                  <option value="Property Damage">Property Damage</option>
-                  <option value="Other">Other</option>
-                </select>
+            {/* Incident Details */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Incident Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date*
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={localFormData.date || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type*
+                  </label>
+                  <input
+                    type="text"
+                    name="type"
+                    value={localFormData.type || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    placeholder="e.g. Misconduct, Bullying, etc."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Severity*
+                  </label>
+                  <select
+                    name="severity"
+                    value={localFormData.severity || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  >
+                    <option value="">Select Severity</option>
+                    {severityOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label htmlFor="severity" className="block text-sm font-medium text-gray-700 mb-1">
-                  Severity
-                </label>
-                <select
-                  id="severity"
-                  name="severity"
-                  value={formData.severity}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="" disabled>Select severity</option>
-                  <option value="Minor">Minor</option>
-                  <option value="Moderate">Moderate</option>
-                  <option value="Severe">Severe</option>
-                </select>
+
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={localFormData.location || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    placeholder="e.g. Classroom, Playground, etc."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Witnesses
+                  </label>
+                  <input
+                    type="text"
+                    name="witnesses"
+                    value={localFormData.witnesses || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                    placeholder="Names of any witnesses"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the incident in detail"
-                rows={3}
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="witnesses" className="block text-sm font-medium text-gray-700 mb-1">
-                Witnesses
-              </label>
-              <input
-                id="witnesses"
-                name="witnesses"
-                value={formData.witnesses}
-                onChange={handleChange}
-                placeholder="List any witnesses to the incident"
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="action" className="block text-sm font-medium text-gray-700 mb-1">
-                  Action Taken
-                </label>
-                <select
-                  id="action"
-                  name="action"
-                  value={formData.action}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="" disabled>Select action</option>
-                  <option value="Verbal Warning">Verbal Warning</option>
-                  <option value="Written Warning">Written Warning</option>
-                  <option value="Detention">Detention</option>
-                  <option value="Parent Conference">Parent Conference</option>
-                  <option value="Suspension">Suspension</option>
-                  <option value="Expulsion">Expulsion</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="followUp" className="block text-sm font-medium text-gray-700 mb-1">
-                Follow-up Date
-              </label>
-              <input
-                id="followUp"
-                name="followUp"
-                type="date"
-                value={formData.followUp}
-                onChange={handleChange}
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {formData.status === "Resolved" && (
-              <div>
-                <label htmlFor="resolutionNotes" className="block text-sm font-medium text-gray-700 mb-1">
-                  Resolution Notes
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description*
                 </label>
                 <textarea
-                  id="resolutionNotes"
-                  name="resolutionNotes"
-                  value={formData.resolutionNotes || ""}
-                  onChange={handleChange}
-                  placeholder="Provide details about the resolution"
-                  rows={2}
-                  disabled={loading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                  name="description"
+                  value={localFormData.description || ""}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  rows="4"
+                  placeholder="Detailed description of the incident"
+                ></textarea>
               </div>
-            )}
-          </div>
+            </div>
+
+            {/* Actions & Status */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Actions & Status</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Action Taken
+                  </label>
+                  <select
+                    name="action"
+                    value={localFormData.action || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  >
+                    <option value="">Select Action</option>
+                    {actionOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status*
+                  </label>
+                  <select
+                    name="status"
+                    value={localFormData.status || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  >
+                    <option value="">Select Status</option>
+                    {statusOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Follow-Up Date
+                  </label>
+                  <input
+                    type="date"
+                    name="followUp"
+                    value={localFormData.followUp || ""}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Status Change Section */}
+            <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  name="affectsStatus"
+                  id="affectsStatus"
+                  checked={localFormData.affectsStatus || false}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 rounded"
+                />
+                <label htmlFor="affectsStatus" className="ml-2 font-semibold text-gray-900">
+                  This incident affects student enrollment status
+                </label>
+              </div>
+
+              {localFormData.affectsStatus && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Status Change*
+                      </label>
+                      <select
+                        name="statusChange"
+                        value={localFormData.statusChange || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                      >
+                        <option value="">Select New Status</option>
+                        {studentStatusOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option.replace('_', ' ')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Effective Date*
+                      </label>
+                      <input
+                        type="date"
+                        name="effectiveDate"
+                        value={localFormData.effectiveDate || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        End Date {localFormData.statusChange !== "expelled" && "*"}
+                      </label>
+                      <input
+                        type="date"
+                        name="endDate"
+                        value={localFormData.endDate || ""}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3"
+                        disabled={localFormData.statusChange === "expelled"}
+                      />
+                      {localFormData.statusChange === "expelled" && (
+                        <p className="text-xs text-gray-500 mt-1">Not applicable for expulsion</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {localFormData.statusChange !== "expelled" && (
+                    <div className="flex items-center mt-2">
+                      <input
+                        type="checkbox"
+                        name="autoRestore"
+                        id="autoRestore"
+                        checked={localFormData.autoRestore}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-blue-600 rounded"
+                      />
+                      <label htmlFor="autoRestore" className="ml-2 text-sm text-gray-700">
+                        Automatically restore previous status when end date is reached
+                      </label>
+                    </div>
+                  )}
+
+                  {/* Status change preview */}
+                  {previewStatus && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="flex items-start">
+                        <User className="h-5 w-5 text-blue-500 mt-0.5 mr-2" />
+                        <div>
+                          <h4 className="font-medium text-blue-800">Status Change Preview</h4>
+                          <p className="text-sm text-blue-700">
+                            Student status will change from <strong>active</strong> to <strong>{previewStatus.replace('_', ' ')}</strong>
+                            {localFormData.endDate ? (
+                              <span> until <strong>{new Date(localFormData.endDate).toLocaleDateString()}</strong></span>
+                            ) : previewStatus !== "expelled" ? (
+                              <span> (no end date specified)</span>
+                            ) : (
+                              <span> permanently</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Warning for actions requiring approval */}
+                  {requiresApproval && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-start">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5 mr-2" />
+                      <div>
+                        <h4 className="font-medium text-yellow-800">Administrative Approval Required</h4>
+                        <p className="text-sm text-yellow-700">
+                          This status change requires approval from a school administrator before taking effect.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </form>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-2 px-6 py-4 border-t">
+        {/* Modal Footer */}
+        <div className="p-4 border-t flex justify-end space-x-2">
           <button
             onClick={onClose}
-            disabled={loading}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
-            onClick={onSave}
+            onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {loading ? "Saving..." : isEditing ? "Update" : "Save"}
+            <Save className="h-5 w-5 mr-2" />
+            {isEditing ? "Update" : "Save"}
           </button>
         </div>
       </div>
-
-      {/* Backdrop click to close */}
-      <div 
-        className="absolute inset-0 z-[-1]" 
-        onClick={onClose}
-      />
     </div>
   );
 };

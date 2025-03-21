@@ -12,13 +12,12 @@ import {
 } from "lucide-react";
 import { useStore } from "../store/store";
 import Navbar from "../components/navbar";
-import shortid from 'shortid';
+import shortid from "shortid";
 import { redirect, useLoaderData, Link } from "react-router-dom";
 
 const LibraryManagement = () => {
   const data = useLoaderData();
-  const [errorMessage, setErrorMessage] = useState(""); // Error state
-  // State management
+  const [errorMessage, setErrorMessage] = useState("");
   const [books, setBooks] = useState(data);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
@@ -57,7 +56,7 @@ const LibraryManagement = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const booksPerPage = 5;
+  const [booksPerPage, setBooksPerPage] = useState(5);
 
   // Pagination calculations
   const indexOfLastBook = currentPage * booksPerPage;
@@ -127,14 +126,14 @@ const LibraryManagement = () => {
       console.error("Error borrowing book:", error);
     }
   };
-  
+
   // Book management functions
   const handleAddBook = () => {
     setIsEditing(false);
     setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
     setShowBookDialog(true);
   };
-  
+
   const handleEditBook = (book) => {
     setIsEditing(true);
     setBookFormData({
@@ -175,7 +174,7 @@ const LibraryManagement = () => {
       // Ensure total_copies is a number
       const formattedData = {
         ...bookFormData,
-        total_copies: parseInt(bookFormData.total_copies) || 0
+        total_copies: parseInt(bookFormData.total_copies) || 0,
       };
 
       const url = isEditing
@@ -212,7 +211,7 @@ const LibraryManagement = () => {
       console.error("Error saving book:", error);
     }
   };
-  
+
   // This function has been moved to the Borrowers component
   // The Library Management component now focuses only on book inventory
 
@@ -230,7 +229,11 @@ const LibraryManagement = () => {
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
               <Library className="w-4 h-4 mr-2" />
-              {books.reduce((total, book) => total + (parseInt(book.total_copies) || 0), 0)} Total Copies
+              {books.reduce(
+                (total, book) => total + (parseInt(book.total_copies) || 0),
+                0
+              )}{" "}
+              Total Copies
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
               <Users className="w-4 h-4 mr-2" />
@@ -311,7 +314,12 @@ const LibraryManagement = () => {
                   <button
                     onClick={() => {
                       setShowBookDialog(false);
-                      setBookFormData({ title: "", author: "", isbn: "", total_copies: "" });
+                      setBookFormData({
+                        title: "",
+                        author: "",
+                        isbn: "",
+                        total_copies: "",
+                      });
                     }}
                     className="px-4 py-2 border rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
@@ -394,8 +402,9 @@ const LibraryManagement = () => {
                   {currentBooks.map((book) => {
                     // Calculate available copies
                     const availableCopies = getAvailableCopies(book);
-                    const isBorrowed = availableCopies < (book.total_copies || 0);
-                    
+                    const isBorrowed =
+                      availableCopies < (book.total_copies || 0);
+
                     return (
                       <tr key={shortid.generate()}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -411,7 +420,13 @@ const LibraryManagement = () => {
                           {book.total_copies || 0}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <span className={availableCopies === 0 ? "text-red-600 font-medium" : ""}>
+                          <span
+                            className={
+                              availableCopies === 0
+                                ? "text-red-600 font-medium"
+                                : ""
+                            }
+                          >
                             {availableCopies}
                           </span>
                         </td>
@@ -421,15 +436,15 @@ const LibraryManagement = () => {
                               availableCopies > 0
                                 ? "bg-green-100 text-green-800"
                                 : isBorrowed
-                                  ? "bg-orange-100 text-orange-800"
-                                  : "bg-gray-100 text-gray-800"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {availableCopies > 0 
-                              ? "Available" 
-                              : isBorrowed 
-                                ? "All Copies Borrowed" 
-                                : "Out of Stock"}
+                            {availableCopies > 0
+                              ? "Available"
+                              : isBorrowed
+                              ? "All Copies Borrowed"
+                              : "Out of Stock"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
@@ -467,26 +482,45 @@ const LibraryManagement = () => {
             </div>
           </div>
 
-          <div className="flex justify-center m-4 space-x-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="px-3 py-1 border rounded-md text-gray-700 bg-gray-100">
-              Page {currentPage} of {totalPages || 1}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
+          <div className="flex justify-between items-center m-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Rows per page:</span>
+              <select
+                className="border rounded-md px-2 py-1 text-sm"
+                value={booksPerPage}
+                onChange={(e) => {
+                  setBooksPerPage(Number(e.target.value));
+                  setCurrentPage(1); // Reset to first page when changing page size
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="px-3 py-1 border rounded-md text-gray-700 bg-gray-100">
+                Page {currentPage} of {totalPages || 1}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-1 border rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
 
@@ -584,7 +618,7 @@ export async function loader({ params, request }) {
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     // If token is invalid or expired
     if (!tokenResponse.ok || tokenData.error) {
       // Clear invalid token

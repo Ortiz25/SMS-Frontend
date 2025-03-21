@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Search, 
@@ -7,7 +6,10 @@ import {
   Edit, 
   Trash2, 
   FileText, 
-  Filter 
+  Filter,
+  User,
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 
 const IncidentList = ({
@@ -19,11 +21,11 @@ const IncidentList = ({
   onAdd,
   onEdit,
   onDelete,
+  onViewStatusHistory,
   loading,
   error
 }) => {
   const [showFilters, setShowFilters] = useState(false);
-  console.log(incidents)
 
   const getSeverityColor = (severity) => {
     switch (severity?.toLowerCase()) {
@@ -46,6 +48,19 @@ const IncidentList = ({
         return "bg-blue-100 text-blue-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusChangeColor = (statusChange) => {
+    switch (statusChange?.toLowerCase()) {
+      case "expelled":
+        return "bg-red-100 text-red-800";
+      case "suspended":
+        return "bg-orange-100 text-orange-800";
+      case "on_probation":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -88,7 +103,13 @@ const IncidentList = ({
             />
           </div>
           <div className="flex gap-2">
-           
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-1 px-3 py-2 rounded-md border border-gray-300 text-gray-700 text-sm"
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+            </button>
             <button
               onClick={onAdd}
               className="flex items-center gap-1 px-3 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm"
@@ -117,7 +138,35 @@ const IncidentList = ({
               <option value="resolved">Resolved</option>
             </select>
           </div>
-          {/* Additional filters can be added here */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status Change
+            </label>
+            <select
+              onChange={(e) => setSelectedFilter(e.target.value === "status_changed" ? "status_changed" : "all")}
+              className="border rounded p-2 text-sm bg-white"
+              defaultValue=""
+            >
+              <option value="">Filter by Status Change</option>
+              <option value="status_changed">Only Status-Changing Incidents</option>
+              <option value="no_status_change">No Status Change</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Severity
+            </label>
+            <select
+              onChange={(e) => setSelectedFilter(e.target.value)}
+              className="border rounded p-2 text-sm bg-white"
+              defaultValue="all"
+            >
+              <option value="all">All Severities</option>
+              <option value="minor">Minor</option>
+              <option value="moderate">Moderate</option>
+              <option value="severe">Severe</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -155,6 +204,7 @@ const IncidentList = ({
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Change</th>
                 <th scope="col" className="relative px-6 py-3 w-12"></th>
               </tr>
             </thead>
@@ -182,6 +232,23 @@ const IncidentList = ({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-700">{incident.action}</span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {incident.affects_status && incident.status_change ? (
+                      <div className="flex flex-col">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusChangeColor(incident.status_change)}`}>
+                          {incident.status_change.replace('_', ' ')}
+                        </span>
+                        {incident.end_date && (
+                          <span className="text-xs text-gray-500 mt-1 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Until: {formatDate(incident.end_date)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">None</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="relative inline-block text-left">
                       <div>
@@ -195,7 +262,7 @@ const IncidentList = ({
                       </div>
                       <div 
                         id={`dropdown-${incident.id}`}
-                        className="hidden origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                        className="hidden origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
                       >
                         <div className="py-1">
                           <button
@@ -206,7 +273,17 @@ const IncidentList = ({
                             }}
                           >
                             <Edit className="h-4 w-4 inline mr-2" />
-                            Edit
+                            Edit Incident
+                          </button>
+                          <button
+                            className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => {
+                              onViewStatusHistory(incident.student_id, incident);
+                              document.getElementById(`dropdown-${incident.id}`).classList.add('hidden');
+                            }}
+                          >
+                            <User className="h-4 w-4 inline mr-2" />
+                            View Status History
                           </button>
                           <button
                             className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"

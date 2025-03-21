@@ -38,7 +38,7 @@ const StudentManagement = () => {
     useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentData, updateStudentData] = useState(data);
-
+    console.log(studentData)
   // Pagination state
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(searchParams.get("perPage") || "10")
