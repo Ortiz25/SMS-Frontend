@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar, X } from "lucide-react";
 import axios from "axios";
 
-const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
+const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId, teacherGender }) => {
   // Get token from localStorage
   const token = localStorage.getItem("token");
   const [formData, setFormData] = useState({
@@ -14,7 +14,8 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
     attachment_url: "",
   });
   
-  const [leaveTypes, setLeaveTypes] = useState([]);
+  const [allLeaveTypes, setAllLeaveTypes] = useState([]);
+  const [filteredLeaveTypes, setFilteredLeaveTypes] = useState([]);
   const [substitutes, setSubstitutes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -33,7 +34,7 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
             },
           }
         );
-        setLeaveTypes(typesResponse.data);
+        setAllLeaveTypes(typesResponse.data);
       } catch (err) {
         setError("Failed to load leave types");
         console.error(err);
@@ -42,6 +43,43 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
 
     fetchData();
   }, []);
+
+  // Filter leave types based on gender
+  useEffect(() => {
+    if (allLeaveTypes.length > 0 && teacherGender) {
+      const filtered = allLeaveTypes.filter(type => {
+        const typeName = type.name.toLowerCase();
+        
+        // If female, exclude paternity leave
+        if (teacherGender === 'female' && typeName.includes('paternity')) {
+          return false;
+        }
+        
+        // If male, exclude maternity leave
+        if (teacherGender === 'male' && typeName.includes('maternity')) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      setFilteredLeaveTypes(filtered);
+      
+      // If the currently selected leave type is filtered out, reset it
+      if (formData.leave_type_id) {
+        const selectedType = allLeaveTypes.find(t => t.id === parseInt(formData.leave_type_id));
+        if (selectedType) {
+          const typeName = selectedType.name.toLowerCase();
+          if ((teacherGender === 'female' && typeName.includes('paternity')) ||
+              (teacherGender === 'male' && typeName.includes('maternity'))) {
+            setFormData(prev => ({ ...prev, leave_type_id: "" }));
+          }
+        }
+      }
+    } else {
+      setFilteredLeaveTypes(allLeaveTypes);
+    }
+  }, [allLeaveTypes, teacherGender, formData.leave_type_id]);
 
   // Fetch substitute teachers when dates change
   useEffect(() => {
@@ -101,9 +139,8 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
         ...formData,
         days_count: daysCount,
         teacher_id: user.teacher.teacher_id
-
       };
-       console.log(submitData)
+      
       onSubmit(submitData);
     } catch (err) {
       setError(err.message || "Failed to submit leave request");
@@ -169,7 +206,7 @@ const RequestLeaveModal = ({ isOpen, onClose, onSubmit, teacherId }) => {
               required
             >
               <option value="">Select leave type</option>
-              {leaveTypes.map((type) => (
+              {filteredLeaveTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.name}
                 </option>

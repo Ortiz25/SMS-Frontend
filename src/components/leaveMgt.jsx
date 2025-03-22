@@ -19,7 +19,7 @@ import LeaveApprovalModal from "./modals/leaveApproval";
 import axios from "axios";
 
 const LeaveManagement = () => {
-  // Get token from localStorage
+
   const token = localStorage.getItem("token");
   const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
   const [activeView, setActiveView] = useState("all");
