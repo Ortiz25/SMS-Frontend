@@ -58,7 +58,7 @@ const TimetableManagement = () => {
   const refetchTimetableData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/backend/api/timetable/weekly`, {
+      const response = await fetch(`http://localhost:5010/api/timetable/weekly`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -93,7 +93,7 @@ const TimetableManagement = () => {
       try {
         // Get current academic session
         const sessionResponse = await fetch(
-          "/backend/api/academic/current",
+          "http://localhost:5010/api/academic/current",
           {
             method: "GET",
             headers: {
@@ -110,7 +110,7 @@ const TimetableManagement = () => {
 
         // Get classes for current session
         const classesResponse = await fetch(
-          `/backend/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
+          `http://localhost:5010/api/classes/classes-academic-session?academic_session_id=${sessionData.id}`,
           {
             method: "GET",
             headers: {
@@ -127,7 +127,7 @@ const TimetableManagement = () => {
 
         // Get Rooms
         const roomsResponse = await fetch(
-          `/backend/api/rooms`,
+          `http://localhost:5010/api/rooms`,
           {
             method: "GET",
             headers: {
@@ -144,7 +144,7 @@ const TimetableManagement = () => {
 
         // Get teachers
         const teachersResponse = await fetch(
-          `/backend/api/teachers`,
+          `http://localhost:5010/api/teachers`,
           {
             method: "GET",
             headers: {
@@ -177,7 +177,7 @@ const TimetableManagement = () => {
       
       console.log(newSchedule);
       // API call to add a new schedule entry
-      const response = await fetch("/backend/api/timetable/add", {
+      const response = await fetch("http://localhost:5010/api/timetable/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -522,7 +522,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
@@ -543,7 +543,7 @@ export async function loader({ params }) {
     }
 
     // Fetch timetable data
-    const response = await fetch(`/backend/api/timetable/weekly`, {
+    const response = await fetch(`http://localhost:5010/api/timetable/weekly`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

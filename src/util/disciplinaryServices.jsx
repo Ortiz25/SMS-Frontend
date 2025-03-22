@@ -1,7 +1,7 @@
 // disciplinaryService.js
 import axios from "axios";
 
-const BASE_URL = "/backend/api";
+const BASE_URL = "http://localhost:5010/api";
 
 const disciplinaryService = {
   // Get all disciplinary incidents

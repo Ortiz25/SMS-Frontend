@@ -32,7 +32,7 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
 
 
   useEffect(() => {
-    const url = "/backend/api/helpers/reference-data";
+    const url = "http://localhost:5010/api/helpers/reference-data";
     const fetchData = async () => {
       try {
         const response = await fetch(url, {
