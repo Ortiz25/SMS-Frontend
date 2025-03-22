@@ -28,7 +28,7 @@ const AttendanceTab = ({
     const fetchClasses = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5010/api/helpers/classes`,{
+          `/backend/api/helpers/classes`,{
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
