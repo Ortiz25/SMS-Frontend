@@ -24,8 +24,6 @@ const TeacherProfiles = ({ teachers }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [paginatedTeachers, setPaginatedTeachers] = useState([]);
@@ -36,6 +34,8 @@ const TeacherProfiles = ({ teachers }) => {
     departments: { total: 0 },
     experience: { averageYears: 0 },
   });
+
+  console.log(stats)
 
   useEffect(() => {
     const fetchDashboardStats = async () => {

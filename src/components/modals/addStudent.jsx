@@ -45,7 +45,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [currentAcademicSession, setCurrentAcademicSession] = useState(null);
 
-
   const fetchCurrentAcademicSession = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -57,7 +56,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           },
         }
       );
-        console.log(response.data)
       if (response.data) {
         setCurrentAcademicSession(response.data);
       }
@@ -77,10 +75,8 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           },
         }
       );
-      console.log("Subjects fetched successfully:", response.data);
       if (response.data) {
         setSubjects(response.data.data);
-        console.log(subjects)
       }
     } catch (error) {
       console.error("Error fetching subjects:", error);
@@ -132,7 +128,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           },
         }
       );
-       console.log(response.data)
       if (response.data) {
         setBusRoutes(response.data.routes);
       }
@@ -141,7 +136,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     }
   };
 
-  // Update the input change handler to handle subject selection
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -171,19 +165,32 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     if (name === "class") {
       // Find the selected class from the classes array
       const selectedClass = classes.find((cls) => cls.id.toString() === value);
-      console.log(selectedClass);
+      
       if (selectedClass) {
-        // Try a simpler filter first to debug
-        const classSubjects = subjects?.filter((subject) => true); // This should show all subjects
-        console.log("All subjects (unfiltered):", classSubjects);
-
-        // Then apply your actual filter
-        const filteredSubjects = subjects?.filter(
-          (subject) =>
-            subject.level === selectedClass.level || subject.level === "all"
+        console.log("Selected class:", selectedClass);
+        
+        // Filter subjects based on curriculum type and level
+        const filteredSubjects = subjects.filter((subject) => 
+          // Match both curriculum type and either exact level or "all" level
+          subject.curriculum_type === selectedClass.curriculum_type && 
+          (subject.level === selectedClass.level || 
+           // For 844 curriculum, "Secondary" level applies to all Form levels
+           (selectedClass.curriculum_type === "844" && 
+            selectedClass.level.startsWith("Form") && 
+            subject.level === "Secondary") ||
+           // For CBC curriculum, "Junior Secondary" level applies to all JSS levels
+           (selectedClass.curriculum_type === "CBC" && 
+            selectedClass.level.startsWith("JSS") && 
+            subject.level === "Junior Secondary") ||
+           // For CBC curriculum, "Upper Primary" level applies to Grade 4-6
+           (selectedClass.curriculum_type === "CBC" && 
+            selectedClass.level.startsWith("Grade") && 
+            parseInt(selectedClass.level.split(" ")[1]) <= 6 && 
+            subject.level === "Upper Primary"))
         );
+        
         console.log("Filtered subjects:", filteredSubjects);
-        setAvailableSubjects(classSubjects);
+        setAvailableSubjects(filteredSubjects);
 
         // Store the actual class level instead of id
         setFormData((prev) => ({
@@ -352,23 +359,20 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     }
   };
 
-    // Fetch classes, hostels, bus routes, and subjects on component mount
-    useEffect(() => {
-      if (showAddModal) {
-        fetchClasses();
-        fetchHostels();
-        fetchBusRoutes();
-        fetchSubjects();
-        fetchCurrentAcademicSession();
-     
-      }
-    }, [showAddModal]);
-  
-    console.log(busRoutes)
+  // Fetch classes, hostels, bus routes, and subjects on component mount
+  useEffect(() => {
+    if (showAddModal) {
+      fetchClasses();
+      fetchHostels();
+      fetchBusRoutes();
+      fetchSubjects();
+      fetchCurrentAcademicSession();
+    }
+  }, [showAddModal]);
+
   // Subject Selection UI Component
   const SubjectSelectionSection = () => {
-    console.log(formData.class, availableSubjects);
-    if (!formData.class || availableSubjects.length === 0) {
+    if (!formData.class) {
       return (
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-700">
@@ -378,16 +382,32 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
       );
     }
 
+    if (availableSubjects.length === 0) {
+      return (
+        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-700">
+            No subjects available for this class level and curriculum type. Please contact the administrator.
+          </p>
+        </div>
+      );
+    }
 
+    // Find the selected class to display curriculum type
+    const selectedClass = classes.find(
+      (cls) => cls.level === formData.class && cls.stream === formData.stream
+    );
+    
+    const curriculumType = selectedClass ? selectedClass.curriculum_type : "";
 
     return (
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4">
-          Subject Selection
+          Subject Selection ({curriculumType} Curriculum)
         </h3>
         <div className="bg-white p-4 border rounded-lg">
           <p className="text-sm text-gray-600 mb-3">
-            Select the subjects for this student:
+            Select the subjects for this student. Only subjects compatible with {curriculumType} curriculum 
+            and {formData.class} level are shown.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableSubjects.map((subject) => (
@@ -779,6 +799,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               disabled={loading}
             ></textarea>
           </div>
+
           {/* Guardian Information */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-4">
