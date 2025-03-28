@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import shortid from 'shortid';
+import shortid from "shortid";
 
 const AcademicInfoForm = ({
   formData,
   onChange,
   onValidationChange,
-  readOnly = false
+  readOnly = false,
 }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -16,8 +16,6 @@ const AcademicInfoForm = ({
   const [loading, setLoading] = useState(false);
   const [loadingError, setLoadingError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-
-  console.log(streams)
 
   // Fetch data on component mount
   useEffect(() => {
@@ -67,7 +65,7 @@ const AcademicInfoForm = ({
           Authorization: `Bearer ${token}`,
         },
       });
-           console.log(response.data)
+      console.log(response.data);
       if (response.data.success) {
         // Group classes by level
         const groupedClasses = response.data.data.reduce((acc, cls) => {
@@ -97,21 +95,33 @@ const AcademicInfoForm = ({
     }
   };
 
+  // Update the fetchSubjects function
   const fetchSubjects = async () => {
     try {
       const token = localStorage.getItem("token");
-      
-      const params = formData.class ? 
-        { level: formData.class, curriculum_type: classes.find(c => c.level === formData.class)?.curriculum_type } : 
-        {};
-         console.log(params)
-      const response = await axios.get("/backend/api/classes/subjects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params
-      });
-         console.log(response.data.data)
+
+      // Use curriculum type from formData if available
+      const params = formData.class
+        ? {
+            level: formData.class,
+            curriculum_type:
+              formData.curriculumType ||
+              classes.find((c) => c.level === formData.class)?.curriculum_type,
+          }
+        : {};
+
+      console.log("Subject fetch params:", params);
+
+      const response = await axios.get(
+        "/backend/api/classes/subjects",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params,
+        }
+      );
+
       if (response.data.success) {
         setSubjects(response.data.data);
       }
@@ -207,20 +217,24 @@ const AcademicInfoForm = ({
     if (subjects.length > 0) {
       return subjects;
     }
-    
+
     // Use default subjects when API subjects aren't available
-    return getDefaultSubjects().map(name => ({ id: name, name }));
+    return getDefaultSubjects().map((name) => ({ id: name, name }));
   };
 
   // Format date for display (if in ISO format)
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    return date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
   };
 
   if (loading && !formData.class) {
-    return <div className="flex justify-center p-8">Loading academic information...</div>;
+    return (
+      <div className="flex justify-center p-8">
+        Loading academic information...
+      </div>
+    );
   }
 
   return (
@@ -230,7 +244,7 @@ const AcademicInfoForm = ({
           {loadingError}
         </div>
       )} */}
-      
+
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">
           Academic Information
@@ -269,7 +283,8 @@ const AcademicInfoForm = ({
                 <option value="">Select class</option>
                 {classes.map((cls) => (
                   <option key={cls.id} value={cls.level}>
-                    {cls.level} ({cls.curriculum_type === "844" ? "Secondary" : "Primary"})
+                    {cls.level} (
+                    {cls.curriculum_type === "844" ? "Secondary" : "Primary"})
                   </option>
                 ))}
               </select>
@@ -319,11 +334,11 @@ const AcademicInfoForm = ({
               Student Type
             </label>
             <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
-              {formData.studentType === "day_scholar" 
-                ? "Day Scholar" 
-                : formData.studentType === "boarder" 
-                  ? "Boarder" 
-                  : formData.studentType || "Not specified"}
+              {formData.studentType === "day_scholar"
+                ? "Day Scholar"
+                : formData.studentType === "boarder"
+                ? "Boarder"
+                : formData.studentType || "Not specified"}
             </div>
           </div>
 
@@ -347,7 +362,9 @@ const AcademicInfoForm = ({
               </div>
             )}
             {errors.admissionDate && touched.admissionDate && (
-              <p className="mt-1 text-sm text-red-600">{errors.admissionDate}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.admissionDate}
+              </p>
             )}
           </div>
 
@@ -372,7 +389,9 @@ const AcademicInfoForm = ({
               </div>
             )}
             {errors.previousSchool && touched.previousSchool && (
-              <p className="mt-1 text-sm text-red-600">{errors.previousSchool}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.previousSchool}
+              </p>
             )}
           </div>
         </div>
@@ -383,7 +402,7 @@ const AcademicInfoForm = ({
         <h3 className="text-lg font-medium text-gray-900 mb-4">
           Subjects {isEditing && "(Select at least 6 subjects)"}
         </h3>
-        
+
         {isEditing ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
             {getSubjectsToDisplay().map((subject) => (
@@ -393,21 +412,56 @@ const AcademicInfoForm = ({
               >
                 <input
                   type="checkbox"
-                  checked={formData.subjects?.includes(
-                    subject.id.toString()
-                  ) || formData.subjects?.includes(subject.name)}
+                  checked={formData.subjects?.some(
+                    (sub) =>
+                      (typeof sub === "object" && sub.id === subject.id) ||
+                      sub === subject.id.toString() ||
+                      sub === subject.id ||
+                      sub === subject.name
+                  )}
                   onChange={(e) => {
-                    const value = subject.id.toString();
-                    const updatedSubjects = e.target.checked
-                      ? [...(formData.subjects || []), value]
-                      : (formData.subjects || []).filter(
-                          (s) => s !== value && s !== subject.name
-                        );
+                    // Create a new array of existing subject IDs (normalized to strings)
+                    const currentSubjectIds = (formData.subjects || []).map(
+                      (sub) => {
+                        if (typeof sub === "object" && sub.id)
+                          return sub.id.toString();
+                        return sub.toString();
+                      }
+                    );
+
+                    const subjectId = subject.id.toString();
+
+                    let updatedSubjects;
+                    if (e.target.checked) {
+                      // Add subject ID if not already present
+                      if (!currentSubjectIds.includes(subjectId)) {
+                        updatedSubjects = [...currentSubjectIds, subjectId];
+                      } else {
+                        updatedSubjects = currentSubjectIds; // No change needed
+                      }
+                    } else {
+                      // Remove subject ID
+                      updatedSubjects = currentSubjectIds.filter(
+                        (id) => id !== subjectId
+                      );
+                    }
+
+                    // Log what's happening for debugging
+                    console.log(
+                      `Subject ${subject.name} (${subject.id}) ${
+                        e.target.checked ? "checked" : "unchecked"
+                      }`
+                    );
+                    console.log("Before:", currentSubjectIds);
+                    console.log("After:", updatedSubjects);
+
                     handleChange("subjects", updatedSubjects);
                   }}
                   className="h-4 w-4 text-blue-600 rounded border-gray-300"
                 />
-                <span className="text-sm text-gray-700">{subject.name + " " + subject.code}</span>
+                <span className="text-sm text-gray-700">
+                  {subject.name + (subject.code ? " " + subject.code : "")}
+                </span>
               </label>
             ))}
           </div>
@@ -415,11 +469,11 @@ const AcademicInfoForm = ({
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             {formData.subjects && formData.subjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {formData.subjects.map(subject => (
+                {formData.subjects.map((subject) => (
                   <div key={shortid.generate()} className="flex items-center">
                     <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-sm text-gray-800">
-                      {typeof subject === 'object' ? subject.name : subject}
+                      {typeof subject === "object" ? subject.name : subject}
                     </span>
                   </div>
                 ))}
@@ -429,7 +483,7 @@ const AcademicInfoForm = ({
             )}
           </div>
         )}
-        
+
         {errors.subjects && touched.subjects && (
           <p className="mt-2 text-sm text-red-600">{errors.subjects}</p>
         )}

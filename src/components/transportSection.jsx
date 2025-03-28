@@ -76,7 +76,7 @@ const TransportSection = () => {
     const fetchAllocations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/allocations', {
+        const response = await fetch('/backend/api/hostel-transport/transport-allocations', {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -84,7 +84,7 @@ const TransportSection = () => {
           }
         });
         const data = await response.json();
-        
+        console.log(data)
         if (data.success) {
           setAllocations(data.allocations);
           setFilteredData(data.allocations);

@@ -44,7 +44,8 @@ const EmailSection = () => {
         getClasses(),
         getDepartments()
       ]);
-      setClasses(classesData);
+      console.log(classesData, departmentsData)
+      setClasses(classesData.data);
       setDepartments(departmentsData);
     } catch (error) {
       console.error('Error fetching recipient options:', error);
@@ -55,7 +56,7 @@ const EmailSection = () => {
     fetchEmails();
     fetchRecipientOptions();
   }, []);
-
+ console.log(emails)
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,7 +86,7 @@ const EmailSection = () => {
 
   // Remove email input field
   const removeEmailField = (index) => {
-    if (formData.recipientEmails.length <= 1) return; // Keep at least one field
+    if (formData.recipientEmails.length <= 1) return; 
     
     const updatedEmails = formData.recipientEmails.filter((_, i) => i !== index);
     setFormData((prev) => ({

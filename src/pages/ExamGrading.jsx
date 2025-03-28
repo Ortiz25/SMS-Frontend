@@ -164,40 +164,49 @@ const ExamGrading = () => {
       
       // If we have a selected class, get specific average
       if (selectedClass !== "all") {
-        const analyticsResponse = await axios.get(`/backend/api/analytics/class-performance/${selectedClass}?academic_session_id=${currentSession.id}`,{
-          method: "GET",
+        const analyticsResponse = await axios.get(`/backend/api/analytics/class-performance/${selectedClass}?academic_session_id=${currentSession.id}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           }
         });
-        
+       
         if (analyticsResponse.data && analyticsResponse.data.length > 0) {
           // Calculate average across all exams
-          const averages = analyticsResponse.data.map(item => item.class_average).filter(avg => !isNaN(avg));
-          
+          const averages = analyticsResponse.data.map(item => item.class_average).filter(avg => !isNaN(parseFloat(avg)));
+         
           if (averages.length > 0) {
-            classAverage = averages.reduce((sum, avg) => sum + avg, 0) / averages.length;
+            classAverage = averages.reduce((sum, avg) => sum + parseFloat(avg), 0) / averages.length;
           }
         }
       } else {
         // Get overall school average
-        const schoolAnalyticsResponse = await axios.get(`/backend/api/analytics/school-performance?academic_session_id=${currentSession.id}`,{
-          method: "GET",
+        const schoolAnalyticsResponse = await axios.get(`/backend/api/analytics/school-performance?academic_session_id=${currentSession.id}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           }
         });
-        
+       
         if (schoolAnalyticsResponse.data && schoolAnalyticsResponse.data.classPerformance) {
-          const averages = schoolAnalyticsResponse.data.classPerformance.map(c => c.average_score).filter(avg => !isNaN(avg));
+          // Use weighted average based on student count
+          let totalWeightedScore = 0;
+          let totalStudents = 0;
           
-          if (averages.length > 0) {
-            classAverage = averages.reduce((sum, avg) => sum + avg, 0) / averages.length;
+          schoolAnalyticsResponse.data.classPerformance.forEach(c => {
+            const studentCount = parseInt(c.student_count);
+            const avgScore = parseFloat(c.average_score);
+            
+            if (!isNaN(studentCount) && !isNaN(avgScore)) {
+              totalWeightedScore += studentCount * avgScore;
+              totalStudents += studentCount;
+            }
+          });
+          
+          if (totalStudents > 0) {
+            classAverage = totalWeightedScore / totalStudents;
           }
         }
-
       }
       
       setStats({
@@ -206,6 +215,7 @@ const ExamGrading = () => {
         pendingExams,
         classAverage: Math.round(classAverage * 10) / 10 // Round to 1 decimal place
       });
+
       
       setLoading(false);
     } catch (err) {

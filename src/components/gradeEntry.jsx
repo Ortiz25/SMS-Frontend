@@ -40,13 +40,16 @@ const GradeEntry = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get("/backend/api/grading/sessions", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      
+        const response = await axios.get(
+          "/backend/api/grading/sessions",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         setSessions(response.data);
 
         // Set current session as default if available
@@ -58,7 +61,7 @@ const GradeEntry = () => {
         } else if (response.data.length > 0) {
           setSelectedSession(response.data[0].id);
         }
-         
+
         setLoading(false);
       } catch (err) {
         setError("Failed to load academic sessions");
@@ -78,7 +81,8 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/examgrading?academic_session_id=${selectedSession}`,{
+          `/backend/api/examgrading?academic_session_id=${selectedSession}`,
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -105,14 +109,15 @@ const GradeEntry = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/classes?academic_session_id=${selectedSession}`,{
+          `/backend/api/grading/classes?academic_session_id=${selectedSession}`,
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        console.log(response.data)
+        console.log(response.data);
         setClasses(response.data);
         setLoading(false);
       } catch (err) {
@@ -126,34 +131,34 @@ const GradeEntry = () => {
   }, [selectedSession]);
 
   // Load subjects when both class AND exam are selected
-useEffect(() => {
-  if (!selectedClass || !selectedExam) return;
+  useEffect(() => {
+    if (!selectedClass || !selectedExam) return;
 
-  const fetchSubjects = async () => {
-    try {
-      setLoading(true);
-      console.log(selectedExam, selectedClass)
-      const response = await axios.get(
-        `/backend/api/grading/exam-subjects/${selectedClass}/${selectedExam}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setSubjects(response.data);
-      console.log(response.data)
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load subjects with scheduled exams");
-      setLoading(false);
-      console.error(err);
-    }
-  };
+    const fetchSubjects = async () => {
+      try {
+        setLoading(true);
+        console.log(selectedExam, selectedClass);
+        const response = await axios.get(
+          `/backend/api/grading/exam-subjects/${selectedClass}/${selectedExam}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setSubjects(response.data);
+        console.log(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load subjects with scheduled exams");
+        setLoading(false);
+        console.error(err);
+      }
+    };
 
-  fetchSubjects();
-}, [selectedClass, selectedExam]); // Now depends on both class and exam
+    fetchSubjects();
+  }, [selectedClass, selectedExam]); // Now depends on both class and exam
 
   // Load students when class changes
   useEffect(() => {
@@ -163,14 +168,15 @@ useEffect(() => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `/backend/api/grading/students/${selectedClass}`,{
+          `/backend/api/grading/students/${selectedClass}`,
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        console.log(response.data)
+        console.log(response.data);
         setStudents(response.data);
         setLoading(false);
       } catch (err) {
@@ -185,15 +191,19 @@ useEffect(() => {
 
   // Find exam schedule and load existing grades
   useEffect(() => {
-    console.log(selectedExam, selectedClass, selectedSubject)
+    console.log(selectedExam, selectedClass, selectedSubject);
     if (!selectedExam || !selectedClass || !selectedSubject) return;
 
     const findExamSchedule = async () => {
       try {
+        // Clear any previous errors
+        setError(null);
         setLoading(true);
+
         // Get exam schedules for the selected exam
         const schedulesResponse = await axios.get(
-          `/backend/api/examgrading/${selectedExam}/schedules`,{
+          `/backend/api/examgrading/${selectedExam}/schedules`,
+          {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -213,7 +223,8 @@ useEffect(() => {
 
           // Load existing grades for this schedule
           const gradesResponse = await axios.get(
-            `/backend/api/examgrading/schedules/${schedule.id}/results`,{
+            `/backend/api/examgrading/schedules/${schedule.id}/results`,
+            {
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
@@ -227,23 +238,41 @@ useEffect(() => {
             gradeMap[grade.student_id] = grade;
           });
 
-          // Initialize grades for all students
-          const initialGrades = students.map((student) => {
-            const existingGrade = gradeMap[student.id];
-            return {
-              student_id: student.id,
-              name: `${student.first_name} ${student.last_name}`,
-              admission_number: student.admission_number,
-              marks_obtained: existingGrade
-                ? existingGrade.marks_obtained
-                : null,
-              is_absent: existingGrade ? existingGrade.is_absent : false,
-              grade: existingGrade ? existingGrade.grade : null,
-              points: existingGrade ? existingGrade.points : null,
-            };
-          });
+          // Get the subject name for filtering
+          const subjectName = subjects.find(
+            (sub) => sub.id === parseInt(selectedSubject)
+          )?.name;
 
-          setGrades(initialGrades);
+          // Filter students who are taking this subject
+          const studentsForSubject = students.filter(
+            (student) =>
+              student.subjects && student.subjects.includes(subjectName)
+          );
+
+          if (studentsForSubject.length === 0) {
+            setError(
+              `No students in this class are taking ${subjectName}. Please check subject enrollments.`
+            );
+            setGrades([]);
+          } else {
+            // Initialize grades only for students taking this subject
+            const initialGrades = studentsForSubject.map((student) => {
+              const existingGrade = gradeMap[student.id];
+              return {
+                student_id: student.id,
+                name: `${student.first_name} ${student.last_name}`,
+                admission_number: student.admission_number,
+                marks_obtained: existingGrade
+                  ? existingGrade.marks_obtained
+                  : null,
+                is_absent: existingGrade ? existingGrade.is_absent : false,
+                grade: existingGrade ? existingGrade.grade : null,
+                points: existingGrade ? existingGrade.points : null,
+              };
+            });
+
+            setGrades(initialGrades);
+          }
         } else {
           setError("No exam schedule found for the selected combination");
           setExamSchedule(null);
@@ -308,13 +337,13 @@ useEffect(() => {
           },
         }
       );
-      
 
       setSuccess("Grades saved successfully");
 
       // Refresh grades to get updated calculated fields
       const refreshResponse = await axios.get(
-        `/backend/api/examgrading/schedules/${examSchedule.id}/results`,{
+        `/backend/api/examgrading/schedules/${examSchedule.id}/results`,
+        {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -395,7 +424,10 @@ useEffect(() => {
       grade.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       grade.admission_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  // Reset error when any selection changes
+  useEffect(() => {
+    setError(null);
+  }, [selectedExam, selectedClass, selectedSubject, selectedSession]);
   return (
     <div className="space-y-6">
       {/* Alert messages */}
@@ -458,7 +490,7 @@ useEffect(() => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Examination
@@ -489,14 +521,16 @@ useEffect(() => {
               disabled={loading || !selectedClass}
             >
               <option value="">Select Subject</option>
-              {subjects.map((subject) => (
-                <option key={subject.id} value={subject.id}>
+              {subjects.map((subject, index) => (
+                <option
+                  key={`subject-${subject.id}-${index}`}
+                  value={subject.id}
+                >
                   {subject.name}
                 </option>
               ))}
             </select>
           </div>
-
         </div>
       </div>
 

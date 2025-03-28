@@ -1,27 +1,126 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { useEffect } from "react";
 
 const AddModal = ({ addType, onClose, onAdd, token }) => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [students, setStudents] = useState([]);
+  const [dormitoryRooms, setDormitoryRooms] = useState([]);
+  const [academicSessions, setAcademicSessions] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [stops, setStops] = useState([]);
+  
+  useEffect(() => {
+    // Fetch necessary data based on the form type
+    const fetchData = async () => {
+      try {
+        // Common data that multiple forms might need
+        if (["hostel-allocations", "transport-allocations"].includes(addType)) {
+          // Fetch students (only boarders for hostel and day scholars for transport)
+          const studentType =
+            addType === "hostel-allocations" ? "/hostel-transport/boarders/" : "/hostel-transport//day-scholars";
+          const studentsResponse = await fetch(
+            `/backend/api${studentType}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const studentsData = await studentsResponse.json();
+          console.log(studentsData)
+          setStudents(studentsData?.dayScholars || studentsData?.boarders || []);
+
+          // Fetch academic sessions
+          const sessionsResponse = await fetch(
+            "/backend/api/sessions/academic-sessions",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const sessionsData = await sessionsResponse.json();
+          console.log(sessionsData)
+          setAcademicSessions(sessionsData.data || []);
+        }
+
+        // Form-specific data
+        if (addType === "hostel-allocations") {
+          // Fetch dormitory rooms with available beds
+          const roomsResponse = await fetch(
+            "/backend/api/hostel-transport/rooms",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const roomsData = await roomsResponse.json();
+          setDormitoryRooms(roomsData.rooms || []);
+        } else if (addType === "stops") {
+          // Fetch routes for stops
+          const routesResponse = await fetch(
+            "/backend/api/hostel-transport/stops",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const routesData = await routesResponse.json();
+          setRoutes(routesData.routes || []);
+        } else if (addType === "transport-allocations") {
+          // Fetch active routes
+          const routesResponse = await fetch(
+            "/backend/api/hostel-transport/routes",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const routesData = await routesResponse.json();
+          setRoutes(routesData.routes || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Failed to load form data");
+      }
+    };
+
+    fetchData();
+  }, [addType, token]);
+
+  useEffect(() => {
+    const fetchStops = async () => {
+      if (formData.route_id && addType === "transport-allocations") {
+        try {
+          const stopsResponse = await fetch(
+            `/backend/api/transport/stops?route_id=${formData.route_id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const stopsData = await stopsResponse.json();
+          setStops(stopsData.stops || []);
+        } catch (error) {
+          console.error("Error fetching stops:", error);
+        }
+      }
+    };
+
+    fetchStops();
+  }, [formData.route_id, addType, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     try {
       setLoading(true);
       let endpoint;
-      
+
       // Hostel endpoints
       if (addType === "dormitories") {
         endpoint = "/backend/api/hostel-transport/dormitories";
@@ -44,22 +143,22 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         // Set default values
         if (!formData.status) formData.status = "active";
       }
-      
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
+
       const responseData = await response.json();
-      
+
       if (responseData.success) {
         // Determine which property contains the new item based on endpoint
         let newItem;
-        
+
         // Extract the new item
         if (addType === "dormitories") {
           newItem = responseData.dormitory;
@@ -72,7 +171,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "transport-allocations") {
           newItem = responseData.allocation;
         }
-        
+
         // Update parent component's state
         onAdd(newItem);
         onClose();
@@ -93,7 +192,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Name
+            </label>
             <input
               type="text"
               name="name"
@@ -105,7 +209,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
+            <label
+              htmlFor="gender"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Gender
+            </label>
             <select
               name="gender"
               id="gender"
@@ -121,7 +230,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             </select>
           </div>
           <div>
-            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">Capacity</label>
+            <label
+              htmlFor="capacity"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Capacity
+            </label>
             <input
               type="number"
               name="capacity"
@@ -134,7 +248,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="fee_per_term" className="block text-sm font-medium text-gray-700">Fee Per Term (KES)</label>
+            <label
+              htmlFor="fee_per_term"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Fee Per Term (KES)
+            </label>
             <input
               type="number"
               name="fee_per_term"
@@ -147,7 +266,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="caretaker_name" className="block text-sm font-medium text-gray-700">Caretaker Name</label>
+            <label
+              htmlFor="caretaker_name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Caretaker Name
+            </label>
             <input
               type="text"
               name="caretaker_name"
@@ -158,7 +282,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="caretaker_contact" className="block text-sm font-medium text-gray-700">Caretaker Contact</label>
+            <label
+              htmlFor="caretaker_contact"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Caretaker Contact
+            </label>
             <input
               type="text"
               name="caretaker_contact"
@@ -178,7 +307,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">Student</label>
+            <label
+              htmlFor="student_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Student
+            </label>
             <select
               name="student_id"
               id="student_id"
@@ -188,13 +322,21 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a student</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">Student 1</option>
-              <option value="2">Student 2</option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.admission_number} - {student.first_name}{" "}
+                  {student.last_name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="room_id" className="block text-sm font-medium text-gray-700">Room</label>
+            <label
+              htmlFor="room_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Room
+            </label>
             <select
               name="room_id"
               id="room_id"
@@ -204,13 +346,21 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a room</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">Room 101</option>
-              <option value="2">Room 102</option>
+              {dormitoryRooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  {room.dormitory_name} - Room {room.room_number} (
+                  {room.capacity - room.occupied} beds available)
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="bed_number" className="block text-sm font-medium text-gray-700">Bed Number</label>
+            <label
+              htmlFor="bed_number"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Bed Number
+            </label>
             <input
               type="text"
               name="bed_number"
@@ -222,7 +372,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="academic_session_id" className="block text-sm font-medium text-gray-700">Academic Session</label>
+            <label
+              htmlFor="academic_session_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Academic Session
+            </label>
             <select
               name="academic_session_id"
               id="academic_session_id"
@@ -232,9 +387,11 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a session</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">2023 Term 1</option>
-              <option value="2">2023 Term 2</option>
+              {academicSessions.map((session) => (
+                <option key={session.id} value={session.id}>
+                  {session.year} Term {session.term}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -248,7 +405,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="route_name" className="block text-sm font-medium text-gray-700">Route Name</label>
+            <label
+              htmlFor="route_name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Route Name
+            </label>
             <input
               type="text"
               name="route_name"
@@ -260,7 +422,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="departure_time" className="block text-sm font-medium text-gray-700">Departure Time</label>
+            <label
+              htmlFor="departure_time"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Departure Time
+            </label>
             <input
               type="time"
               name="departure_time"
@@ -272,7 +439,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="return_time" className="block text-sm font-medium text-gray-700">Return Time</label>
+            <label
+              htmlFor="return_time"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Return Time
+            </label>
             <input
               type="time"
               name="return_time"
@@ -284,7 +456,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="fee_per_term" className="block text-sm font-medium text-gray-700">Fee Per Term (KES)</label>
+            <label
+              htmlFor="fee_per_term"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Fee Per Term (KES)
+            </label>
             <input
               type="number"
               name="fee_per_term"
@@ -306,7 +483,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="route_id" className="block text-sm font-medium text-gray-700">Route</label>
+            <label
+              htmlFor="route_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Route
+            </label>
             <select
               name="route_id"
               id="route_id"
@@ -316,13 +498,20 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a route</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">Route 1</option>
-              <option value="2">Route 2</option>
+              {routes.map((route) => (
+                <option key={route.id} value={route.id}>
+                  {route.route_name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="stop_name" className="block text-sm font-medium text-gray-700">Stop Name</label>
+            <label
+              htmlFor="stop_name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Stop Name
+            </label>
             <input
               type="text"
               name="stop_name"
@@ -334,7 +523,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="stop_order" className="block text-sm font-medium text-gray-700">Stop Order</label>
+            <label
+              htmlFor="stop_order"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Stop Order
+            </label>
             <input
               type="number"
               name="stop_order"
@@ -347,7 +541,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="morning_pickup_time" className="block text-sm font-medium text-gray-700">Morning Pickup Time</label>
+            <label
+              htmlFor="morning_pickup_time"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Morning Pickup Time
+            </label>
             <input
               type="time"
               name="morning_pickup_time"
@@ -358,7 +557,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
             />
           </div>
           <div>
-            <label htmlFor="evening_dropoff_time" className="block text-sm font-medium text-gray-700">Evening Dropoff Time</label>
+            <label
+              htmlFor="evening_dropoff_time"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Evening Dropoff Time
+            </label>
             <input
               type="time"
               name="evening_dropoff_time"
@@ -378,7 +582,12 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">Student</label>
+            <label
+              htmlFor="student_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Student
+            </label>
             <select
               name="student_id"
               id="student_id"
@@ -388,13 +597,21 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a student</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">Student 1</option>
-              <option value="2">Student 2</option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.admission_number} - {student.first_name}{" "}
+                  {student.last_name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="route_id" className="block text-sm font-medium text-gray-700">Route</label>
+            <label
+              htmlFor="route_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Route
+            </label>
             <select
               name="route_id"
               id="route_id"
@@ -404,13 +621,20 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a route</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">Route 1</option>
-              <option value="2">Route 2</option>
+              {routes.map((route) => (
+                <option key={route.id} value={route.id}>
+                  {route.route_name}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="pickup_stop_id" className="block text-sm font-medium text-gray-700">Pickup Stop</label>
+            <label
+              htmlFor="pickup_stop_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Pickup Stop
+            </label>
             <select
               name="pickup_stop_id"
               id="pickup_stop_id"
@@ -420,13 +644,23 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a stop</option>
-              {/* This would ideally be populated based on the selected route */}
-              <option value="1">Stop 1</option>
-              <option value="2">Stop 2</option>
+              {stops.map((stop) => (
+                <option key={stop.id} value={stop.id}>
+                  {stop.stop_name} -{" "}
+                  {stop.morning_pickup_time
+                    ? `Pickup: ${stop.morning_pickup_time}`
+                    : "No time set"}
+                </option>
+              ))}
             </select>
           </div>
           <div>
-            <label htmlFor="academic_session_id" className="block text-sm font-medium text-gray-700">Academic Session</label>
+            <label
+              htmlFor="academic_session_id"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Academic Session
+            </label>
             <select
               name="academic_session_id"
               id="academic_session_id"
@@ -436,9 +670,11 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               required
             >
               <option value="">Select a session</option>
-              {/* This would ideally be populated from an API call */}
-              <option value="1">2023 Term 1</option>
-              <option value="2">2023 Term 2</option>
+              {academicSessions.map((session) => (
+                <option key={session.id} value={session.id}>
+                  {session.year} Term {session.term}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -448,17 +684,17 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
   const renderForm = () => {
     // Hostel forms
-    if (addType === 'dormitories') {
+    if (addType === "dormitories") {
       return renderDormitoryForm();
-    } else if (addType === 'hostel-allocations') {
+    } else if (addType === "hostel-allocations") {
       return renderHostelAllocationForm();
-    } 
+    }
     // Transport forms
-    else if (addType === 'routes') {
+    else if (addType === "routes") {
       return renderRouteForm();
-    } else if (addType === 'stops') {
+    } else if (addType === "stops") {
       return renderStopForm();
-    } else if (addType === 'transport-allocations') {
+    } else if (addType === "transport-allocations") {
       return renderTransportAllocationForm();
     } else {
       return <p>No form available</p>;
@@ -467,36 +703,50 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
   // Get modal title based on add type
   const getModalTitle = () => {
+    if (loading && ['hostel-allocations', 'transport-allocations', 'stops'].includes(addType)) {
+      return <div className="py-4 text-center">Loading form data...</div>;
+    }
     // Hostel titles
-    if (addType === 'dormitories') {
+    if (addType === "dormitories") {
       return "Add New Dormitory";
-    } else if (addType === 'hostel-allocations') {
+    } else if (addType === "hostel-allocations") {
       return "Add New Hostel Allocation";
     }
     // Transport titles
-    else if (addType === 'routes') {
+    else if (addType === "routes") {
       return "Add New Transport Route";
-    } else if (addType === 'stops') {
+    } else if (addType === "stops") {
       return "Add New Route Stop";
-    } else if (addType === 'transport-allocations') {
+    } else if (addType === "transport-allocations") {
       return "Add New Transport Allocation";
     } else {
-      return 'Add New';
+      return "Add New";
     }
   };
 
   return (
     <div className="fixed inset-0  overflow-y-auto z-50">
-        <div className="fixed inset-0 bg-black opacity-75 transition-opacity" aria-hidden="true" onClick={onClose}></div>
+      <div
+        className="fixed inset-0 bg-black opacity-75 transition-opacity"
+        aria-hidden="true"
+        onClick={onClose}
+      ></div>
       <div className="relative flex min-h-screen items-end z- justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-       
-        <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+        <span
+          className="hidden sm:inline-block sm:h-screen sm:align-middle"
+          aria-hidden="true"
+        >
+          &#8203;
+        </span>
         <div className=" inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  <h3
+                    className="text-lg leading-6 font-medium text-gray-900"
+                    id="modal-title"
+                  >
                     {getModalTitle()}
                   </h3>
                   <button
@@ -526,7 +776,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add'}
+              {loading ? "Adding..." : "Add"}
             </button>
             <button
               type="button"

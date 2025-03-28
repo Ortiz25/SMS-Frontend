@@ -47,7 +47,7 @@ const FinanceDashboard = () => {
     bankBranch: "", // For bank payments
     notes: "",
   });
-  
+
   // Payment stats state
   const [paymentStats, setPaymentStats] = useState({
     totalAmount: 0,
@@ -60,16 +60,15 @@ const FinanceDashboard = () => {
     cashCount: 0,
     chequeCount: 0,
   });
-  
+
   // Enhanced transaction table states
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentTypeFilter, setPaymentTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [paymentsPerPage] = useState(10);
   const [allPayments, setAllPayments] = useState([]);
-  
-  const { updateActiveModule, activeModule } = useStore();
 
+  const { updateActiveModule, activeModule } = useStore();
 
   useEffect(() => {
     updateActiveModule("finance");
@@ -79,11 +78,14 @@ const FinanceDashboard = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get("/backend/api/finance/academic-sessions", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          "/backend/api/finance/academic-sessions",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setAcademicSessions(response.data.data);
 
         // Set default session to current session
@@ -103,27 +105,34 @@ const FinanceDashboard = () => {
 
     fetchAcademicSessions();
   }, [token]);
-  
+
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, paymentTypeFilter]);
 
-
   // Function to fetch all payments (both M-Pesa and Bank)
   const fetchAllPayments = async () => {
     try {
-      const response = await axios.get("/backend/api/finance/payments", {
-        params: {
-          limit: 100, // Fetch more payments for client-side pagination
-          academicSession: selectedTerm !== "all" 
-            ? academicSessions.find(s => s.term.toString() === selectedTerm && s.year === selectedYear)?.id
-            : undefined
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "/backend/api/finance/payments",
+        {
+          params: {
+            limit: 100, // Fetch more payments for client-side pagination
+            academicSession:
+              selectedTerm !== "all"
+                ? academicSessions.find(
+                    (s) =>
+                      s.term.toString() === selectedTerm &&
+                      s.year === selectedYear
+                  )?.id
+                : undefined,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         setAllPayments(response.data.data || []);
@@ -153,13 +162,16 @@ const FinanceDashboard = () => {
         }
 
         // Fetch payment stats for dashboard cards
-        const statsResponse = await axios.get("/backend/api/finance/stats", {
-          params: { academicSessionId },
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const statsResponse = await axios.get(
+          "/backend/api/finance/stats",
+          {
+            params: { academicSessionId },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
-        
+        );
+
         // Store full stats response for chart data
         setStatsResponse(statsResponse);
 
@@ -193,7 +205,7 @@ const FinanceDashboard = () => {
             monthly: statsData.monthly || [],
           });
         }
-        
+
         // Now fetch all payments for the enhanced table
         await fetchAllPayments();
 
@@ -212,26 +224,31 @@ const FinanceDashboard = () => {
 
   // Filtering logic - combines search and payment type filter
   const filteredPayments = useMemo(() => {
-    return allPayments.filter(payment => {
+    return allPayments.filter((payment) => {
       // Filter by payment type
-      if (paymentTypeFilter !== "all" && payment.payment_method !== paymentTypeFilter) {
+      if (
+        paymentTypeFilter !== "all" &&
+        payment.payment_method !== paymentTypeFilter
+      ) {
         return false;
       }
-      
+
       // Search term filtering - check across multiple fields
       if (searchTerm.trim() !== "") {
         const lowercasedSearch = searchTerm.toLowerCase();
         return (
-          (payment.receipt_number?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.transaction_reference?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.mpesa_code?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.first_name?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.last_name?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.admission_number?.toLowerCase().includes(lowercasedSearch)) ||
-          (payment.amount?.toString().includes(lowercasedSearch))
+          payment.receipt_number?.toLowerCase().includes(lowercasedSearch) ||
+          payment.transaction_reference
+            ?.toLowerCase()
+            .includes(lowercasedSearch) ||
+          payment.mpesa_code?.toLowerCase().includes(lowercasedSearch) ||
+          payment.first_name?.toLowerCase().includes(lowercasedSearch) ||
+          payment.last_name?.toLowerCase().includes(lowercasedSearch) ||
+          payment.admission_number?.toLowerCase().includes(lowercasedSearch) ||
+          payment.amount?.toString().includes(lowercasedSearch)
         );
       }
-      
+
       return true;
     });
   }, [allPayments, searchTerm, paymentTypeFilter]);
@@ -239,11 +256,18 @@ const FinanceDashboard = () => {
   // Pagination calculations
   const indexOfLastPayment = currentPage * paymentsPerPage;
   const indexOfFirstPayment = indexOfLastPayment - paymentsPerPage;
-  const currentPayments = filteredPayments.slice(indexOfFirstPayment, indexOfLastPayment);
+  const currentPayments = filteredPayments.slice(
+    indexOfFirstPayment,
+    indexOfLastPayment
+  );
 
   // Calculate page numbers for pagination
   const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(filteredPayments.length / paymentsPerPage); i++) {
+  for (
+    let i = 1;
+    i <= Math.ceil(filteredPayments.length / paymentsPerPage);
+    i++
+  ) {
     // Show only 5 page numbers at a time
     if (
       i === 1 ||
@@ -252,13 +276,16 @@ const FinanceDashboard = () => {
     ) {
       pageNumbers.push(i);
     } else if (i === currentPage - 2 || i === currentPage + 2) {
-      pageNumbers.push('...');
+      pageNumbers.push("...");
     }
   }
 
   // Function to change page
   const paginate = (pageNumber) => {
-    if (pageNumber < 1 || pageNumber > Math.ceil(filteredPayments.length / paymentsPerPage)) {
+    if (
+      pageNumber < 1 ||
+      pageNumber > Math.ceil(filteredPayments.length / paymentsPerPage)
+    ) {
       return;
     }
     setCurrentPage(pageNumber);
@@ -309,11 +336,15 @@ const FinanceDashboard = () => {
       };
 
       // Submit to backend
-      const response = await axios.post("/backend/api/finance/payments", paymentData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        "/backend/api/finance/payments",
+        paymentData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         alert(
@@ -339,19 +370,22 @@ const FinanceDashboard = () => {
 
         // Refresh stats and payments data
         await fetchAllPayments();
-        
+
         // Refresh stats data
-        const statsResponse = await axios.get("/backend/api/finance/stats", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        
+        const statsResponse = await axios.get(
+          "/backend/api/finance/stats",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         setStatsResponse(statsResponse);
-        
+
         if (statsResponse.data.success) {
           const statsData = statsResponse.data.data;
-          
+
           // Update payment stats with new data
           // Same as before...
         }
@@ -369,11 +403,14 @@ const FinanceDashboard = () => {
   // View payment details
   const viewPaymentDetails = async (paymentId) => {
     try {
-      const response = await axios.get(`/backend/api/finance/payments/${paymentId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `/backend/api/finance/payments/${paymentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.data.success) {
         setSelectedPayment(response.data.data);
         setShowModal(true);
@@ -390,26 +427,39 @@ const FinanceDashboard = () => {
     if (paymentStats.monthly && Array.isArray(paymentStats.monthly)) {
       return paymentStats.monthly;
     }
-    
+
     // If statsResponse exists, try to get monthly data from it
     if (statsResponse?.data?.success && statsResponse.data.data.monthly) {
       return statsResponse.data.data.monthly;
     }
-    
+
     // Otherwise create a fallback dataset
     const monthlyData = {};
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
     // Initialize all months
-    months.forEach(month => {
+    months.forEach((month) => {
       monthlyData[month] = {
         month,
         mpesa: 0,
         bank: 0,
-        total: 0
+        total: 0,
       };
     });
-    
+
     return Object.values(monthlyData);
   };
 
@@ -446,7 +496,9 @@ const FinanceDashboard = () => {
           <p className="font-medium">{`${label}`}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }}>
-              {`${entry.name}: KES ${entry.value ? entry.value.toLocaleString() : '0'}`}
+              {`${entry.name}: KES ${
+                entry.value ? entry.value.toLocaleString() : "0"
+              }`}
             </p>
           ))}
         </div>
@@ -643,23 +695,24 @@ const FinanceDashboard = () => {
         </div>
 
         {/* Transactions and form section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Transactions Table Section with expanded functionality */}
           <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
-              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 mb-3 w-full">
+              <h2 className="text-base sm:text-lg font-semibold">
                 Recent Transactions
               </h2>
 
               {/* Search and filter controls */}
-              <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-                <div className="relative">
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2 sm:gap-4">
+                {/* Search Input */}
+                <div className="relative w-full sm:w-64 max-w-sm">
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search transactions..."
-                    className="w-full sm:w-64 p-2 pl-8 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full min-w-[200px] max-w-md p-2 pl-8 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -677,10 +730,11 @@ const FinanceDashboard = () => {
                   </svg>
                 </div>
 
+                {/* Payment Filter Dropdown */}
                 <select
                   value={paymentTypeFilter}
                   onChange={(e) => setPaymentTypeFilter(e.target.value)}
-                  className="w-full sm:w-auto p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto min-w-[150px] max-w-sm p-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Payment Types</option>
                   <option value="mpesa">M-Pesa Only</option>
@@ -1334,7 +1388,7 @@ export async function loader({ params }) {
   try {
     // Get token from localStorage
     const token = localStorage.getItem("token");
-    console.log()
+    console.log();
     // If no token exists, redirect to login
     if (!token) {
       return redirect("/");

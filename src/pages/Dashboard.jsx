@@ -76,6 +76,7 @@ const Dashboard = () => {
       
       if (data.dashboard.teacher_stats) {
         updateTeacherData(data.dashboard.teacher_stats);
+        console.log(data.dashboard.teacher_stats)
       }
       
       if (data.dashboard.recent_activities) {

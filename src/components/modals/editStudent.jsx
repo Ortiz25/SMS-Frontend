@@ -7,7 +7,7 @@ import {
   Phone,
   Loader,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 import PersonalInfoForm from "../forms/personalInfoForm";
 import AcademicInfoForm from "../forms/academicInfoForm";
@@ -54,7 +54,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
         emergencyContactPhone: "emergency_contact_phone",
         medical_conditions: "medical_conditions",
         // Add both variations to be safe
-        medicalConditions: "medical_conditions", 
+        medicalConditions: "medical_conditions",
         conditions: "medical_conditions",
       },
       guardian: {
@@ -155,7 +155,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
   useEffect(() => {
     if (student) {
       console.log("Initializing form with student data:", student);
-      
+
       // Store original data for comparison
       const originalData = {
         personal: {
@@ -197,9 +197,9 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
           medical_conditions: student.medical_conditions || "",
         },
       };
-      
+
       setFormData(originalData);
-      
+
       // Reset changed fields
       setChangedFields({
         personal: {},
@@ -212,7 +212,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
 
   const handleInputChange = (section, field, value) => {
     // Update the form data as before
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -222,80 +222,113 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
 
     // Compare with original data to see if the value has actually changed
     let hasChanged = false;
-    
-    if (section === 'personal') {
+
+    if (section === "personal") {
       const originalFieldMapping = {
-        firstName: 'first_name',
-        lastName: 'last_name',
-        otherNames: 'other_names',
-        admissionNo: 'admission_number',
-        dateOfBirth: 'date_of_birth',
-        gender: 'gender',
-        address: 'address',
-        nationality: 'nationality',
-        nemisUpi: 'nemis_upi',
+        firstName: "first_name",
+        lastName: "last_name",
+        otherNames: "other_names",
+        admissionNo: "admission_number",
+        dateOfBirth: "date_of_birth",
+        gender: "gender",
+        address: "address",
+        nationality: "nationality",
+        nemisUpi: "nemis_upi",
       };
-      
+
       const originalField = originalFieldMapping[field] || field;
       hasChanged = student[originalField] !== value;
-    } 
-    else if (section === 'academic') {
+    } else if (section === "academic") {
       const originalFieldMapping = {
-        class: 'current_class',
-        stream: 'stream',
-        previousSchool: 'previous_school',
-        admissionDate: 'admission_date',
-        curriculumType: 'curriculum_type',
-        studentType: 'student_type',
+        class: "current_class",
+        stream: "stream",
+        previousSchool: "previous_school",
+        admissionDate: "admission_date",
+        curriculumType: "curriculum_type",
+        studentType: "student_type",
       };
-      
+
       const originalField = originalFieldMapping[field] || field;
       hasChanged = student[originalField] !== value;
-    }
-    else if (section === 'medical') {
+    } else if (section === "medical") {
       const originalFieldMapping = {
-        bloodGroup: 'blood_group',
-        emergencyContactName: 'emergency_contact_name',
-        emergencyContactPhone: 'emergency_contact_phone',
-        medical_conditions: 'medical_conditions',
+        bloodGroup: "blood_group",
+        emergencyContactName: "emergency_contact_name",
+        emergencyContactPhone: "emergency_contact_phone",
+        medical_conditions: "medical_conditions",
       };
-      
+
       const originalField = originalFieldMapping[field] || field;
-      
+
       // Special handling for allergies which is an array
-      if (field === 'allergies') {
+      if (field === "allergies") {
         if (Array.isArray(value) && Array.isArray(student.allergies)) {
-          hasChanged = JSON.stringify(value) !== JSON.stringify(student.allergies);
+          hasChanged =
+            JSON.stringify(value) !== JSON.stringify(student.allergies);
         } else {
           hasChanged = true; // If types don't match, consider it changed
         }
       } else {
         hasChanged = student[originalField] !== value;
       }
-    }
-    else if (section === 'guardian') {
+    } else if (section === "guardian") {
       if (student.guardian) {
         const originalFieldMapping = {
-          name: 'name',
-          relationship: 'relationship',
-          phone: 'phone_primary',
-          email: 'email',
-          idNumber: 'id_number',
+          name: "name",
+          relationship: "relationship",
+          phone: "phone_primary",
+          email: "email",
+          idNumber: "id_number",
         };
-        
+
         const originalField = originalFieldMapping[field] || field;
         hasChanged = student.guardian[originalField] !== value;
       } else {
         // If there was no guardian data before but now there is, it has changed
-        hasChanged = value !== '';
+        hasChanged = value !== "";
       }
     }
-    
-    console.log(`Field ${section}.${field} changed: ${hasChanged} (from "${section === 'guardian' && student.guardian ? student.guardian[field] : student[mapFieldNameToApi(field, section)]}" to "${value}")`);
+
+    // In handleInputChange, improve subject change detection
+    if (section === "academic" && field === "subjects") {
+      console.log("Checking if subjects changed...");
+
+      // Normalize both arrays to just string IDs for comparison
+      const normalizeSubjects = (subjects) => {
+        if (!subjects) return [];
+        return subjects
+          .map((sub) => {
+            if (typeof sub === "object" && sub !== null && sub.id) {
+              return sub.id.toString();
+            }
+            return sub.toString();
+          })
+          .sort();
+      };
+
+      const originalSubjects = normalizeSubjects(student.subjects);
+      const newSubjects = normalizeSubjects(value);
+
+      console.log("Original subjects:", originalSubjects);
+      console.log("New subjects:", newSubjects);
+
+      // Compare as JSON strings after sorting
+      hasChanged =
+        JSON.stringify(originalSubjects) !== JSON.stringify(newSubjects);
+      console.log("Subjects changed:", hasChanged);
+    }
+
+    console.log(
+      `Field ${section}.${field} changed: ${hasChanged} (from "${
+        section === "guardian" && student.guardian
+          ? student.guardian[field]
+          : student[mapFieldNameToApi(field, section)]
+      }" to "${value}")`
+    );
 
     // Only track as changed if it's different from the original
     if (hasChanged) {
-      setChangedFields(prev => ({
+      setChangedFields((prev) => ({
         ...prev,
         [section]: {
           ...prev[section],
@@ -304,7 +337,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
       }));
     } else {
       // Remove from changed fields if it's the same as original
-      setChangedFields(prev => {
+      setChangedFields((prev) => {
         const updatedSection = { ...prev[section] };
         delete updatedSection[field];
         return {
@@ -368,8 +401,10 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
       Object.keys(changedFields.medical).forEach((field) => {
         if (changedFields.medical[field]) {
           const apiFieldName = mapFieldNameToApi(field, "medical");
-          console.log(`Mapping medical field '${field}' to API field '${apiFieldName}'`);
-          
+          console.log(
+            `Mapping medical field '${field}' to API field '${apiFieldName}'`
+          );
+
           // Special handling for allergies
           if (
             field === "allergies" &&
@@ -400,6 +435,18 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
         });
       }
 
+      if (changedFields.academic && changedFields.academic.subjects) {
+        // Ensure we're sending just an array of IDs
+        updateData.subjects = (formData.academic.subjects || []).map(subject => {
+          if (typeof subject === 'object' && subject !== null && subject.id) {
+            return subject.id.toString();
+          }
+          return subject.toString();
+        });
+        
+        console.log("Sending subjects to API:", updateData.subjects);
+      }
+
       console.log("Submitting updated data:", updateData);
 
       // Proceed with the API call if there are changes or simply close if no changes
@@ -418,10 +465,12 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
             }
           );
           console.log("API Response:", response.data);
-          
+
           if (response.data && response.data.success) {
-            setSuccess(`Student ${formData.personal.firstName} ${formData.personal.lastName} updated successfully!`);
-            
+            setSuccess(
+              `Student ${formData.personal.firstName} ${formData.personal.lastName} updated successfully!`
+            );
+
             // Set a timeout to close the modal after showing success message
             setTimeout(() => {
               if (onSave && response.data.data) {
@@ -432,7 +481,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
                   id: student.id,
                   first_name: formData.personal.firstName,
                   last_name: formData.personal.lastName,
-                  ...updateData
+                  ...updateData,
                 });
               }
               onClose();
@@ -442,7 +491,9 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
           }
         } catch (apiError) {
           console.error("API Error:", apiError);
-          setError(apiError.message || "Failed to update student. Please try again.");
+          setError(
+            apiError.message || "Failed to update student. Please try again."
+          );
           setLoading(false);
         }
       } else {
@@ -456,8 +507,8 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
       console.error("Error updating student:", error);
       setError(
         error.response?.data?.error ||
-        error.message ||
-        "Failed to update student. Please try again."
+          error.message ||
+          "Failed to update student. Please try again."
       );
       setLoading(false);
     } finally {
