@@ -38,7 +38,6 @@ const UserManagement = () => {
     "librarian",
   ];
 
-  console.log(user)
 
   // Fetch users on component mount
   useEffect(() => {

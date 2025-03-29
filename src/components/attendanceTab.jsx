@@ -71,9 +71,6 @@ const AttendanceTab = ({
     setCurrentPage(1); // Reset to first page when changing records per page
   };
 
-  console.log(attendanceFilterOptions)
-  console.log(paginatedData)
-
   return (
     <div className="bg-white rounded-lg shadow-sm">
       {/* Attendance Filters */}

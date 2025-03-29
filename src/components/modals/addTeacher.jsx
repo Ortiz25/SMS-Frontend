@@ -58,7 +58,6 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
         }
 
         const data = await response.json();
-        console.log(data);
         updateSubjects(data.data);
         setError(null);
       } catch (err) {
@@ -183,7 +182,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
   };
   if (!isOpen) return null;
   const uniqueSubjects = Array.from(new Set(subjects.map((subject) => subject.name)));
-  console.log(uniqueSubjects)
+ 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

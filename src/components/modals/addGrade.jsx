@@ -221,11 +221,11 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
 
   // Find exam schedule and load existing grades
   useEffect(() => {
-    console.log("Schedule check with:", {
-      selectedExam,
-      selectedClass,
-      selectedSubject,
-    });
+    // console.log("Schedule check with:", {
+    //   selectedExam,
+    //   selectedClass,
+    //   selectedSubject,
+    // });
     if (!selectedExam || !selectedClass || !selectedSubject) {
       setExamSchedule(null);
       return;

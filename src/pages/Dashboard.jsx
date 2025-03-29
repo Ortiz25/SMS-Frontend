@@ -3,7 +3,6 @@ import {
   GraduationCap,
   Users,
   BookOpen,
-  BusIcon,
   Bell,
   Activity,
   UserPlus,
@@ -16,13 +15,10 @@ import {
   BookmarkPlus,
   BookMinus,
   BookCheck,
-  BookPlus,
   List,
-  FileText,
   CheckCircle,
   MapPin,
-  MoreVertical,
-  PlusCircle,
+  Layers,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
@@ -35,7 +31,6 @@ import { extractDate } from "../util/helperFunctions";
 const Dashboard = () => {
   const token = localStorage.getItem("token");
   const data = useLoaderData();
-  console.log(data)
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { updateActiveModule, activeModule } = useStore();
@@ -45,19 +40,22 @@ const Dashboard = () => {
     male_students: 0,
     female_students: 0,
     active_students: 0,
-    inactive_students: 0
+    inactive_students: 0,
   });
   const [libraryData, updateLibraryData] = useState({
     total_books: 0,
+    total_copies: 0,
     available_books: 0,
-    borrowed_books: 0
+    available_titles: 0,
+    borrowed_books: 0,
+    borrowed_titles: 0,
   });
   const [teacherData, updateTeacherData] = useState({
     total_teachers: 0,
     active_teachers: 0,
     male_teachers: 0,
     female_teachers: 0,
-    inactive_teachers: 0
+    inactive_teachers: 0,
   });
   const [activities, updateActivities] = useState([]);
   const [performance, updatePerformance] = useState([]);
@@ -69,30 +67,29 @@ const Dashboard = () => {
       if (data.dashboard.student_stats) {
         updateStudentData(data.dashboard.student_stats);
       }
-      
+
       if (data.dashboard.library_stats) {
         updateLibraryData(data.dashboard.library_stats);
       }
-      
+
       if (data.dashboard.teacher_stats) {
         updateTeacherData(data.dashboard.teacher_stats);
-        console.log(data.dashboard.teacher_stats)
       }
-      
+
       if (data.dashboard.recent_activities) {
         updateActivities(data.dashboard.recent_activities);
       }
-      
+
       if (data.dashboard.form_performance) {
         updatePerformance(data.dashboard.form_performance);
       }
-      
+
       if (data.dashboard.upcoming_events) {
         updateEvents(data.dashboard.upcoming_events);
       }
     }
   }, [data]);
-  console.log(teacherData)
+  
 
   useEffect(() => {
     setIsLoading(true);
@@ -378,7 +375,9 @@ const Dashboard = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-center text-gray-500">No upcoming events</div>
+                <div className="text-center text-gray-500">
+                  No upcoming events
+                </div>
               )}
             </div>
           </div>
@@ -391,35 +390,43 @@ const Dashboard = () => {
               </h3>
               <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
-
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookmarkPlus className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Total Books</span>
+                  <span className="text-sm text-gray-600">Total Titles</span>
                 </div>
                 <span className="text-lg font-bold">
                   {libraryData?.total_books || 0}
                 </span>
               </div>
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookCheck className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm text-gray-600">Available Books</span>
+                  <span className="text-sm text-gray-600">
+                    Available Copies
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {libraryData?.available_books || 0}
                 </span>
               </div>
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <BookMinus className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-gray-600">Borrowed Books</span>
+                  <BookMinus className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm text-gray-600">Borrowed Titles</span>
                 </div>
-                <span className="text-lg font-bold text-red-600">
-                  {libraryData?.borrowed_books || 0}
+                <span className="text-lg font-bold text-orange-600">
+                  {libraryData?.borrowed_titles || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Layers className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm text-gray-600">Total Copies</span>
+                </div>
+                <span className="text-lg font-bold text-indigo-600">
+                  {libraryData?.total_copies || 0}
                 </span>
               </div>
             </div>
@@ -491,7 +498,9 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">No performance data available</div>
+            <div className="text-center text-gray-500 py-8">
+              No performance data available
+            </div>
           )}
         </div>
 
@@ -525,7 +534,9 @@ const Dashboard = () => {
               {activities && activities.length > 0 ? (
                 <div className="space-y-4">
                   {activities.slice(0, 4).map((activity, index) => {
-                    const ActivityIcon = getActivityIcon(activity.activity_type);
+                    const ActivityIcon = getActivityIcon(
+                      activity.activity_type
+                    );
                     const iconColorClass = getIconColor(activity.activity_type);
 
                     return (
@@ -536,7 +547,9 @@ const Dashboard = () => {
                         <div className="flex-1">
                           <p className="text-sm text-gray-900">
                             {activity.activity_type}: {activity.name}
-                            {activity.reference ? ` (${activity.reference})` : ""}
+                            {activity.reference
+                              ? ` (${activity.reference})`
+                              : ""}
                           </p>
                           <p className="text-xs text-gray-500">
                             {formatDistance(
@@ -551,7 +564,9 @@ const Dashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">No recent activities</div>
+                <div className="text-center text-gray-500 py-8">
+                  No recent activities
+                </div>
               )}
               {activities && activities.length > 4 && (
                 <div className="mt-4 text-center">

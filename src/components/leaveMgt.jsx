@@ -2,11 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   Calendar,
   Plus,
-  Filter,
   Clock,
   CheckCircle,
-  XCircle,
-  AlertCircle,
   RefreshCw,
   Users,
   Calendar as CalendarIcon,
@@ -100,7 +97,7 @@ const LeaveManagement = () => {
       fetchLeavesEndingToday();
     }
     
-    console.log('Current user info:', userInfo);
+    //console.log('Current user info:', userInfo);
   }, []);
 
   // Comprehensive stats calculation

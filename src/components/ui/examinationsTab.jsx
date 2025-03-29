@@ -40,7 +40,7 @@ const ExaminationsTab = () => {
           examinationsAPI.getAcademicSessions()
         ]);
         
-        console.log(examinationsResponse)
+        
         if (examinationsResponse.data.success) {
           setExaminations(examinationsResponse.data.data);
         }

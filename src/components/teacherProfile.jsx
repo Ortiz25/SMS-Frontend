@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Users,
-  BookOpen,
   Award,
   Edit,
   Trash2,
-  MoreVertical,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -35,8 +33,6 @@ const TeacherProfiles = ({ teachers }) => {
     experience: { averageYears: 0 },
   });
 
-  console.log(stats)
-
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
@@ -52,7 +48,6 @@ const TeacherProfiles = ({ teachers }) => {
           }
         );
 
-        console.log(response.data);
         if (response.data.success) {
           setStats(response.data.data);
         } else {

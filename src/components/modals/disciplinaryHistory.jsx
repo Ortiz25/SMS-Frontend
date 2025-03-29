@@ -17,7 +17,7 @@ const StatusHistoryDialog = ({
   loading,
 }) => {
   if (!show) return null;
-  console.log(studentData);
+ 
   // Format date function
   const formatDate = (dateString) => {
     if (!dateString) return "";

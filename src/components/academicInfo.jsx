@@ -16,8 +16,6 @@ const AcademicInfo = ({ student }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    console.log(student)
-
     useEffect(() => {
         const fetchAcademicData = async () => {
             try {
@@ -33,7 +31,6 @@ const AcademicInfo = ({ student }) => {
                 );
 
                 let fetchedData = response.data.data;
-
                 if (fetchedData && fetchedData.subjects) {
                     const examNames = Object.keys(fetchedData.subjects);
                     setAcademicData({

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AttendanceInfo = ({ student }) => {
-  console.log(student)
     const [attendanceData, setAttendanceData] = useState({
         summary: {
             total_days: 0,
@@ -31,8 +30,7 @@ const AttendanceInfo = ({ student }) => {
                     }
                 );
                 
-                setAttendanceData(response.data.data);
-                console.log(response)
+                setAttendanceData(response.data.data)
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching attendance data:', err);

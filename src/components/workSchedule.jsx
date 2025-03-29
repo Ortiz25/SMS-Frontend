@@ -167,7 +167,6 @@ const WorkloadSchedule = ({ teachers }) => {
 
           if (!response.ok) throw new Error("Failed to fetch subjects");
           const data = await response.json();
-          console.log(data);
           setSubjects(data.data);
         } catch (err) {
           setError(err.message);

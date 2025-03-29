@@ -3,15 +3,9 @@ import {
   Users,
   UserPlus,
   Calendar,
-  DollarSign,
   Clock,
-  FileText,
   Search,
-  Filter,
   Download,
-  MoreVertical,
-  BookOpen,
-  Briefcase,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import TeacherProfiles from "../components/teacherProfile";
@@ -29,9 +23,9 @@ const TeacherManagement = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
-  const[teachers, updateTeachers] = useState()
+  const [teachers, updateTeachers] = useState();
   const data = useLoaderData();
-  
+
   useEffect(() => {
     updateActiveModule("teachers");
     let filtered = [...(data?.teachers ?? [])];
@@ -61,7 +55,6 @@ const TeacherManagement = () => {
     // Add your API call or data handling logic here
     setShowAddModal(false);
   };
-  
 
   const tabs = [
     { id: "profiles", label: "Teacher Profiles", icon: Users },
@@ -79,7 +72,7 @@ const TeacherManagement = () => {
             Teacher Management
           </h1>
           <p className="text-gray-600">
-            Manage teaching staff, workload, payroll, and leave requests
+            Manage teaching staff, workload and leave requests
           </p>
         </div>
 
@@ -116,10 +109,10 @@ const TeacherManagement = () => {
                 <UserPlus className="h-5 w-5" />
                 <span>Add Teacher</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
+              {/* <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
                 <Download className="h-5 w-5" />
                 <span>Export</span>
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -220,7 +213,7 @@ export async function loader({ params, request }) {
     });
 
     // Log response status for debugging
-    console.log("Response Status:", response.status);
+    //console.log("Response Status:", response.status);
 
     // Handle authentication failure
     if (response.status === 401 || response.status === 403) {
@@ -234,7 +227,7 @@ export async function loader({ params, request }) {
     const data = await response.json();
 
     // Log API response for debugging
-    console.log("API Response:", data);
+    //console.log("API Response:", data);
 
     // Validate response
     if (!response.ok || !data.success) {

@@ -12,7 +12,6 @@ import {
   Edit,
   Trash2,
   Activity,
-  Heart,
 } from "lucide-react";
 import { redirect, useLoaderData, useSearchParams } from "react-router-dom";
 import Navbar from "../components/navbar";
@@ -38,7 +37,6 @@ const StudentManagement = () => {
     useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentData, updateStudentData] = useState(data);
-    console.log(studentData)
   // Pagination state
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(searchParams.get("perPage") || "10")
@@ -127,7 +125,6 @@ const StudentManagement = () => {
             },
           }
         );
-        console.log(response.data);
         if (response.data.success) {
           setStats(response.data.data);
         } else {
@@ -554,10 +551,10 @@ const StudentManagement = () => {
                 <Cctv className="h-5 w-5" />
                 <span>Record Attendance</span>
               </button>
-              <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
+              {/* <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
                 <Download className="h-5 w-5" />
                 <span>Export</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -881,7 +878,7 @@ export async function loader({ params, request }) {
     });
 
     // If token is invalid or expired
-    console.log(response.status);
+  
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -890,7 +887,6 @@ export async function loader({ params, request }) {
 
     // Get response data
     const data = await response.json();
-    console.log(data);
     // If there's an error in the response
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to fetch detailed student data");

@@ -17,7 +17,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const errors = useActionData();
-  console.log(errors)
 
   useEffect(() => {
     if (
@@ -177,10 +176,10 @@ export async function action({ request, params }) {
             "Authorization": `Bearer ${loginResult.token}` // Using the renamed variable
           }
         });
-        console.log(profileResponse)
+        
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
-          console.log(profileData)
+         // console.log(profileData)
           // Store complete user info with profile data
           localStorage.setItem("user", JSON.stringify(profileData.user));
         } else {

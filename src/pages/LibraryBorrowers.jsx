@@ -57,8 +57,8 @@ const Borrowers = () => {
           ? `/backend/api/library/borrowers/search?search=${encodeURIComponent(searchQuery)}`
           : "/backend/api/library/borrowers";
       
-      console.log("Requesting endpoint:", endpoint);
-      console.log("Using token:", token.substring(0, 10) + "..." + (token.length > 20 ? token.substring(token.length - 10) : ""));
+      //console.log("Requesting endpoint:", endpoint);
+      //console.log("Using token:", token.substring(0, 10) + "..." + (token.length > 20 ? token.substring(token.length - 10) : ""));
       
       const response = await fetch(endpoint, {
         method: "GET",
@@ -88,7 +88,7 @@ const Borrowers = () => {
         throw new Error(data.error || "Failed to fetch borrowers");
       }
       
-      console.log("Received borrowers data:", data);
+      //console.log("Received borrowers data:", data);
       
       // Set the borrowers from the API response
       setBorrowers(data.data || []);

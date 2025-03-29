@@ -31,7 +31,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     guardianRelation: "",
     guardianAddress: "",
     guardianIdNumber: "",
-    // New field for subject selection
     selectedSubjects: [],
   });
 
@@ -40,7 +39,6 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
   const [classes, setClasses] = useState([]);
   const [hostels, setHostels] = useState([]);
   const [busRoutes, setBusRoutes] = useState([]);
-  // New state for subjects
   const [subjects, setSubjects] = useState([]);
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [currentAcademicSession, setCurrentAcademicSession] = useState(null);
@@ -167,7 +165,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
       const selectedClass = classes.find((cls) => cls.id.toString() === value);
       
       if (selectedClass) {
-        console.log("Selected class:", selectedClass);
+        //console.log("Selected class:", selectedClass);
         
         // Filter subjects based on curriculum type and level
         const filteredSubjects = subjects.filter((subject) => 
@@ -189,7 +187,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
             subject.level === "Upper Primary"))
         );
         
-        console.log("Filtered subjects:", filteredSubjects);
+       // console.log("Filtered subjects:", filteredSubjects);
         setAvailableSubjects(filteredSubjects);
 
         // Store the actual class level instead of id
@@ -202,9 +200,9 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
           selectedSubjects: [],
         }));
 
-        console.log(
-          `Selected class: ${selectedClass.level}, Stream: ${selectedClass.stream}`
-        );
+        // console.log(
+        //   `Selected class: ${selectedClass.level}, Stream: ${selectedClass.stream}`
+        // );
       } else {
         setFormData((prev) => ({
           ...prev,
@@ -398,6 +396,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     );
     
     const curriculumType = selectedClass ? selectedClass.curriculum_type : "";
+    console.log(hostels)
 
     return (
       <div>
@@ -757,7 +756,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                       <option value="">Select hostel</option>
                       {hostels.map((hostel) => (
                         <option key={hostel.id} value={hostel.name}>
-                          {hostel.name} ({hostel.occupied}/{hostel.capacity})
+                          {hostel?.name}-{hostel?.hostel_type} ({hostel?.occupied || 0}/{hostel?.capacity || 0})
                         </option>
                       ))}
                     </select>

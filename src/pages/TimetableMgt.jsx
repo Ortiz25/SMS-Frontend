@@ -32,22 +32,23 @@ const TimetableManagement = () => {
   const [session, setCurrentSession] = useState();
   const [classes, setClasses] = useState();
   const [rooms, setRooms] = useState();
-   console.log(timetableData)
+
   // Added state for schedule errors and success messages
   const [scheduleError, setScheduleError] = useState(null);
   const [scheduleSuccess, setScheduleSuccess] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTimetableData, setCurrentTimetableData] = useState(timetableData);
+  const [currentTimetableData, setCurrentTimetableData] =
+    useState(timetableData);
 
   useEffect(() => {
     updateActiveModule("timetable");
   }, [updateActiveModule]);
-  
+
   // Update currentTimetableData when timetableData changes
   useEffect(() => {
     setCurrentTimetableData(timetableData);
   }, [timetableData]);
-  
+
   const tabs = [
     { id: "weekly", label: "Weekly Schedule", icon: Calendar },
     { id: "class", label: "Class Allocation", icon: Users },
@@ -58,12 +59,15 @@ const TimetableManagement = () => {
   const refetchTimetableData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/backend/api/timetable/weekly`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/backend/api/timetable/weekly`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to load timetable");
@@ -72,7 +76,9 @@ const TimetableManagement = () => {
       const responseData = await response.json();
 
       if (!responseData.success) {
-        throw new Error(responseData.message || "Failed to load timetable data");
+        throw new Error(
+          responseData.message || "Failed to load timetable data"
+        );
       }
 
       // Update the timetable data state
@@ -105,7 +111,7 @@ const TimetableManagement = () => {
         if (!sessionResponse.ok)
           throw new Error("Failed to fetch current academic session");
         const sessionData = await sessionResponse.json();
-        console.log(sessionData);
+
         setCurrentSession(sessionData);
 
         // Get classes for current session
@@ -122,24 +128,21 @@ const TimetableManagement = () => {
 
         if (!classesResponse.ok) throw new Error("Failed to fetch classes");
         const classesData = await classesResponse.json();
-        console.log(classesData);
+
         setClasses(classesData);
 
         // Get Rooms
-        const roomsResponse = await fetch(
-          `/backend/api/rooms`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const roomsResponse = await fetch(`/backend/api/rooms`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!roomsResponse.ok) throw new Error("Failed to fetch classes");
         const roomsData = await roomsResponse.json();
-        console.log(roomsData);
+
         setRooms(roomsData);
 
         // Get teachers
@@ -166,15 +169,13 @@ const TimetableManagement = () => {
     fetchData();
   }, []);
 
-  console.log(classes);
-
   const handleAddSchedule = async (newSchedule) => {
     try {
       setIsLoading(true);
       // Clear previous messages
       setScheduleError(null);
       setScheduleSuccess(null);
-      
+
       console.log(newSchedule);
       // API call to add a new schedule entry
       const response = await fetch("/backend/api/timetable/add", {
@@ -191,7 +192,7 @@ const TimetableManagement = () => {
           start_time: newSchedule.startTime,
           end_time: newSchedule.endTime,
           room_number: newSchedule.room,
-          academic_session_id: session.id
+          academic_session_id: session.id,
         }),
       });
 
@@ -204,17 +205,18 @@ const TimetableManagement = () => {
 
       // Show success message
       setScheduleSuccess("Schedule added successfully!");
-      
+
       // Close the modal
       setShowAddModal(false);
-      
+
       // Refetch the timetable data
       const refetchSuccess = await refetchTimetableData();
-      
+
       if (!refetchSuccess) {
-        setScheduleSuccess("Schedule was added, but the timetable couldn't be refreshed. Please reload the page.");
+        setScheduleSuccess(
+          "Schedule was added, but the timetable couldn't be refreshed. Please reload the page."
+        );
       }
-      
     } catch (error) {
       console.error("Error adding schedule:", error);
       setScheduleError(error.message || "Failed to add schedule");
@@ -241,8 +243,7 @@ const TimetableManagement = () => {
     if (!currentTimetableData) return null;
 
     let filteredData = currentTimetableData;
-    console.log(currentTimetableData);
-    
+
     // Filter by class
     if (selectedClass !== "all") {
       filteredData = {
@@ -283,14 +284,14 @@ const TimetableManagement = () => {
   // Clear notification messages after 5 seconds
   useEffect(() => {
     let timer;
-    
+
     if (scheduleError || scheduleSuccess) {
       timer = setTimeout(() => {
         setScheduleError(null);
         setScheduleSuccess(null);
       }, 5000);
     }
-    
+
     return () => {
       if (timer) clearTimeout(timer);
     };
@@ -320,7 +321,7 @@ const TimetableManagement = () => {
             Manage class schedules, allocations, and exam timetables
           </p>
         </div>
-        
+
         {/* Notification Messages */}
         {scheduleError && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg flex items-center">
@@ -328,7 +329,7 @@ const TimetableManagement = () => {
             {scheduleError}
           </div>
         )}
-        
+
         {scheduleSuccess && (
           <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg flex items-center">
             <CheckCircle className="h-5 w-5 mr-2" />
@@ -500,7 +501,9 @@ const TimetableManagement = () => {
                   refetchTimetableData={refetchTimetableData}
                 />
               )}
-              {activeTab === "class" && <ClassAllocation rooms={filterOptions.rooms} />}
+              {activeTab === "class" && (
+                <ClassAllocation rooms={filterOptions.rooms} />
+              )}
               {activeTab === "exam" && <ExamSchedule />}
             </>
           )}
@@ -560,8 +563,6 @@ export async function loader({ params }) {
       throw new Error(responseData.message || "Failed to load timetable data");
     }
 
-    // Return the timetable data
-    console.log(responseData.data);
     return {
       timetableData: responseData.data,
     };

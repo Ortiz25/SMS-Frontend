@@ -13,7 +13,6 @@ import AttendanceInfo from '../attendanceInfo';
 
 const ViewDetailsModal = ({ isOpen, student, onClose }) => {
   const [activeTab, setActiveTab] = useState('personal');
-  console.log(student)
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'academic', label: 'Academic', icon: GraduationCap },

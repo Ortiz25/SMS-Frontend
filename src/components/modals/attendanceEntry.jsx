@@ -66,7 +66,6 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
           Authorization: `Bearer ${token}`
         }
       });
-       console.log(response)
       // Group classes by name and collect streams
       const classData = response.data.data.reduce((acc, cls) => {
         if (!acc[cls.name]) {
@@ -80,7 +79,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
         }
         return acc;
       }, {});
-         console.log(classData)
+        
       setClasses(Object.values(classData));
       setLoading(false);
     } catch (error) {
@@ -92,7 +91,6 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
 
   // Fetch students when class and stream are selected
   useEffect(() => {
-    console.log(selectedClass, selectedStream)
     if (selectedClass && selectedStream) {
       fetchStudents();
     }
@@ -120,7 +118,6 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
       
       setStudents(studentData);
       setFilteredStudents(studentData);
-      console.log(studentData)
       // Initialize attendance for all students
       const initialAttendance = {};
       studentData.forEach(student => {
