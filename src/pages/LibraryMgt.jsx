@@ -467,6 +467,7 @@ const LibraryManagement = () => {
                               onClick={() => {
                                 setSelectedBook(book);
                                 setShowBorrowDialog(true);
+                                setErrorMessage("")
                               }}
                               className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
@@ -528,6 +529,7 @@ const LibraryManagement = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black opacity-50"></div>
+          
 
             {/* Dialog Content */}
             <div className="relative bg-white rounded-lg max-w-md w-full p-6 z-60">

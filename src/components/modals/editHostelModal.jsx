@@ -38,11 +38,11 @@ const EditModal = ({ item, editType, onClose, onUpdate, token }) => {
       }
       // Transport endpoints
       else if (editType === "routes") {
-        endpoint = `/backend/api/transport/routes/${item.id}`;
+        endpoint = `/backend/api/hostel-transport/routes/${item.id}`;
       } else if (editType === "stops") {
-        endpoint = `/backend/api/transport/stops/${item.id}`;
+        endpoint = `/backend/api/hostel-transport/stops/${item.id}`;
       } else if (editType === "allocations") {
-        endpoint = `/backend/api/transport/allocations/${item.id}`;
+        endpoint = `/backend/api/hostel-transport/allocations/${item.id}`;
       }
       
       const response = await fetch(endpoint, {

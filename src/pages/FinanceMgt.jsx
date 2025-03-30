@@ -18,6 +18,7 @@ import {
   Cell,
 } from "recharts";
 import { redirect } from "react-router-dom";
+import { downloadPdfReceipt, printReceipt } from "../util/printingAndPDF";
 
 const FinanceDashboard = () => {
   const token = localStorage.getItem("token");
@@ -1357,22 +1358,79 @@ const FinanceDashboard = () => {
                 )}
               </div>
 
-              <div className="mt-6 flex flex-col sm:flex-row sm:justify-end gap-2">
+              {/* Updated modal buttons with separate action buttons */}
+              <div className="mt-6 flex flex-wrap justify-between">
+                <button
+                  onClick={() => printReceipt(selectedPayment)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-150 flex-1 sm:flex-none flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                  Print Receipt
+                </button>
+
+                <button
+                  onClick={() => downloadPdfReceipt(selectedPayment)}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition duration-150 flex-1 sm:flex-none flex items-center justify-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Download PDF
+                </button>
+
                 <button
                   onClick={() => setShowModal(false)}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition duration-150 w-full sm:w-auto"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800  px-4 py-2 rounded transition duration-150 flex-1 sm:flex-none"
                 >
                   Close
                 </button>
-                <button
+                {/* <button
                   onClick={() => {
-                    // In a real app, this would print or download the receipt
-                    alert("Print functionality would be implemented here");
+                    // In a real app, this would send the receipt to the student's email
+                    alert("Email functionality would be implemented here");
                   }}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-150 w-full sm:w-auto"
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition duration-150 flex-1 sm:flex-none flex items-center justify-center"
                 >
-                  Print Receipt
-                </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Email Receipt
+                </button> */}
               </div>
             </div>
           </div>
