@@ -1,4 +1,5 @@
 import {
+  ChevronDown,
   Calendar,
   GraduationCap,
   Users,
@@ -60,6 +61,9 @@ const Dashboard = () => {
   const [activities, updateActivities] = useState([]);
   const [performance, updatePerformance] = useState([]);
   const [eventsData, updateEvents] = useState([]);
+  const [examinations, setExaminations] = useState([]);
+  const [selectedExam, setSelectedExam] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Initialize with default values, then update if data exists
@@ -89,7 +93,6 @@ const Dashboard = () => {
       }
     }
   }, [data]);
-  
 
   useEffect(() => {
     setIsLoading(true);
@@ -113,11 +116,22 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-        updatePerformanceData(classData || []);
+        console.log(classData);
+
+        // Store all examinations
+        if (classData.examinations && classData.examinations.length > 0) {
+          setExaminations(classData.examinations);
+          // Set first examination as default selected
+          setSelectedExam(classData.examinations[0]);
+          // Use the formData from the first examination as performanceData
+          updatePerformanceData(classData.examinations[0].formData || []);
+        } else {
+          updatePerformanceData([]);
+        }
       } catch (error) {
         console.error("Error fetching class data:", error);
-        // Set to empty array in case of error
         updatePerformanceData([]);
+        setExaminations([]);
       } finally {
         setIsLoading(false);
       }
@@ -129,6 +143,14 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   }, [token]);
+
+  const handleExamSelection = (exam) => {
+    setSelectedExam(exam);
+    updatePerformanceData(exam.formData || []);
+    setDropdownOpen(false);
+  };
+
+  console.log(performanceData);
 
   useEffect(() => {
     updateActiveModule("overview");
@@ -436,18 +458,154 @@ const Dashboard = () => {
         {/* Classes Performance Overview - Dedicated Row */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-extrabold text-gray-800">
-              Classes Performance Overview
-            </h3>
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-extrabold text-gray-800">
+                Classes Performance Overview
+              </h3>
+              {examinations.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                  >
+                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">
+                      {selectedExam ? selectedExam.name : "Select Examination"}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-transform duration-200 ${
+                        dropdownOpen ? "transform rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {dropdownOpen && (
+                    <>
+                      {/* Backdrop for clicking outside */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setDropdownOpen(false)}
+                      ></div>
+
+                      {/* Dropdown menu with animation */}
+                      <div
+                        className="absolute z-20 mt-2 w-80 rounded-lg border border-gray-200 shadow-lg bg-white overflow-hidden transition-all duration-200 animate-slideDown"
+                        style={{
+                          transformOrigin: "top center",
+                        }}
+                      >
+                        <div className="py-1 max-h-72 overflow-y-auto">
+                          {examinations.map((exam) => (
+                            <button
+                              key={exam.id}
+                              onClick={() => handleExamSelection(exam)}
+                              className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 flex items-center justify-between ${
+                                selectedExam && selectedExam.id === exam.id
+                                  ? "bg-blue-50/70 border-l-4 border-blue-500"
+                                  : "border-l-4 border-transparent"
+                              }`}
+                            >
+                              <div className="flex flex-col">
+                                <span
+                                  className={`font-medium ${
+                                    selectedExam && selectedExam.id === exam.id
+                                      ? "text-blue-700"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  {exam.name}
+                                </span>
+                                <span className="text-xs text-gray-500 mt-0.5">
+                                  {exam.status === "completed"
+                                    ? "Completed"
+                                    : "In Progress"}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full flex items-center ${
+                                  exam.status === "completed"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-amber-100 text-amber-700"
+                                }`}
+                              >
+                                {exam.status === "completed" ? (
+                                  <>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-3 w-3 mr-1"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    Completed
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-3 w-3 mr-1"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    In Progress
+                                  </>
+                                )}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             <Activity className="h-5 w-5 text-blue-600" />
           </div>
-
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
           ) : performanceData && performanceData.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+              {/* Add a card for overall average */}
+              {selectedExam && selectedExam.overallAverage && (
+                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                  <div className="space-y-2">
+                    <h4
+                      className="text-sm font-medium text-gray-700 truncate"
+                      title="Overall Average"
+                    >
+                      Overall Average
+                    </h4>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xl font-bold text-blue-700">
+                        {selectedExam.overallAverage > 0
+                          ? `${selectedExam.overallAverage}%`
+                          : "-"}
+                      </div>
+                      <div>
+                        <div className="h-4 w-4 text-blue-600">•</div>
+                      </div>
+                    </div>
+                    <p className="text-xs font-medium px-1.5 py-0.5 rounded-full inline-block bg-blue-100 text-blue-800">
+                      Exam Average
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Original performance data cards */}
               {performanceData.map((data) => (
                 <div
                   key={data.form}
