@@ -89,7 +89,9 @@ const GradeEntry = () => {
             },
           }
         );
-        setExams(response.data);
+
+        console.log(response)
+        setExams(response.data.examinations);
         setLoading(false);
       } catch (err) {
         setError("Failed to load examinations");
@@ -117,7 +119,7 @@ const GradeEntry = () => {
             },
           }
         );
-        
+
         setClasses(response.data);
         setLoading(false);
       } catch (err) {
@@ -137,7 +139,7 @@ const GradeEntry = () => {
     const fetchSubjects = async () => {
       try {
         setLoading(true);
-        console.log(selectedExam, selectedClass);
+
         const response = await axios.get(
           `/backend/api/grading/exam-subjects/${selectedClass}/${selectedExam}`,
           {
@@ -148,7 +150,7 @@ const GradeEntry = () => {
           }
         );
         setSubjects(response.data);
-        console.log(response.data);
+
         setLoading(false);
       } catch (err) {
         setError("Failed to load subjects with scheduled exams");
@@ -176,7 +178,7 @@ const GradeEntry = () => {
             },
           }
         );
-        console.log(response.data);
+
         setStudents(response.data);
         setLoading(false);
       } catch (err) {
@@ -502,7 +504,7 @@ const GradeEntry = () => {
               disabled={loading || !selectedSession}
             >
               <option value="">Select Examination</option>
-              {exams.map((exam) => (
+              {exams?.map((exam) => (
                 <option key={exam.id} value={exam.id}>
                   {exam.name}
                 </option>

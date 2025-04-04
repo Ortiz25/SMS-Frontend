@@ -138,7 +138,7 @@ const IncidentList = ({
               <option value="resolved">Resolved</option>
             </select>
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status Change
             </label>
@@ -151,7 +151,7 @@ const IncidentList = ({
               <option value="status_changed">Only Status-Changing Incidents</option>
               <option value="no_status_change">No Status Change</option>
             </select>
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Severity

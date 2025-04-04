@@ -27,7 +27,7 @@ const ScheduleExamModal = ({
     startDate: "",
     endDate: ""
   };
-  console.log(classes)
+  
 
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
@@ -157,15 +157,23 @@ const ScheduleExamModal = ({
     
     // Validate exam date is within examination period
     if (formData.examDate && formData.startDate && formData.endDate) {
+      // Create date objects with only the date part (no time)
       const examDate = new Date(formData.examDate);
       const startDate = new Date(formData.startDate);
       const endDate = new Date(formData.endDate);
       
+      // Reset time parts to compare dates only
+      examDate.setHours(0, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      
+      console.log("Comparing dates:", examDate, startDate, endDate);
+      
+      // Use >= and <= to include both start and end dates
       if (examDate < startDate || examDate > endDate) {
         newErrors.examDate = "Exam date must be within the examination period";
       }
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

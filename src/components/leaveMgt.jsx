@@ -44,7 +44,7 @@ const LeaveManagement = () => {
     totalLeaveRequests: 0
   });
   const [leaveBalances, setLeaveBalances] = useState([]);
-
+  
   useEffect(() => {
     const fetchLeaveStats = async () => {
       try {
@@ -149,6 +149,7 @@ const LeaveManagement = () => {
           });
           
           const balances = balanceResponse.data || [];
+          console.log(balanceResponse)
           setLeaveBalances(balances);
           
           // Find annual leave balance

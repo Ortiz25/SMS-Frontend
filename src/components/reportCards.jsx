@@ -1,4 +1,4 @@
-// components/reportCards.js
+
 import React, { useState, useEffect } from "react";
 import {
   FileText,
@@ -99,7 +99,8 @@ const ReportCards = () => {
             "Content-Type": "application/json",
           },
         });
-        setExams(response.data);
+        console.log(response)
+        setExams(response.data.examinations);
         
         // Default to the most recent exam
         if (response.data.length > 0) {
@@ -198,15 +199,17 @@ const ReportCards = () => {
   const downloadReportCard = async (studentId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/backend/api/grading/report-card/${studentId}/${selectedSession}`, {
-        responseType: 'blob'
-      },{
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.get(
+        `/backend/api/grading/report-card/${studentId}/${selectedSession}`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
       
       // Create download link
       const student = students.find(s => s.id === studentId);

@@ -164,7 +164,8 @@ const Analytics = () => {
             },
           }
         );
-        setExams(response.data);
+        console.log(response.data);
+        setExams(response.data.examinations);
 
         // Default to the most recent exam
         if (response.data.length > 0) {
@@ -235,20 +236,53 @@ const Analytics = () => {
           }
         );
 
-        console.log(response)
+        console.log(response);
         setClassPerformance(response.data);
-
+        console.log(classPerformance)
         // Extract trend data
         if (response.data.trendData) {
           setTrendData(response.data.trendData);
         }
 
-        // Extract top students if available in the first exam
+        // Extract top students from all exams (unique students only)
         if (
           response.data.examPerformance &&
           response.data.examPerformance.length > 0
         ) {
-          setTopStudents(response.data.examPerformance[0].topStudents || []);
+          // Collect top students from all exams
+          const allTopStudents = response.data.examPerformance
+            .filter((exam) => exam.topStudents && exam.topStudents.length > 0)
+            .flatMap((exam) => {
+              return exam.topStudents.map((student) => ({
+                ...student,
+                examName: exam.exam.name,
+                examId: exam.exam.id,
+              }));
+            });
+
+          // Create a map to keep only the best performance for each student
+          const uniqueStudentsMap = new Map();
+
+          allTopStudents.forEach((student) => {
+            const studentId = student.student_id;
+            const currentBest = uniqueStudentsMap.get(studentId);
+
+            if (
+              !currentBest ||
+              parseFloat(student.average_marks) >
+                parseFloat(currentBest.average_marks)
+            ) {
+              uniqueStudentsMap.set(studentId, student);
+            }
+          });
+
+          // Convert map back to array and sort
+          const uniqueTopStudents = Array.from(uniqueStudentsMap.values()).sort(
+            (a, b) => parseFloat(b.average_marks) - parseFloat(a.average_marks)
+          );
+
+          // Set top students
+          setTopStudents(uniqueTopStudents.slice(0, 10) || []); // Get top 10 students
         }
 
         setLoading(false);
@@ -1648,7 +1682,12 @@ const Analytics = () => {
                                       {student.admission_number}
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                      {student.average_marks?.toFixed(1)}%
+                                      {student.average_marks
+                                        ? parseFloat(
+                                            student.average_marks
+                                          ).toFixed(1)
+                                        : "0.0"}
+                                      %
                                     </td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                       {student.grade}

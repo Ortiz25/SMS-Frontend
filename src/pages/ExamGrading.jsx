@@ -38,6 +38,7 @@ const ExamGrading = () => {
     pendingExams: 0,
     classAverage: 0
   });
+
   
   // Filters data
   const [classes, setClasses] = useState([]);
@@ -151,13 +152,13 @@ const ExamGrading = () => {
       const exams = examsResponse.data;
       
       // Count total exams
-      const totalExams = exams.length;
+      const totalExams = exams.stats.totalExams;
       
       // Count graded exams (status = 'graded')
-      const gradedExams = exams.filter(exam => exam.status === 'graded').length;
-      
+      const gradedExams = exams.stats.gradedExams
+    
       // Pending exams
-      const pendingExams = totalExams - gradedExams;
+      const pendingExams = exams.stats.pendingExams;
       
       // Get class average across all exams
       let classAverage = 0;
@@ -208,7 +209,7 @@ const ExamGrading = () => {
           }
         }
       }
-      
+      console.log(classAverage)
       setStats({
         totalExams,
         gradedExams,
@@ -372,7 +373,7 @@ const ExamGrading = () => {
         {/* Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <select
+            {/* <select
               value={selectedClass}
               onChange={handleClassChange}
               className="px-3 py-2 border rounded-lg"
@@ -397,7 +398,7 @@ const ExamGrading = () => {
                   {subject.name}
                 </option>
               ))}
-            </select>
+            </select> */}
           </div>
 
           <div className="flex items-center space-x-4">

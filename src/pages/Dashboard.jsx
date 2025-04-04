@@ -116,7 +116,7 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-        console.log(classData);
+       
 
         // Store all examinations
         if (classData.examinations && classData.examinations.length > 0) {
@@ -149,8 +149,6 @@ const Dashboard = () => {
     updatePerformanceData(exam.formData || []);
     setDropdownOpen(false);
   };
-
-  console.log(performanceData);
 
   useEffect(() => {
     updateActiveModule("overview");

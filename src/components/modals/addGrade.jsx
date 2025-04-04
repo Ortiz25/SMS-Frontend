@@ -85,7 +85,8 @@ const AddGradesModal = ({ isOpen, onClose, onSave }) => {
             },
           }
         );
-        setExams(response.data);
+        console.log(response.data)
+        setExams(response.data.examinations);
         // Clear exam selection when session changes
         setSelectedExam("");
         setLoading(false);

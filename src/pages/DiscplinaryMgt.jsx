@@ -105,11 +105,10 @@ const DisciplineMgt = () => {
           (incident.admission_number && incident.admission_number.toLowerCase().includes(searchQuery.toLowerCase())) ||
           (incident.description && incident.description.toLowerCase().includes(searchQuery.toLowerCase()))
         );
-        
         // Status filtering
         const matchesFilter = selectedFilter === "all" || 
-          (incident.status && incident.status.toLowerCase() === selectedFilter.toLowerCase());
-        
+          (incident.status && incident.status.toLowerCase() === selectedFilter.toLowerCase()) ||
+          (incident.severity && incident.severity.toLowerCase() === selectedFilter.toLowerCase())
         return matchesSearch && matchesFilter;
       });
     };
