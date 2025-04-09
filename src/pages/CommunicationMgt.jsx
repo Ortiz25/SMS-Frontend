@@ -77,7 +77,7 @@ const CommunicationHub = () => {
         {/* Navigation Tabs */}
         <div className="border-b border-gray-200 overflow-x-auto">
           <nav className="flex sm:justify-start -mb-px space-x-4 sm:space-x-8 min-w-max">
-            {["announcements", "email", "sms", "events"].map((tab) => (
+            {["events","announcements", "email", "sms", ].map((tab) => (
               <button
                 key={tab}
                 className={`py-3 px-2 sm:py-4 sm:px-1 border-b-2 font-medium text-sm ${

@@ -83,8 +83,8 @@ const DisciplineMgt = () => {
       setLoading(true);
       // Get all incidents without filtering
       const data = await disciplinaryService.getIncidents();
-      setAllIncidents(data);
-      setFilteredIncidents(data); // Initially show all incidents
+      setAllIncidents(data || []);
+      setFilteredIncidents(data || []); // Initially show all incidents
       setError(null);
     } catch (err) {
       console.error("Error fetching incidents:", err);

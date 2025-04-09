@@ -247,7 +247,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
           <form onSubmit={handleSubmit}>
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-medium">Mark Attendance</h3>
+              <h3 className="text-lg font-bold">Mark Attendance</h3>
               <button
                 type="button"
                 onClick={onClose}
@@ -262,7 +262,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-base font-semibold text-gray-900 mb-1">
                     Class*
                   </label>
                   <select
@@ -281,7 +281,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-base font-semibold text-gray-900 mb-1">
                     Stream*
                   </label>
                   <select
@@ -302,7 +302,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-base font-semibold text-gray-900 mb-1">
                     Date*
                   </label>
                   <input

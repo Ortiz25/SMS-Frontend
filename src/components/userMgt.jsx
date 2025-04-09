@@ -267,10 +267,10 @@ const UserManagement = () => {
               </option>
             ))}
           </select>
-          <button className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+          {/* <button className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50">
             <Filter className="w-4 h-4 mr-2" />
             More Filters
-          </button>
+          </button> */}
         </div>
       </div>
 

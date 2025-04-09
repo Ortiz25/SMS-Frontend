@@ -346,15 +346,7 @@ const WorkloadSchedule = ({ teachers }) => {
   //     </div>
   //   );
   // }
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-          Error loading profile: {error}
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">

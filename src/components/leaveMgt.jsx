@@ -7,7 +7,7 @@ import {
   RefreshCw,
   Users,
   Calendar as CalendarIcon,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import LeaveRequestsTable from "./leaveRequestTable";
 import RequestLeaveModal from "./modals/requestLeave";
@@ -16,9 +16,8 @@ import LeaveApprovalModal from "./modals/leaveApproval";
 import axios from "axios";
 
 const LeaveManagement = () => {
-
   const token = localStorage.getItem("token");
-  const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
   const [activeView, setActiveView] = useState("all");
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
@@ -29,7 +28,9 @@ const LeaveManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [currentTeacherId, setCurrentTeacherId] = useState(userInfo?.teacher?.teacher_id);
+  const [currentTeacherId, setCurrentTeacherId] = useState(
+    userInfo?.teacher?.teacher_id
+  );
   const [isAdmin, setIsAdmin] = useState(false);
   const [leavesEndingToday, setLeavesEndingToday] = useState([]);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
@@ -41,27 +42,30 @@ const LeaveManagement = () => {
     leavesEndingToday: 0,
     teachersOnLeave: 0,
     leaveUtilization: 0,
-    totalLeaveRequests: 0
+    totalLeaveRequests: 0,
   });
   const [leaveBalances, setLeaveBalances] = useState([]);
-  
+
   useEffect(() => {
     const fetchLeaveStats = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        
+        const token = localStorage.getItem("token");
+
         // If we're using a stats endpoint
-        const response = await axios.get('/backend/api/dashboard/leavestats', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        const response = await axios.get(
+          "/backend/api/dashboard/leavestats",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
-        
+        );
+        console.log(response);
         if (response.data.success) {
-          setLeaveStats(prevStats => ({
+          setLeaveStats((prevStats) => ({
             ...prevStats,
-            ...response.data.data
+            ...response.data.data,
           }));
         } else {
           // If the stats endpoint doesn't exist or doesn't return what we need,
@@ -70,7 +74,7 @@ const LeaveManagement = () => {
         }
       } catch (err) {
         // If the endpoint doesn't exist, fetch stats another way
-        console.log('Fetching comprehensive stats instead');
+        console.log("Fetching comprehensive stats instead");
         await fetchComprehensiveStats();
       } finally {
         setLoading(false);
@@ -79,119 +83,141 @@ const LeaveManagement = () => {
 
     fetchLeaveStats();
   }, []);
- 
+
   // Check for admin rights and fetch leaves ending today
-  useEffect(() => { 
+  useEffect(() => {
     if (userInfo.teacher) {
       setCurrentTeacherId(userInfo.teacher.teacherId);
     } else {
       setCurrentTeacherId(null);
     }
-    
+
     // Check if user is an admin
-    const adminRights = userInfo.role === 'admin';
+    const adminRights = userInfo.role === "admin";
     setIsAdmin(adminRights);
-    
+
     // If admin, fetch leaves ending today for status updates
     if (adminRights) {
       fetchLeavesEndingToday();
     }
-    
+
     //console.log('Current user info:', userInfo);
   }, []);
 
   // Comprehensive stats calculation
   const fetchComprehensiveStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       // Get all leave requests with different statuses
-      const allLeavesResponse = await axios.get("/backend/api/leaves", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        params: { 
-          limit: 1000 // Fetch a high number to get all records
+      const allLeavesResponse = await axios.get(
+        "/backend/api/leaves",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          params: {
+            limit: 1000, // Fetch a high number to get all records
+          },
         }
-      });
-      
+      );
+
       const leaves = allLeavesResponse.data.results || [];
-      
+      console.log(leaves);
       // Count different stats
-      const pending = leaves.filter(leave => leave.status === 'pending').length;
-      const approved = leaves.filter(leave => leave.status === 'approved').length;
-      const rejected = leaves.filter(leave => leave.status === 'rejected').length;
-      
+      const pending = leaves.filter(
+        (leave) => leave.status === "pending"
+      ).length;
+      const approved = leaves.filter(
+        (leave) => leave.status === "approved"
+      ).length;
+      const rejected = leaves.filter(
+        (leave) => leave.status === "rejected"
+      ).length;
+
       // Get teachers currently on leave
-      const today = new Date().toISOString().split('T')[0];
-      const teachersOnLeave = leaves.filter(leave => 
-        leave.status === 'approved' && 
-        new Date(leave.start_date) <= new Date(today) && 
-        new Date(leave.end_date) >= new Date(today)
+      const today = new Date().toISOString().split("T")[0];
+      const teachersOnLeave = leaves.filter(
+        (leave) =>
+          leave.status === "approved" &&
+          new Date(leave.start_date) <= new Date(today) &&
+          new Date(leave.end_date) >= new Date(today)
       ).length;
-      
+      console.log(
+        leaves.filter(
+          (leave) =>
+            leave.status === "approved" &&
+            new Date(leave.start_date) <= new Date(today) &&
+            new Date(leave.end_date) >= new Date(today)
+        )
+      );
       // Get leaves ending today
-      const leavesEndingToday = leaves.filter(leave => 
-        leave.status === 'approved' && 
-        leave.end_date === today
+      const leavesEndingToday = leaves.filter(
+        (leave) => leave.status === "approved" && leave.end_date === today
       ).length;
-      
+
       // If user is a teacher, fetch their leave balances
       let balance = 0;
       if (currentTeacherId) {
         try {
-          const balanceResponse = await axios.get(`/backend/api/leaves/balances/${currentTeacherId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
+          const balanceResponse = await axios.get(
+            `/backend/api/leaves/balances/${currentTeacherId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
             }
-          });
-          
+          );
+
           const balances = balanceResponse.data || [];
-          console.log(balanceResponse)
+          console.log(balanceResponse);
           setLeaveBalances(balances);
-          
+
           // Find annual leave balance
-          const annualLeave = balances.find(b => b.leave_type_name === 'Annual Leave');
+          const annualLeave = balances.find(
+            (b) => b.leave_type_name === "Annual Leave"
+          );
           if (annualLeave) {
             balance = annualLeave.remaining_days;
           }
-          
+
           // Calculate leave utilization (used days ÷ total days × 100)
           let totalDays = 0;
           let usedDays = 0;
-          
-          balances.forEach(b => {
+
+          balances.forEach((b) => {
             totalDays += parseInt(b.total_days);
             usedDays += parseInt(b.used_days);
           });
-          
-          const leaveUtilization = totalDays > 0 ? Math.round((usedDays / totalDays) * 100) : 0;
-          
+
+          const leaveUtilization =
+            totalDays > 0 ? Math.round((usedDays / totalDays) * 100) : 0;
+
           // Update stats with the calculated values
           setLeaveStats({
             pending,
-            approved, 
+            approved,
             rejected,
             balance,
             teachersOnLeave,
             leavesEndingToday,
             leaveUtilization,
-            totalLeaveRequests: leaves.length
+            totalLeaveRequests: leaves.length,
           });
         } catch (err) {
           console.error("Error fetching leave balances:", err);
-          
+
           // Still update the other stats
-          setLeaveStats(prev => ({
+          setLeaveStats((prev) => ({
             ...prev,
             pending,
             approved,
             rejected,
             teachersOnLeave,
             leavesEndingToday,
-            totalLeaveRequests: leaves.length
+            totalLeaveRequests: leaves.length,
           }));
         }
       } else {
@@ -204,10 +230,9 @@ const LeaveManagement = () => {
           teachersOnLeave,
           leavesEndingToday,
           leaveUtilization: 0,
-          totalLeaveRequests: leaves.length
+          totalLeaveRequests: leaves.length,
         });
       }
-      
     } catch (err) {
       console.error("Error fetching comprehensive stats:", err);
       setError("Failed to load leave statistics");
@@ -217,18 +242,21 @@ const LeaveManagement = () => {
   // Fetch leaves that are ending today (for admin status updates)
   const fetchLeavesEndingToday = async () => {
     try {
-      const response = await axios.get("/backend/api/leaves/ending-today", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const response = await axios.get(
+        "/backend/api/leaves/ending-today",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
-      
+      );
+
       if (response.data.success) {
         setLeavesEndingToday(response.data.results || []);
-        setLeaveStats(prev => ({
+        setLeaveStats((prev) => ({
           ...prev,
-          leavesEndingToday: response.data.results.length
+          leavesEndingToday: response.data.results.length,
         }));
       }
     } catch (err) {
@@ -246,7 +274,7 @@ const LeaveManagement = () => {
         if (!isAdmin && currentTeacherId) {
           params.teacher_id = currentTeacherId;
         }
-         
+
         const response = await axios.get("/backend/api/leaves", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -255,7 +283,7 @@ const LeaveManagement = () => {
           params: params,
         });
         setLeaveRequests(response.data.results);
-        
+
         // Also fetch stats
         fetchLeaveStats();
       } catch (err) {
@@ -276,7 +304,6 @@ const LeaveManagement = () => {
     try {
       // This can re-use the comprehensive stats function to ensure all stats are up to date
       await fetchComprehensiveStats();
-      
     } catch (err) {
       console.error("Error fetching leave stats:", err);
     }
@@ -297,8 +324,8 @@ const LeaveManagement = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -310,7 +337,10 @@ const LeaveManagement = () => {
         setError(response.data.message || "Failed to update teacher statuses");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "An error occurred updating teacher statuses");
+      setError(
+        err.response?.data?.message ||
+          "An error occurred updating teacher statuses"
+      );
       console.error("Error updating teacher statuses:", err);
     } finally {
       setStatusUpdateLoading(false);
@@ -333,8 +363,8 @@ const LeaveManagement = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -345,8 +375,10 @@ const LeaveManagement = () => {
         )
       );
 
-      // Show success message 
-      setSuccessMessage("Leave request approved successfully. Teacher status will be updated to 'on_leave'.");
+      // Show success message
+      setSuccessMessage(
+        "Leave request approved successfully. Teacher status will be updated to 'on_leave'."
+      );
 
       // Refresh stats
       fetchLeaveStats();
@@ -355,7 +387,7 @@ const LeaveManagement = () => {
       setShowApprovalModal(false);
       setSelectedLeave(null);
       setApprovalAction(null);
-      
+
       // After a short delay, clear success message
       setTimeout(() => {
         setSuccessMessage(null);
@@ -381,8 +413,8 @@ const LeaveManagement = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -410,7 +442,7 @@ const LeaveManagement = () => {
   const handleLeaveSubmission = async (formData) => {
     try {
       await axios.post(
-        "/backend/api/leaves", 
+        "/backend/api/leaves",
         {
           ...formData,
           teacher_id: userInfo.teacher.teacher_id,
@@ -418,8 +450,8 @@ const LeaveManagement = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -428,7 +460,7 @@ const LeaveManagement = () => {
       fetchLeaveStats();
       setShowRequestModal(false);
       setSuccessMessage("Leave request submitted successfully.");
-      
+
       // After a short delay, clear success message
       setTimeout(() => {
         setSuccessMessage(null);
@@ -447,7 +479,7 @@ const LeaveManagement = () => {
       icon: Clock,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
-      description: "Leave requests awaiting approval"
+      description: "Leave requests awaiting approval",
     },
     {
       title: "Approved Leaves",
@@ -455,7 +487,7 @@ const LeaveManagement = () => {
       icon: CheckCircle,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      description: "Total leaves approved"
+      description: "Total leaves approved",
     },
     {
       title: isAdmin ? "Teachers on Leave" : "Leave Balance",
@@ -463,16 +495,18 @@ const LeaveManagement = () => {
       icon: isAdmin ? Users : Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: isAdmin ? "Currently on leave" : "Available leave days"
+      description: isAdmin ? "Currently on leave" : "Available leave days",
     },
     {
       title: isAdmin ? "Leaves Ending Today" : "Leave Utilization",
-      count: isAdmin ? leaveStats.leavesEndingToday : `${leaveStats.leaveUtilization}%`,
+      count: isAdmin
+        ? leaveStats.leavesEndingToday
+        : `${leaveStats.leaveUtilization}%`,
       icon: isAdmin ? CalendarIcon : Briefcase,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
-      description: isAdmin ? "Returns expected today" : "Of total leave used"
-    }
+      description: isAdmin ? "Returns expected today" : "Of total leave used",
+    },
   ];
 
   return (
@@ -491,7 +525,10 @@ const LeaveManagement = () => {
       {successMessage && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
           {successMessage}
-          <button className="float-right" onClick={() => setSuccessMessage(null)}>
+          <button
+            className="float-right"
+            onClick={() => setSuccessMessage(null)}
+          >
             &times;
           </button>
         </div>
@@ -520,7 +557,7 @@ const LeaveManagement = () => {
             <h3 className="font-medium text-gray-800">
               Leaves Ending Today ({leavesEndingToday.length})
             </h3>
-            <button 
+            <button
               onClick={handleUpdateTeacherStatuses}
               disabled={statusUpdateLoading}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -538,7 +575,7 @@ const LeaveManagement = () => {
               )}
             </button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -558,10 +595,14 @@ const LeaveManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {leavesEndingToday.map(leave => (
+                {leavesEndingToday.map((leave) => (
                   <tr key={leave.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">{leave.teacher_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{leave.leave_type_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {leave.teacher_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {leave.leave_type_name}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {new Date(leave.end_date).toLocaleDateString()}
                     </td>
@@ -579,49 +620,70 @@ const LeaveManagement = () => {
       )}
 
       {/* Teacher-only section: Leave balances breakdown */}
-      {!isAdmin && leaveBalances.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="font-medium text-gray-800 mb-4">
-            Your Leave Balances
-          </h3>
-          
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Leave Type
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Used
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Remaining
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {leaveBalances.map(balance => (
-                  <tr key={balance.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                      {balance.leave_type_name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {balance.total_days} days
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {balance.used_days} days
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-green-600">
-                      {balance.remaining_days} days
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {leaveBalances.length > 0 && (
+        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+          <div className="flex justify-between m-2">
+            <h3 className="text-lg font-semibold text-gray-800 mb-5">
+              Your Leave Balances
+            </h3>
+            <button
+              onClick={() => setShowRequestModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Request Leave</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 mb-2">
+            {leaveBalances.map((balance) => (
+              <div
+                key={balance.id}
+                className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-800">
+                    {balance.leave_type_name}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-gray-500">Total</span>
+                      <span className="font-medium">
+                        {balance.total_days} days
+                      </span>
+                    </div>
+                    <div className="h-8 border-r border-gray-300 mx-1"></div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-gray-500">Used</span>
+                      <span className="font-medium">
+                        {balance.used_days} days
+                      </span>
+                    </div>
+                    <div className="h-8 border-r border-gray-300 mx-1"></div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-gray-500">Remaining</span>
+                      <span className="font-medium text-green-600">
+                        {balance.remaining_days} days
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 bg-white rounded-lg overflow-hidden">
+                  <div className="h-2 bg-gray-200 w-full">
+                    <div
+                      className="h-full bg-green-500"
+                      style={{
+                        width: `${
+                          (balance.remaining_days / balance.total_days) * 100
+                        }%`,
+                        transition: "width 1s ease-in-out",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -640,15 +702,6 @@ const LeaveManagement = () => {
             <option value="rejected">Rejected</option>
           </select>
         </div>
-
-        <button
-          onClick={() => setShowRequestModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          disabled={loading}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Request Leave</span>
-        </button>
       </div>
 
       {/* Leave Requests Table */}
@@ -667,7 +720,7 @@ const LeaveManagement = () => {
         <RequestLeaveModal
           isOpen={showRequestModal}
           onClose={() => setShowRequestModal(false)}
-          onSubmit={handleLeaveSubmission} 
+          onSubmit={handleLeaveSubmission}
           teacherId={currentTeacherId}
         />
       )}

@@ -84,10 +84,6 @@ const IncidentList = ({
     return <div className="p-4 text-center">Loading incidents...</div>;
   }
 
-  if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>;
-  }
-
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">

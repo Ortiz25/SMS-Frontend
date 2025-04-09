@@ -6,7 +6,8 @@ import {
   Key,
   Bell,
   ArrowLeftToLine,
-  BookOpen
+  BookOpen,
+  School
 } from "lucide-react";
 import UserManagement from "../components/userMgt";
 import AcademicSettings from "../components/academicSettings";
@@ -34,7 +35,7 @@ const menuItems = [
   {
     id: "structure",
     label: "School Structure",
-    icon: Bell,
+    icon: School,
     subItems: [],
   },
   // {

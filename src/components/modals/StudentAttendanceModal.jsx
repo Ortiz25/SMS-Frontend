@@ -340,10 +340,10 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
                   <h3 className="text-lg font-medium">
                     Recent Attendance Records
                   </h3>
-                  <button className="flex items-center space-x-2 px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-50">
+                  {/* <button className="flex items-center space-x-2 px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-50">
                     <Download className="h-4 w-4" />
                     <span>Export</span>
-                  </button>
+                  </button> */}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">

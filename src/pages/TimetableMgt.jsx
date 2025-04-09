@@ -296,19 +296,6 @@ const TimetableManagement = () => {
       if (timer) clearTimeout(timer);
     };
   }, [scheduleError, scheduleSuccess]);
-
-  if (error) {
-    return (
-      <Navbar>
-        <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-            Error loading timetable: {error.message}
-          </div>
-        </div>
-      </Navbar>
-    );
-  }
-
   return (
     <Navbar>
       <div className="min-h-screen bg-gray-50 p-4 lg:p-8">

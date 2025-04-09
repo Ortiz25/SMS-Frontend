@@ -36,7 +36,7 @@ const StudentManagement = () => {
   const [showStudentAttendanceModal, setShowStudentAttendanceModal] =
     useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [studentData, updateStudentData] = useState(data);
+  const [studentData, updateStudentData] = useState(data || []);
   // Pagination state
   const [itemsPerPage, setItemsPerPage] = useState(
     parseInt(searchParams.get("perPage") || "10")
@@ -896,6 +896,6 @@ export async function loader({ params, request }) {
     return data;
   } catch (error) {
     console.error("Error fetching detailed student data:", error);
-    return redirect("/");
+    return [];
   }
 }

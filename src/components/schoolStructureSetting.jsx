@@ -10,6 +10,7 @@ import {
   Clock,
   Home,
   Save,
+  School,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -24,7 +25,9 @@ const SchoolStructureTab = () => {
 
   // Token from localStorage
   const token = localStorage.getItem("token");
-  if(user.role !== "admin"){return null}
+  if (user.role !== "admin") {
+    return null;
+  }
   return (
     <div className="p-2 sm:p-4">
       <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">
@@ -232,10 +235,19 @@ const DepartmentTab = () => {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
-        <h3 className="text-xl font-semibold">Department Configuration</h3>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <span className="bg-purple-100 text-purple-700 p-2 rounded-lg">
+            🏛️
+          </span>{" "}
+          Department Configuration
+        </h3>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto"
+          className={`px-4 py-2.5 rounded-lg font-medium ${
+            showForm
+              ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              : "bg-purple-600 text-white hover:bg-purple-700"
+          } shadow-sm hover:shadow-md transition duration-200 flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto`}
           onClick={() => {
             setEditingDepartment(null);
             setFormData({
@@ -258,15 +270,18 @@ const DepartmentTab = () => {
 
       {/* Department Form */}
       {showForm && (
-        <div className="bg-gray-50 p-4 mb-6 rounded-lg border border-gray-200">
-          <h4 className="text-lg font-medium mb-4">
+        <div className="bg-purple-50 p-5 mb-8 rounded-xl border border-purple-200 shadow-sm animate-fadeIn">
+          <h4 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
+            <span className="bg-purple-200 p-1.5 rounded-md text-purple-700">
+              {editingDepartment ? <Edit size={16} /> : <Plus size={16} />}
+            </span>
             {editingDepartment ? "Edit Department" : "Add New Department"}
           </h4>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="name"
                 >
                   Department Name
@@ -277,13 +292,14 @@ const DepartmentTab = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition duration-150"
+                  placeholder="e.g., Mathematics, Science, Arts"
                   required
                 />
               </div>
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="head_teacher_id"
                 >
                   Department Head
@@ -293,7 +309,7 @@ const DepartmentTab = () => {
                   name="head_teacher_id"
                   value={formData.head_teacher_id}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition duration-150"
                 >
                   <option value="">Select Department Head</option>
                   {teachers.map((teacher) => (
@@ -305,7 +321,7 @@ const DepartmentTab = () => {
               </div>
               <div className="sm:col-span-2">
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="description"
                 >
                   Description
@@ -315,15 +331,16 @@ const DepartmentTab = () => {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition duration-150"
                   rows="3"
+                  placeholder="Brief description of the department's focus and responsibilities"
                 ></textarea>
               </div>
             </div>
             <div className="flex justify-end">
               <button
                 type="submit"
-                className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md ${
+                className={`bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md transition duration-200 ${
                   submitting ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={submitting}
@@ -340,122 +357,174 @@ const DepartmentTab = () => {
       )}
 
       {/* Departments Table */}
-      {loading ? (
-        <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      ) : (
-        <>
-          {/* Desktop and tablet view */}
-          <div className="hidden sm:block overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-4 text-left">Department Name</th>
-                  <th className="py-3 px-4 text-left">Department Head</th>
-                  <th className="py-3 px-4 text-left">Description</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {departments.length === 0 ? (
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="bg-purple-100 text-purple-700 p-1.5 rounded-md">
+            📋
+          </span>{" "}
+          Departments
+        </h4>
+
+        {loading ? (
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-3 border-t-transparent border-purple-600"></div>
+          </div>
+        ) : (
+          <>
+            {/* Desktop and tablet view */}
+            <div className="hidden sm:block overflow-hidden rounded-xl border border-purple-200 shadow-sm">
+              <table className="w-full bg-white">
+                <thead className="bg-purple-50">
                   <tr>
-                    <td
-                      colSpan="4"
-                      className="py-4 px-4 text-center text-gray-500"
-                    >
-                      No departments found. Add your first department to get
-                      started.
-                    </td>
+                    <th className="py-3.5 px-5 text-left text-sm font-semibold text-purple-800 border-b border-purple-100">
+                      Department Name
+                    </th>
+                    <th className="py-3.5 px-5 text-left text-sm font-semibold text-purple-800 border-b border-purple-100">
+                      Department Head
+                    </th>
+                    <th className="py-3.5 px-5 text-left text-sm font-semibold text-purple-800 border-b border-purple-100">
+                      Description
+                    </th>
+                    <th className="py-3.5 px-5 text-center text-sm font-semibold text-purple-800 border-b border-purple-100 w-40">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  departments.map((department) => (
-                    <tr key={department.id}>
-                      <td className="py-3 px-4">{department.name}</td>
-                      <td className="py-3 px-4">
-                        {getTeacherName(department.head_teacher_id)}
-                      </td>
-                      <td className="py-3 px-4">
-                        {department.description || "No description"}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            onClick={() => handleEdit(department)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Edit department"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(department.id)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Delete department"
-                          >
-                            <Trash size={18} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-purple-100">
+                  {departments.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="py-8 px-5 text-center text-gray-500 italic bg-white"
+                      >
+                        No departments found. Add your first department to get
+                        started.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile view - Card layout */}
-          <div className="sm:hidden space-y-4">
-            {departments.length === 0 ? (
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
-                No departments found. Add your first department to get started.
-              </div>
-            ) : (
-              departments.map((department) => (
-                <div
-                  key={department.id}
-                  className="bg-white p-4 rounded-lg border border-gray-200"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium">{department.name}</h4>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleEdit(department)}
-                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                  ) : (
+                    departments.map((department) => (
+                      <tr
+                        key={department.id}
+                        className="hover:bg-purple-50 transition duration-150"
                       >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(department.id)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                      >
-                        <Trash size={16} />
-                      </button>
-                    </div>
-                  </div>
+                        <td className="py-4 px-5 font-medium text-gray-800">
+                          {department.name}
+                        </td>
+                        <td className="py-4 px-5 text-gray-700">
+                          {getTeacherName(department.head_teacher_id) ? (
+                            <div className="flex items-center gap-2">
+                              <span className="bg-blue-100 text-blue-700 p-1 rounded-full">
+                                👤
+                              </span>
+                              {getTeacherName(department.head_teacher_id)}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic">
+                              Not assigned
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-5 text-gray-600">
+                          {department.description || (
+                            <span className="text-gray-400 italic">
+                              No description
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-5">
+                          <div className="flex justify-center gap-3">
+                            <button
+                              onClick={() => handleEdit(department)}
+                              className="p-1.5 text-purple-600 hover:bg-purple-100 rounded-lg transition"
+                              title="Edit department"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(department.id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                              title="Delete department"
+                            >
+                              <Trash size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-500">Head:</span>{" "}
-                      {getTeacherName(department.head_teacher_id) ||
-                        "Not assigned"}
-                    </div>
-                    {department.description && (
+            {/* Mobile view - Card layout */}
+            <div className="sm:hidden space-y-4">
+              {departments.length === 0 ? (
+                <div className="bg-white border border-purple-200 text-gray-500 rounded-xl p-5 text-center shadow-sm">
+                  No departments found. Add your first department to get
+                  started.
+                </div>
+              ) : (
+                departments.map((department) => (
+                  <div
+                    key={department.id}
+                    className="bg-white p-5 rounded-xl border border-purple-200 shadow-sm hover:shadow-md transition duration-200"
+                  >
+                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <span className="font-medium text-gray-500">
-                          Description:
-                        </span>
-                        <p className="mt-1 text-gray-700">
+                        <h4 className="font-semibold text-gray-800 text-lg">
+                          {department.name}
+                        </h4>
+                        <div className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                          <span>
+                            {getTeacherName(department.head_teacher_id) ? (
+                              <span className="flex items-center gap-1">
+                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 text-xs rounded-full">
+                                  Department Head
+                                </span>
+                                {getTeacherName(department.head_teacher_id)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 italic text-xs">
+                                No department head assigned
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full">
+                        Department
+                      </span>
+                    </div>
+
+                    {department.description && (
+                      <div className="mb-4 border-b border-gray-100 pb-3">
+                        <p className="text-sm text-gray-600">
                           {department.description}
                         </p>
                       </div>
                     )}
+
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleEdit(department)}
+                        className="flex items-center gap-1 text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(department.id)}
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Trash size={14} /> Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </>
-      )}
+                ))
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
@@ -745,11 +814,20 @@ const RoomsTab = () => {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <h3 className="text-xl font-semibold">Room & Facility Management</h3>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <span className="bg-indigo-100 text-indigo-700 p-2 rounded-lg">
+            🏢
+          </span>{" "}
+          Room & Facility Management
+        </h3>
         <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
           <button
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
+            className={`px-4 py-2.5 rounded-lg font-medium ${
+              showCategoryForm
+                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
+            } shadow-sm hover:shadow-md transition duration-200 flex items-center justify-center gap-2`}
             onClick={() => {
               setEditingCategory(null);
               setCategoryFormData({
@@ -769,7 +847,11 @@ const RoomsTab = () => {
             )}
           </button>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2"
+            className={`px-4 py-2.5 rounded-lg font-medium ${
+              showForm
+                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            } shadow-sm hover:shadow-md transition duration-200 flex items-center justify-center gap-2`}
             onClick={() => {
               setEditingRoom(null);
               setFormData({
@@ -800,15 +882,18 @@ const RoomsTab = () => {
 
       {/* Category Form */}
       {showCategoryForm && (
-        <div className="bg-green-50 p-4 mb-6 rounded-lg border border-green-200">
-          <h4 className="text-lg font-medium mb-4">
+        <div className="bg-emerald-50 p-5 mb-6 rounded-xl border border-emerald-200 shadow-sm animate-fadeIn">
+          <h4 className="text-lg font-semibold text-emerald-800 mb-4 flex items-center gap-2">
+            <span className="bg-emerald-200 p-1.5 rounded-md text-emerald-700">
+              {editingCategory ? <Edit size={16} /> : <Plus size={16} />}
+            </span>
             {editingCategory ? "Edit Room Category" : "Add New Room Category"}
           </h4>
           <form onSubmit={handleCategorySubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="category_name"
                 >
                   Category Name *
@@ -819,14 +904,14 @@ const RoomsTab = () => {
                   name="name"
                   value={categoryFormData.name}
                   onChange={handleCategoryInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition duration-150"
                   placeholder="e.g., Classroom, Laboratory, Office"
                   required
                 />
               </div>
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="category_description"
                 >
                   Description
@@ -837,7 +922,7 @@ const RoomsTab = () => {
                   name="description"
                   value={categoryFormData.description}
                   onChange={handleCategoryInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition duration-150"
                   placeholder="Brief description of this category"
                 />
               </div>
@@ -845,7 +930,7 @@ const RoomsTab = () => {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md transition duration-200"
               >
                 {editingCategory ? "Update Category" : "Save Category"}
               </button>
@@ -856,15 +941,18 @@ const RoomsTab = () => {
 
       {/* Room Form */}
       {showForm && (
-        <div className="bg-gray-50 p-4 mb-6 rounded-lg border border-gray-200">
-          <h4 className="text-lg font-medium mb-4">
+        <div className="bg-indigo-50 p-5 mb-6 rounded-xl border border-indigo-200 shadow-sm animate-fadeIn">
+          <h4 className="text-lg font-semibold text-indigo-800 mb-4 flex items-center gap-2">
+            <span className="bg-indigo-200 p-1.5 rounded-md text-indigo-700">
+              {editingRoom ? <Edit size={16} /> : <Plus size={16} />}
+            </span>
             {editingRoom ? "Edit Room" : "Add New Room"}
           </h4>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="room_number"
                 >
                   Room Number *
@@ -875,7 +963,7 @@ const RoomsTab = () => {
                   name="room_number"
                   value={formData.room_number}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   placeholder="e.g., R101, LAB1"
                   required
                 />
@@ -883,7 +971,7 @@ const RoomsTab = () => {
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="name"
                 >
                   Room Name *
@@ -894,7 +982,7 @@ const RoomsTab = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   placeholder="e.g., Main Hall, Physics Lab"
                   required
                 />
@@ -902,7 +990,7 @@ const RoomsTab = () => {
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="category_id"
                 >
                   Room Category
@@ -912,7 +1000,7 @@ const RoomsTab = () => {
                   name="category_id"
                   value={formData.category_id}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                 >
                   <option value="">Select Room Category</option>
                   {roomCategories.map((category) => (
@@ -925,7 +1013,7 @@ const RoomsTab = () => {
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="capacity"
                 >
                   Capacity
@@ -937,14 +1025,14 @@ const RoomsTab = () => {
                   value={formData.capacity}
                   onChange={handleInputChange}
                   min="0"
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   placeholder="Maximum number of people"
                 />
               </div>
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="building"
                 >
                   Building
@@ -955,14 +1043,14 @@ const RoomsTab = () => {
                   name="building"
                   value={formData.building}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   placeholder="e.g., Main Block, Science Block"
                 />
               </div>
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="floor"
                 >
                   Floor
@@ -973,7 +1061,7 @@ const RoomsTab = () => {
                   name="floor"
                   value={formData.floor}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   placeholder="e.g., Ground, First, 2nd"
                 />
               </div>
@@ -985,9 +1073,9 @@ const RoomsTab = () => {
                   name="is_lab"
                   checked={formData.is_lab}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600"
+                  className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-400"
                 />
-                <label className="ml-2 text-sm" htmlFor="is_lab">
+                <label className="ml-2 text-sm text-gray-700" htmlFor="is_lab">
                   This is a laboratory
                 </label>
               </div>
@@ -999,16 +1087,19 @@ const RoomsTab = () => {
                   name="is_available"
                   checked={formData.is_available}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600"
+                  className="h-4 w-4 text-indigo-600 rounded focus:ring-indigo-400"
                 />
-                <label className="ml-2 text-sm" htmlFor="is_available">
+                <label
+                  className="ml-2 text-sm text-gray-700"
+                  htmlFor="is_available"
+                >
                   Room is available for use
                 </label>
               </div>
 
               <div className="sm:col-span-2 lg:col-span-3">
                 <label
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-gray-700"
                   htmlFor="notes"
                 >
                   Notes
@@ -1018,7 +1109,7 @@ const RoomsTab = () => {
                   name="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition duration-150"
                   rows="2"
                   placeholder="Additional information about this room"
                 ></textarea>
@@ -1027,7 +1118,7 @@ const RoomsTab = () => {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md transition duration-200"
               >
                 {editingRoom ? "Update Room" : "Save Room"}
               </button>
@@ -1037,30 +1128,41 @@ const RoomsTab = () => {
       )}
 
       {/* Room Categories Section */}
-      <div className="mb-8">
-        <h4 className="text-lg font-medium mb-3">Room Categories</h4>
+      <div className="mb-10">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="bg-emerald-100 text-emerald-700 p-1.5 rounded-md">
+            📂
+          </span>{" "}
+          Room Categories
+        </h4>
         {loading ? (
-          <div className="flex justify-center my-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-3 border-t-transparent border-emerald-600"></div>
           </div>
         ) : (
           <>
             {/* Desktop/Tablet View for Categories */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-50">
+            <div className="hidden sm:block overflow-hidden rounded-xl border border-emerald-200 shadow-sm">
+              <table className="w-full bg-white">
+                <thead className="bg-emerald-50">
                   <tr>
-                    <th className="py-3 px-4 text-left">Category Name</th>
-                    <th className="py-3 px-4 text-left">Description</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
+                    <th className="py-3.5 px-5 text-left text-sm font-semibold text-emerald-800 border-b border-emerald-100">
+                      Category Name
+                    </th>
+                    <th className="py-3.5 px-5 text-left text-sm font-semibold text-emerald-800 border-b border-emerald-100">
+                      Description
+                    </th>
+                    <th className="py-3.5 px-5 text-center text-sm font-semibold text-emerald-800 border-b border-emerald-100 w-40">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-emerald-100">
                   {roomCategories.length === 0 ? (
                     <tr>
                       <td
                         colSpan="3"
-                        className="py-4 px-4 text-center text-gray-500"
+                        className="py-8 px-5 text-center text-gray-500 italic bg-white"
                       >
                         No room categories found. Add your first category to get
                         started.
@@ -1068,23 +1170,28 @@ const RoomsTab = () => {
                     </tr>
                   ) : (
                     roomCategories.map((category) => (
-                      <tr key={category.id}>
-                        <td className="py-3 px-4">{category.name}</td>
-                        <td className="py-3 px-4">
+                      <tr
+                        key={category.id}
+                        className="hover:bg-emerald-50 transition duration-150"
+                      >
+                        <td className="py-4 px-5 font-medium text-gray-800">
+                          {category.name}
+                        </td>
+                        <td className="py-4 px-5 text-gray-600">
                           {category.description || "No description"}
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="flex justify-center gap-2">
+                        <td className="py-4 px-5">
+                          <div className="flex justify-center gap-3">
                             <button
                               onClick={() => handleEditCategory(category)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition"
                               title="Edit category"
                             >
                               <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteCategory(category.id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
                               title="Delete category"
                             >
                               <Trash size={18} />
@@ -1099,9 +1206,9 @@ const RoomsTab = () => {
             </div>
 
             {/* Mobile View for Categories */}
-            <div className="sm:hidden space-y-3">
+            <div className="sm:hidden space-y-4">
               {roomCategories.length === 0 ? (
-                <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                <div className="bg-white border border-emerald-200 text-gray-500 rounded-xl p-5 text-center shadow-sm">
                   No room categories found. Add your first category to get
                   started.
                 </div>
@@ -1109,29 +1216,30 @@ const RoomsTab = () => {
                 roomCategories.map((category) => (
                   <div
                     key={category.id}
-                    className="bg-white p-4 rounded-lg border border-gray-200"
+                    className="bg-white p-5 rounded-xl border border-emerald-200 shadow-sm hover:shadow-md transition duration-200"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h5 className="font-medium">{category.name}</h5>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {category.description || "No description"}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleEditCategory(category)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(category.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
-                        >
-                          <Trash size={16} />
-                        </button>
-                      </div>
+                    <div className="font-semibold text-gray-800 mb-2 flex justify-between items-center">
+                      <span>{category.name}</span>
+                      <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full">
+                        Category
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4 border-b border-gray-100 pb-3">
+                      {category.description || "No description"}
+                    </p>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleEditCategory(category)}
+                        className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(category.id)}
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Trash size={14} /> Delete
+                      </button>
                     </div>
                   </div>
                 ))
@@ -1143,76 +1251,114 @@ const RoomsTab = () => {
 
       {/* Rooms Table */}
       <div>
-        <h4 className="text-lg font-medium mb-3">Rooms & Facilities</h4>
+        <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="bg-indigo-100 text-indigo-700 p-1.5 rounded-md">
+            🚪
+          </span>{" "}
+          Rooms & Facilities
+        </h4>
         {loading ? (
-          <div className="flex justify-center my-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center my-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-3 border-t-transparent border-indigo-600"></div>
           </div>
         ) : (
           <>
             {/* Desktop/Tablet View for Rooms */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-50">
+            <div className="hidden sm:block overflow-hidden rounded-xl border border-indigo-200 shadow-sm">
+              <table className="w-full bg-white">
+                <thead className="bg-indigo-50">
                   <tr>
-                    <th className="py-3 px-4 text-left">Room Number</th>
-                    <th className="py-3 px-4 text-left">Name</th>
-                    <th className="py-3 px-4 text-left">Category</th>
-                    <th className="py-3 px-4 text-left">Building</th>
-                    <th className="py-3 px-4 text-center">Capacity</th>
-                    <th className="py-3 px-4 text-center">Lab</th>
-                    <th className="py-3 px-4 text-center">Available</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
+                    <th className="py-3.5 px-4 text-left text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Room Number
+                    </th>
+                    <th className="py-3.5 px-4 text-left text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Name
+                    </th>
+                    <th className="py-3.5 px-4 text-left text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Category
+                    </th>
+                    <th className="py-3.5 px-4 text-left text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Building
+                    </th>
+                    <th className="py-3.5 px-4 text-center text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Capacity
+                    </th>
+                    <th className="py-3.5 px-4 text-center text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Lab
+                    </th>
+                    <th className="py-3.5 px-4 text-center text-sm font-semibold text-indigo-800 border-b border-indigo-100">
+                      Available
+                    </th>
+                    <th className="py-3.5 px-4 text-center text-sm font-semibold text-indigo-800 border-b border-indigo-100 w-40">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-indigo-100">
                   {rooms.length === 0 ? (
                     <tr>
                       <td
                         colSpan="8"
-                        className="py-4 px-4 text-center text-gray-500"
+                        className="py-8 px-5 text-center text-gray-500 italic bg-white"
                       >
                         No rooms found. Add your first room to get started.
                       </td>
                     </tr>
                   ) : (
                     rooms.map((room) => (
-                      <tr key={room.id}>
-                        <td className="py-3 px-4">{room.room_number}</td>
-                        <td className="py-3 px-4">{room.name}</td>
-                        <td className="py-3 px-4">
-                          {getCategoryName(room.category_id)}
+                      <tr
+                        key={room.id}
+                        className="hover:bg-indigo-50 transition duration-150"
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-800">
+                          {room.room_number}
                         </td>
-                        <td className="py-3 px-4">{room.building || "N/A"}</td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-4 px-4 text-gray-700">{room.name}</td>
+                        <td className="py-4 px-4">
+                          <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 text-xs rounded-full">
+                            {getCategoryName(room.category_id)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600">
+                          {room.building || "N/A"}
+                        </td>
+                        <td className="py-4 px-4 text-center text-gray-600">
                           {room.capacity || "Not set"}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-4 px-4 text-center">
                           {room.is_lab ? (
-                            <span className="text-green-600">Yes</span>
+                            <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
+                              Yes
+                            </span>
                           ) : (
-                            <span className="text-gray-400">No</span>
+                            <span className="inline-flex items-center justify-center bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs">
+                              No
+                            </span>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-4 px-4 text-center">
                           {room.is_available !== false ? (
-                            <span className="text-green-600">Yes</span>
+                            <span className="inline-flex items-center justify-center bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
+                              Available
+                            </span>
                           ) : (
-                            <span className="text-red-600">No</span>
+                            <span className="inline-flex items-center justify-center bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs">
+                              Unavailable
+                            </span>
                           )}
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="flex justify-center gap-2">
+                        <td className="py-4 px-4">
+                          <div className="flex justify-center gap-3">
                             <button
                               onClick={() => handleEditRoom(room)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition"
                               title="Edit room"
                             >
                               <Edit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteRoom(room.id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
                               title="Delete room"
                             >
                               <Trash size={18} />
@@ -1227,84 +1373,90 @@ const RoomsTab = () => {
             </div>
 
             {/* Mobile View for Rooms */}
-            <div className="sm:hidden space-y-3">
+            <div className="sm:hidden space-y-4">
               {rooms.length === 0 ? (
-                <div className="bg-white p-4 rounded-lg border border-gray-200 text-center text-gray-500">
+                <div className="bg-white border border-indigo-200 text-gray-500 rounded-xl p-5 text-center shadow-sm">
                   No rooms found. Add your first room to get started.
                 </div>
               ) : (
                 rooms.map((room) => (
                   <div
                     key={room.id}
-                    className="bg-white p-4 rounded-lg border border-gray-200"
+                    className="bg-white p-5 rounded-xl border border-indigo-200 shadow-sm hover:shadow-md transition duration-200"
                   >
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h5 className="font-medium">{room.name}</h5>
-                        <p className="text-sm text-gray-500">
+                        <div className="font-semibold text-gray-800 text-lg flex items-center gap-2">
                           {room.room_number}
-                        </p>
+                          {room.is_lab && (
+                            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 text-xs rounded-full">
+                              Lab
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">{room.name}</div>
                       </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleEditRoom(room)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRoom(room.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
-                        >
-                          <Trash size={16} />
-                        </button>
-                      </div>
+                      {room.is_available !== false ? (
+                        <span className="bg-green-100 text-green-700 px-2.5 py-1 text-xs rounded-full">
+                          Available
+                        </span>
+                      ) : (
+                        <span className="bg-red-100 text-red-700 px-2.5 py-1 text-xs rounded-full">
+                          Unavailable
+                        </span>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-500">Category:</span>
-                        <p>{getCategoryName(room.category_id)}</p>
+                    <div className="grid grid-cols-2 gap-3 mb-4 border-b border-gray-100 pb-3">
+                      <div className="text-xs text-gray-500">
+                        Category
+                        <div className="text-sm font-medium text-gray-700 mt-0.5">
+                          <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs rounded-full">
+                            {getCategoryName(room.category_id)}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-gray-500">Building:</span>
-                        <p>{room.building || "N/A"}</p>
+                      <div className="text-xs text-gray-500">
+                        Building
+                        <div className="text-sm font-medium text-gray-700 mt-0.5">
+                          {room.building || "N/A"}
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-gray-500">Capacity:</span>
-                        <p>{room.capacity || "Not set"}</p>
+                      <div className="text-xs text-gray-500">
+                        Capacity
+                        <div className="text-sm font-medium text-gray-700 mt-0.5">
+                          {room.capacity || "Not set"}
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-gray-500">Floor:</span>
-                        <p>{room.floor || "N/A"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-4 mt-2 text-sm">
-                      <div className="flex items-center">
-                        <span className="text-gray-500 mr-1">Lab:</span>
-                        {room.is_lab ? (
-                          <span className="text-green-600">Yes</span>
-                        ) : (
-                          <span className="text-gray-400">No</span>
-                        )}
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-gray-500 mr-1">Available:</span>
-                        {room.is_available !== false ? (
-                          <span className="text-green-600">Yes</span>
-                        ) : (
-                          <span className="text-red-600">No</span>
-                        )}
+                      <div className="text-xs text-gray-500">
+                        Floor
+                        <div className="text-sm font-medium text-gray-700 mt-0.5">
+                          {room.floor || "N/A"}
+                        </div>
                       </div>
                     </div>
 
                     {room.notes && (
-                      <div className="mt-2 text-sm">
-                        <span className="text-gray-500">Notes:</span>
+                      <div className="mb-4 text-sm border-b border-gray-100 pb-3">
+                        <span className="text-xs text-gray-500">Notes:</span>
                         <p className="mt-1 text-gray-600">{room.notes}</p>
                       </div>
                     )}
+
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleEditRoom(room)}
+                        className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRoom(room.id)}
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                      >
+                        <Trash size={14} /> Delete
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -1783,7 +1935,7 @@ const ClassesTab = () => {
 
       {/* Filter Controls */}
       <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
+        {/* <div>
           <label
             className="block text-sm font-medium mb-1"
             htmlFor="filter_session"
@@ -1807,9 +1959,9 @@ const ClassesTab = () => {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
-        <div>
+        {/* <div>
           <label
             className="block text-sm font-medium mb-1"
             htmlFor="filter_curriculum"
@@ -1820,16 +1972,14 @@ const ClassesTab = () => {
             id="filter_curriculum"
             name="filter_curriculum"
             className="w-full p-2 border rounded-md"
-            onChange={(e) => {
-              // Filter logic would go here
-            }}
+            onChange={(e) => setSearchTerm(e.target.value)}
             defaultValue=""
           >
             <option value="">All Curriculums</option>
             <option value="CBC">CBC</option>
             <option value="844">8-4-4</option>
           </select>
-        </div>
+        </div> */}
 
         <div>
           <label

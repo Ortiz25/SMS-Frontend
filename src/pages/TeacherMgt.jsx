@@ -18,6 +18,8 @@ import { redirect, useLoaderData } from "react-router-dom";
 
 const TeacherManagement = () => {
   const { activeModule, updateActiveModule } = useStore();
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("profiles");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -25,6 +27,11 @@ const TeacherManagement = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [teachers, updateTeachers] = useState();
   const data = useLoaderData();
+
+    useEffect(() => {
+      const adminRights = userInfo.role === "admin";
+      setIsAdmin(adminRights);
+    }, []);
 
   useEffect(() => {
     updateActiveModule("teachers");
@@ -101,7 +108,8 @@ const TeacherManagement = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center space-x-4">
+
+            {isAdmin && <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -113,7 +121,7 @@ const TeacherManagement = () => {
                 <Download className="h-5 w-5" />
                 <span>Export</span>
               </button> */}
-            </div>
+            </div>}
           </div>
 
           {/* Filters Panel */}

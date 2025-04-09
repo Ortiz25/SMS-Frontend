@@ -57,12 +57,13 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "stops") {
           // Fetch routes for stops
           const routesResponse = await fetch(
-            "/backend/api/hostel-transport/stops",
+            "/backend/api/hostel-transport/routes",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
           const routesData = await routesResponse.json();
+          console.log(routesData)
           setRoutes(routesData.routes || []);
         } else if (addType === "transport-allocations") {
           // Fetch active routes
@@ -133,13 +134,13 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       }
       // Transport endpoints
       else if (addType === "routes") {
-        endpoint = "/backend/api/transport/routes";
+        endpoint = "/backend/api/hostel-transport/routes";
         // Set default values
         if (!formData.status) formData.status = "active";
       } else if (addType === "stops") {
-        endpoint = "/backend/api/transport/stops";
+        endpoint = "/backend/api/hostel-transport/stops";
       } else if (addType === "transport-allocations") {
-        endpoint = "/backend/api/transport/allocations";
+        endpoint = "/backend/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
@@ -479,6 +480,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
   };
 
   const renderStopForm = () => {
+    console.log(routes)
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">

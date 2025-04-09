@@ -516,14 +516,6 @@ const FinanceDashboard = () => {
         </div>
       </Navbar>
     );
-  if (error)
-    return (
-      <Navbar>
-        <div className="flex justify-center items-center h-screen text-red-500 p-4">
-          {error}
-        </div>
-      </Navbar>
-    );
 
   const monthlyData = prepareMonthlyData();
   const paymentMethodData = preparePaymentMethodData();
