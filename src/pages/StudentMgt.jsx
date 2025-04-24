@@ -28,7 +28,7 @@ import axios from "axios";
 
 const StudentManagement = () => {
   const { data, count, success, error, message } = useLoaderData();
-  const { activeModule, updateActiveModule } = useStore();
+  const { activeModule, updateActiveModule, updateStudents} = useStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -359,6 +359,7 @@ const StudentManagement = () => {
 
   useEffect(() => {
     // Parse the perPage parameter from the URL and update state
+    updateStudents(data)
     const perPage = parseInt(searchParams.get("perPage") || "10");
     setItemsPerPage(perPage);
   }, [searchParams]);

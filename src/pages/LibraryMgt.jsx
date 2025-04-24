@@ -70,6 +70,8 @@ const LibraryManagement = () => {
     const borrowedCount = books.filter(
       (b) => b.id === book.id && b.borrower
     ).length;
+    console.log(books)
+    console.log(totalCopies, borrowedCount)
     return totalCopies - borrowedCount;
   };
 
@@ -400,10 +402,10 @@ const LibraryManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentBooks.map((book) => {
-                    // Calculate available copies
-                    const availableCopies = getAvailableCopies(book);
+                    console.log(book)
+                   
                     const isBorrowed =
-                      availableCopies < (book.total_copies || 0);
+                      book.copies_available < (book.total_copies || 0);
 
                     return (
                       <tr key={shortid.generate()}>
@@ -422,25 +424,25 @@ const LibraryManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <span
                             className={
-                              availableCopies === 0
+                              book.copies_availables === 0
                                 ? "text-red-600 font-medium"
                                 : ""
                             }
                           >
-                            {availableCopies}
+                            {book.copies_available}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                              availableCopies > 0
+                              book.copies_available> 0
                                 ? "bg-green-100 text-green-800"
                                 : isBorrowed
                                 ? "bg-orange-100 text-orange-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {availableCopies > 0
+                            {book.copies_available > 0
                               ? "Available"
                               : isBorrowed
                               ? "All Copies Borrowed"
@@ -462,7 +464,7 @@ const LibraryManagement = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                          {availableCopies > 0 && (
+                          {book.copies_available > 0 && (
                             <button
                               onClick={() => {
                                 setSelectedBook(book);

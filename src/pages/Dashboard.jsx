@@ -20,10 +20,11 @@ import {
   CheckCircle,
   MapPin,
   Layers,
+  CalendarClock,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import YearlyAttendanceChart from "../components/yearlyAttendance";
 import { redirect, useLoaderData } from "react-router-dom";
 import { format, formatDistance } from "date-fns";
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { updateActiveModule, activeModule } = useStore();
   const [performanceData, updatePerformanceData] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
   const [studentData, updateStudentData] = useState({
     total_students: 0,
     male_students: 0,
@@ -64,6 +66,9 @@ const Dashboard = () => {
   const [examinations, setExaminations] = useState([]);
   const [selectedExam, setSelectedExam] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [academicSessions, setAcademicSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [sessionDropdownOpen, setSessionDropdownOpen] = useState(false);
 
   useEffect(() => {
     // Initialize with default values, then update if data exists
@@ -94,12 +99,16 @@ const Dashboard = () => {
     }
   }, [data]);
 
+  // Split the useEffect into two separate effects:
+
+  // 1. First effect: Fetch academic sessions once when component mounts
   useEffect(() => {
-    setIsLoading(true);
-    const fetchData = async () => {
+    const fetchSessions = async () => {
+      if (!token) return;
+
       try {
-        const classesSummaryResponse = await fetch(
-          "/backend/api/dashboard/form-performance",
+        const sessionsResponse = await fetch(
+          "/backend/api/sessions/academic-sessions",
           {
             method: "GET",
             headers: {
@@ -109,6 +118,104 @@ const Dashboard = () => {
           }
         );
 
+        if (sessionsResponse.ok) {
+          const sessionsData = await sessionsResponse.json();
+
+          if (
+            !sessionsData ||
+            !sessionsData.data ||
+            !Array.isArray(sessionsData.data)
+          ) {
+            console.error("Invalid sessions data format:", sessionsData);
+            return;
+          }
+
+          // Format dates from ISO strings to more readable format
+          const formattedSessions = sessionsData.data.map((session) => ({
+            ...session,
+            // Format start_date
+            start_date: session.start_date
+              ? new Date(session.start_date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              : null,
+            // Format end_date
+            end_date: session.end_date
+              ? new Date(session.end_date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              : null,
+          }));
+
+          // Group sessions by year for better organization
+          const groupedSessions = formattedSessions.reduce((acc, session) => {
+            const year = session.year;
+            if (!acc[year]) {
+              acc[year] = [];
+            }
+            acc[year].push(session);
+            return acc;
+          }, {});
+
+          // For each year, sort terms in ascending order (Term 1, 2, 3)
+          Object.keys(groupedSessions).forEach((year) => {
+            groupedSessions[year].sort((a, b) => a.term - b.term);
+          });
+
+          const sortedSessions = Object.keys(groupedSessions)
+            .sort((a, b) => parseInt(b) - parseInt(a))
+            .flatMap((year) => groupedSessions[year]);
+
+          setAcademicSessions(sortedSessions);
+          console.log(academicSessions);
+          // Set the current session as default if it exists
+          const currentSession = sortedSessions.find(
+            (session) => session.is_current
+          );
+          if (currentSession) {
+            setSelectedSession(currentSession);
+          } else if (sortedSessions.length > 0) {
+            // Otherwise set the first (most recent) session
+            setSelectedSession(sortedSessions[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching academic sessions:", error);
+      }
+    };
+
+    fetchSessions();
+  }, [token]); // Only depends on token, runs once when component mounts
+
+  // 2. Second effect: Fetch performance data when selectedSession changes
+  // 2. Second effect: Fetch performance data when selectedSession changes
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        // Use selectedSession to filter if available
+        const url = selectedSession
+          ? `/backend/api/dashboard/form-performance?academicSessionId=${selectedSession.id}`
+          : "/backend/api/dashboard/form-performance";
+
+        const classesSummaryResponse = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
         if (!classesSummaryResponse.ok) {
           throw new Error(
             `HTTP error! Status: ${classesSummaryResponse.status}`
@@ -116,39 +223,67 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-       
+        console.log("Performance data:", classData);
 
-        // Store all examinations
-        if (classData.examinations && classData.examinations.length > 0) {
-          setExaminations(classData.examinations);
+        // Filter examinations by the selected session if one is selected
+        let filteredExaminations = classData.examinations;
+        if (
+          selectedSession &&
+          classData.examinations &&
+          classData.examinations.length > 0
+        ) {
+          filteredExaminations = classData.examinations.filter(
+            (exam) => exam.academicSessionId === selectedSession.id
+          );
+        }
+
+        // Store filtered examinations
+        if (filteredExaminations && filteredExaminations.length > 0) {
+          setExaminations(filteredExaminations);
           // Set first examination as default selected
-          setSelectedExam(classData.examinations[0]);
+          setSelectedExam(filteredExaminations[0]);
           // Use the formData from the first examination as performanceData
-          updatePerformanceData(classData.examinations[0].formData || []);
+          updatePerformanceData(filteredExaminations[0].formData || []);
         } else {
           updatePerformanceData([]);
+          setExaminations([]);
+          setSelectedExam(null);
         }
       } catch (error) {
-        console.error("Error fetching class data:", error);
+        console.error("Error fetching performance data:", error);
         updatePerformanceData([]);
         setExaminations([]);
+        setSelectedExam(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (token) {
-      fetchData();
-    } else {
-      setIsLoading(false);
-    }
-  }, [token]);
+    fetchPerformanceData();
+  }, [token, selectedSession]);
 
-  const handleExamSelection = (exam) => {
+  // 1. Memoize the session selection handler
+  const handleSessionSelection = useCallback((session) => {
+    setSelectedSession(session);
+    console.log(selectedSession);
+    setSessionDropdownOpen(false);
+  }, []);
+
+  // 2. Memoize the exam selection handler
+  const handleExamSelection = useCallback((exam) => {
     setSelectedExam(exam);
     updatePerformanceData(exam.formData || []);
     setDropdownOpen(false);
-  };
+  }, []);
+
+  // 3. Memoize the "all sessions" handler
+  const handleAllSessionsSelection = useCallback(() => {
+    setSelectedSession(null);
+    setSessionDropdownOpen(false);
+  }, []);
+
+  // 4. Add proper error state handling
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     updateActiveModule("overview");
@@ -228,6 +363,35 @@ const Dashboard = () => {
   return (
     <Navbar>
       <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium">Error loading data</h3>
+                <p className="text-sm mt-1">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
+                >
+                  Refresh page
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Quick Stats - First Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Students */}
@@ -460,6 +624,108 @@ const Dashboard = () => {
               <h3 className="text-lg font-extrabold text-gray-800">
                 Classes Performance Overview
               </h3>
+              {/* Academic Session Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setSessionDropdownOpen(!sessionDropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                >
+                  <Calendar className="h-4 w-4 text-indigo-600 group-hover:text-indigo-700" />
+                  <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">
+                    {selectedSession
+                      ? `${selectedSession.year} Term ${selectedSession.term}${
+                          selectedSession.is_current ? " (Current)" : ""
+                        }`
+                      : "All Sessions"}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-500 group-hover:text-indigo-700 transition-transform duration-200 ${
+                      sessionDropdownOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {sessionDropdownOpen && (
+                  <>
+                    {/* Backdrop for clicking outside */}
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setSessionDropdownOpen(false)}
+                    ></div>
+
+                    {/* Session Dropdown menu with animation */}
+                    <div
+                      className="absolute z-20 mt-2 w-64 rounded-lg border border-gray-200 shadow-lg bg-white overflow-hidden transition-all duration-200 animate-slideDown"
+                      style={{
+                        transformOrigin: "top center",
+                      }}
+                    >
+                      <div className="py-1 max-h-72 overflow-y-auto">
+                        (
+                        <button
+                          onClick={() =>
+                            setSessionDropdownOpen(!sessionDropdownOpen)
+                          }
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                        >
+                          <Calendar className="h-4 w-4 text-indigo-600 group-hover:text-indigo-700" />
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">
+                            {selectedSession
+                              ? `${selectedSession.year} Term ${
+                                  selectedSession.term
+                                }${
+                                  selectedSession.is_current ? " (Current)" : ""
+                                }`
+                              : "All Sessions"}
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 text-gray-500 group-hover:text-indigo-700 transition-transform duration-200 ${
+                              sessionDropdownOpen ? "transform rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+                        {academicSessions.map((session) => (
+                          <button
+                            key={session.id}
+                            onClick={() => handleSessionSelection(session)}
+                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 flex items-center justify-between ${
+                              selectedSession &&
+                              selectedSession.id === session.id
+                                ? "bg-blue-50/70 border-l-4 border-blue-500"
+                                : "border-l-4 border-transparent"
+                            }`}
+                          >
+                            <div className="flex items-center">
+                              <CalendarClock className="h-4 w-4 mr-2 text-gray-400" />
+                              <div className="flex flex-col">
+                                <span
+                                  className={`font-medium ${
+                                    selectedSession &&
+                                    selectedSession.id === session.id
+                                      ? "text-blue-700"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  {session.year} Term {session.term}
+                                </span>
+                                <span className="text-xs text-gray-500 mt-0.5">
+                                  {session.status.charAt(0).toUpperCase() +
+                                    session.status.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+                            {session.is_current && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                Current
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               {examinations.length > 0 && (
                 <div className="relative">
                   <button
@@ -570,92 +836,195 @@ const Dashboard = () => {
             </div>
             <Activity className="h-5 w-5 text-blue-600" />
           </div>
+          {/* Add this right after the title section in the performance overview section */}
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
             </div>
+          ) : examinations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50 rounded-lg border border-gray-200">
+              <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                No Examinations Available
+              </h3>
+              <p className="text-sm text-gray-500 max-w-md">
+                {selectedSession
+                  ? `No examinations found for ${selectedSession.year} Term ${selectedSession.term}. Please select a different academic session or check back later.`
+                  : "No examination data found across any sessions. Please check back later when examinations have been recorded."}
+              </p>
+            </div>
           ) : performanceData && performanceData.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-              {/* Add a card for overall average */}
-              {selectedExam && selectedExam.overallAverage && (
-                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
-                  <div className="space-y-2">
-                    <h4
-                      className="text-sm font-medium text-gray-700 truncate"
-                      title="Overall Average"
-                    >
-                      Overall Average
-                    </h4>
-                    <div className="flex items-center justify-between">
-                      <div className="text-xl font-bold text-blue-700">
-                        {selectedExam.overallAverage > 0
-                          ? `${selectedExam.overallAverage}%`
-                          : "-"}
-                      </div>
-                      <div>
-                        <div className="h-4 w-4 text-blue-600">•</div>
-                      </div>
+            <div className="space-y-6">
+              {/* Session & Exam Info Tags */}
+              {selectedExam && (
+                <div className="flex flex-wrap gap-3 items-center mb-4">
+                  {selectedSession && (
+                    <div className="px-3 py-1.5 bg-indigo-50 rounded-md border border-indigo-100 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-indigo-600" />
+                      <span className="text-xs font-medium text-indigo-800">
+                        {selectedSession.year} Term {selectedSession.term}
+                        {selectedSession.is_current ? " (Current)" : ""}
+                      </span>
                     </div>
-                    <p className="text-xs font-medium px-1.5 py-0.5 rounded-full inline-block bg-blue-100 text-blue-800">
-                      Exam Average
-                    </p>
+                  )}
+
+                  {!selectedSession && (
+                    <div className="px-3 py-1.5 bg-gray-50 rounded-md border border-gray-100 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-600" />
+                      <span className="text-xs font-medium text-gray-800">
+                        All Sessions
+                      </span>
+                    </div>
+                  )}
+
+                  {selectedExam.curriculumType && (
+                    <div className="px-3 py-1.5 bg-violet-50 rounded-md border border-violet-100 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-violet-600" />
+                      <span className="text-xs font-medium text-violet-800">
+                        {selectedExam.curriculumType === "CBC"
+                          ? "CBC Curriculum"
+                          : "8-4-4 Curriculum"}
+                      </span>
+                    </div>
+                  )}
+
+                  <div
+                    className={`px-3 py-1.5 rounded-md border flex items-center gap-2 ${
+                      selectedExam.status === "completed"
+                        ? "bg-green-50 border-green-100"
+                        : "bg-amber-50 border-amber-100"
+                    }`}
+                  >
+                    <Clock
+                      className={`h-4 w-4 ${
+                        selectedExam.status === "completed"
+                          ? "text-green-600"
+                          : "text-amber-600"
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-medium ${
+                        selectedExam.status === "completed"
+                          ? "text-green-800"
+                          : "text-amber-800"
+                      }`}
+                    >
+                      {selectedExam.status.charAt(0).toUpperCase() +
+                        selectedExam.status.slice(1)}
+                    </span>
                   </div>
                 </div>
               )}
 
-              {/* Original performance data cards */}
-              {performanceData.map((data) => (
-                <div
-                  key={data.form}
-                  className={`p-4 rounded-lg border ${
-                    data.status === "Above average"
-                      ? "border-green-200 bg-green-50"
-                      : data.status === "Below average"
-                      ? "border-red-200 bg-red-50"
-                      : "border-gray-200 bg-gray-50"
-                  }`}
-                >
-                  <div className="space-y-2">
-                    <h4
-                      className="text-sm font-medium text-gray-700 truncate"
-                      title={data.form}
-                    >
-                      {data.form}
-                    </h4>
-                    <div className="flex items-center justify-between">
-                      <div className="text-xl font-bold">
-                        {data.average > 0 ? `${data.average}%` : "-"}
+              {/* Performance Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                {/* Overall Average Card */}
+                {selectedExam && selectedExam.overallAverage && (
+                  <div className="p-4 rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="space-y-2">
+                      <h4
+                        className="text-sm font-medium text-gray-700 truncate"
+                        title="Overall Average"
+                      >
+                        Overall Average
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xl font-bold text-blue-700">
+                          {selectedExam.overallAverage > 0
+                            ? `${selectedExam.overallAverage}%`
+                            : "-"}
+                        </div>
+                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                          <Activity className="h-4 w-4 text-blue-600" />
+                        </div>
                       </div>
-                      <div>
-                        {data.trend === "up" && (
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                        )}
-                        {data.trend === "down" && (
-                          <TrendingDown className="h-4 w-4 text-red-600" />
-                        )}
-                        {data.trend === "stable" && (
-                          <div className="h-4 w-4 text-gray-400">-</div>
-                        )}
-                      </div>
+                      <p className="text-xs font-medium px-1.5 py-0.5 rounded-full inline-block bg-blue-100 text-blue-800">
+                        Exam Average
+                      </p>
                     </div>
-                    <p
-                      className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block ${
-                        data.status === "Above average"
-                          ? "bg-green-100 text-green-800"
-                          : data.status === "Below average"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {data.status}
-                    </p>
                   </div>
-                </div>
-              ))}
+                )}
+
+                {/* Class Performance Cards */}
+                {performanceData.map((data) => (
+                  <div
+                    key={data.form}
+                    className={`p-4 rounded-lg border hover:shadow-md transition-all duration-200 ${
+                      data.status === "Above average"
+                        ? "border-green-200 bg-gradient-to-br from-green-50 to-emerald-50"
+                        : data.status === "Below average"
+                        ? "border-red-200 bg-gradient-to-br from-red-50 to-rose-50"
+                        : data.status === "No data"
+                        ? "border-gray-200 bg-gradient-to-br from-gray-50 to-slate-50"
+                        : "border-gray-200 bg-gradient-to-br from-gray-50 to-slate-50"
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <h4
+                        className="text-sm font-medium text-gray-700 truncate"
+                        title={data.form}
+                      >
+                        {data.form}
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={`text-xl font-bold ${
+                            data.status === "Above average"
+                              ? "text-green-700"
+                              : data.status === "Below average"
+                              ? "text-red-700"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {data.average > 0 ? `${data.average}%` : "-"}
+                        </div>
+                        <div
+                          className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                            data.trend === "up"
+                              ? "bg-green-100"
+                              : data.trend === "down"
+                              ? "bg-red-100"
+                              : "bg-gray-100"
+                          }`}
+                        >
+                          {data.trend === "up" && (
+                            <TrendingUp className="h-4 w-4 text-green-600" />
+                          )}
+                          {data.trend === "down" && (
+                            <TrendingDown className="h-4 w-4 text-red-600" />
+                          )}
+                          {data.trend === "stable" && (
+                            <div className="h-4 w-4 text-gray-400">•</div>
+                          )}
+                        </div>
+                      </div>
+                      <p
+                        className={`text-xs font-medium px-1.5 py-0.5 rounded-full inline-block ${
+                          data.status === "Above average"
+                            ? "bg-green-100 text-green-800"
+                            : data.status === "Below average"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {data.status}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="text-center text-gray-500 py-8">
-              No performance data available
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center bg-gray-50 rounded-lg border border-gray-200">
+              <BookOpen className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                No Performance Data Available
+              </h3>
+              <p className="text-sm text-gray-500 max-w-md">
+                {selectedSession
+                  ? `No examination data found for ${selectedSession.year} Term ${selectedSession.term}. Please select a different academic session or check back later.`
+                  : "No examination data found across any sessions. Please check back later when examinations have been recorded."}
+              </p>
             </div>
           )}
         </div>

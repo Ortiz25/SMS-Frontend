@@ -156,11 +156,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
 
   const handleSubmit = (e) => {
     e.preventDefault();
-     console.log(formData)
     if (validateForm()) {
-      console.log(formData)
       onSave(formData);
-       setFormData(initialState);
+      setFormData(initialState);
       onClose();
     }
   };

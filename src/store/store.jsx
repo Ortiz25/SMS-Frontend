@@ -15,6 +15,8 @@ export const useStore = create((set) => ({
   changeRole: (value) => set({ role: value }),
   userName: {},
   changeUser: (value) => set({ userName: value }),
+  studentsData: [],
+  updateStudents: (value) => set({ studentsData: value }),
 }));
 
 // export const generatePassword = (length = 8) => {

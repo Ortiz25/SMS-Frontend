@@ -159,6 +159,7 @@ const TimetableManagement = () => {
 
         if (!teachersResponse.ok) throw new Error("Failed to fetch classes");
         const teachersData = await teachersResponse.json();
+        console.log(teachersData)
         setTeachers(teachersData.data);
       } catch (err) {
         console.error(err);
@@ -176,7 +177,6 @@ const TimetableManagement = () => {
       setScheduleError(null);
       setScheduleSuccess(null);
 
-      console.log(newSchedule);
       // API call to add a new schedule entry
       const response = await fetch("/backend/api/timetable/add", {
         method: "POST",
@@ -296,6 +296,7 @@ const TimetableManagement = () => {
       if (timer) clearTimeout(timer);
     };
   }, [scheduleError, scheduleSuccess]);
+
   return (
     <Navbar>
       <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
@@ -383,8 +384,8 @@ const TimetableManagement = () => {
                 className="px-3 py-2 border rounded-lg"
               >
                 <option value="all">All Classes</option>
-                {filterOptions.classes.map((c) => (
-                  <option key={c.id} value={c.id}>
+                {filterOptions.classes.map((c, index) => (
+                  <option key={`${c.id}-${index}`} value={c.id}>
                     {c.name}
                   </option>
                 ))}
@@ -396,8 +397,8 @@ const TimetableManagement = () => {
                 className="px-3 py-2 border rounded-lg"
               >
                 <option value="all">All Teachers</option>
-                {filterOptions.teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
+                {filterOptions.teachers.map((t,index) => (
+                  <option key={`${t.id}-${index}`} value={t.id}>
                     {t.name}
                   </option>
                 ))}
@@ -409,8 +410,8 @@ const TimetableManagement = () => {
                 className="px-3 py-2 border rounded-lg"
               >
                 <option value="all">All Rooms</option>
-                {filterOptions.rooms.map((r) => (
-                  <option key={r.name} value={r.name}>
+                {filterOptions.rooms.map((r,index) => (
+                  <option key={`${r.name}-${index}`} value={r.name}>
                     {r.name}
                   </option>
                 ))}
@@ -444,9 +445,9 @@ const TimetableManagement = () => {
         <div className="bg-white rounded-lg shadow-sm mb-6">
           <div className="border-b">
             <div className="flex overflow-x-auto">
-              {tabs.map((tab) => (
+              {tabs.map((tab,index) => (
                 <button
-                  key={tab.id}
+                  key={`${tab.id}-${index}`}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium whitespace-nowrap ${
                     activeTab === tab.id

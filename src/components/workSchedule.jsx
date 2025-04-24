@@ -338,15 +338,6 @@ const WorkloadSchedule = ({ teachers }) => {
     }
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg flex items-center">
-  //       <CheckCircle className="h-5 w-5 mr-2" />
-  //       Loading stats..
-  //     </div>
-  //   );
-  // }
-
 
   return (
     <div className="space-y-6">

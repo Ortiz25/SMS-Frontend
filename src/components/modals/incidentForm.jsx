@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { X, Save, AlertCircle, CheckCircle, Calendar, Clock, AlertTriangle, User } from "lucide-react";
 import LoadingSpinner from "../../util/loaderSpinner";
+import { useStore } from "../../store/store";
 
 const IncidentFormDialog = ({ 
   show, 
@@ -14,6 +16,7 @@ const IncidentFormDialog = ({
   actionStatusMappings = []
 }) => {
   const [localFormData, setLocalFormData] = useState(formData);
+  const { studentsData } = useStore();
   const [previewStatus, setPreviewStatus] = useState(null);
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [students, setStudents] = useState([]);
@@ -66,29 +69,70 @@ const IncidentFormDialog = ({
     
     setRequiresApproval(requiresHigherApproval);
   }, [localFormData]);
+  const searchStudent = async () => {
+    if (!localFormData.admissionNumber) return;
+    
+    try {
+      setSearchingStudent(true);
+      console.log(localFormData, studentsData)
+      // Find the student by admission number
+      const student = studentsData.find(
+        s => s.admissionNo.toLowerCase().trim() === localFormData.admissionNumber.toLowerCase().trim()
+      );
+      
+      if (student) {
+        // Update form with found student data
+        const updatedData = {
+          ...localFormData,
+          studentName: `${student.first_name} ${student.last_name}`,
+          grade: `${student.class} ${student.stream}`,
+          student_id: student.id
+        };
+        
+        setLocalFormData(updatedData);
+        setFormData(updatedData); // Sync with parent state
+      } else {
+        // Student not found
+        alert("Student not found with this admission number.");
+      }
+      
+      setSearchingStudent(false);
+    } catch (error) {
+      console.error("Error searching for student:", error);
+      setSearchingStudent(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
     // Handle checkboxes
     if (type === "checkbox") {
-      setLocalFormData({
+      const updatedData = {
         ...localFormData,
         [name]: checked
-      });
+      };
+      
+      setLocalFormData(updatedData);
       
       // If unchecking affectsStatus, clear status change fields
       if (name === "affectsStatus" && !checked) {
-        setLocalFormData({
-          ...localFormData,
+        const clearedData = {
+          ...updatedData,
           affectsStatus: false,
           statusChange: "",
           effectiveDate: new Date().toISOString().split('T')[0],
           endDate: "",
           autoRestore: true
-        });
+        };
+        setLocalFormData(clearedData);
+        setFormData(clearedData); // Sync with parent state
         setPreviewStatus(null);
+        return;
       }
+      
+      // Sync checkbox change with parent
+      setFormData(updatedData);
       return;
     }
     
@@ -105,10 +149,12 @@ const IncidentFormDialog = ({
         }
       } else {
         // If no handler provided, just update the action
-        setLocalFormData({
+        const updatedData = {
           ...localFormData,
           action: value
-        });
+        };
+        setLocalFormData(updatedData);
+        setFormData(updatedData); // Sync with parent state
       }
       return;
     }
@@ -119,44 +165,13 @@ const IncidentFormDialog = ({
     }
     
     // Handle all other fields
-    setLocalFormData({
+    const updatedData = {
       ...localFormData,
       [name]: value
-    });
-  };
-
-  // Search for student by admission number
-  const searchStudent = async () => {
-    if (!localFormData.admissionNumber) return;
+    };
     
-    try {
-      setSearchingStudent(true);
-      // In real implementation, this would call an API
-      // Mock implementation for now
-      setTimeout(() => {
-        // Mock student data
-        const student = {
-          id: 123,
-          first_name: "John",
-          last_name: "Doe",
-          admission_number: localFormData.admissionNumber,
-          current_class: "Grade 8",
-          stream: "B"
-        };
-        
-        setLocalFormData({
-          ...localFormData,
-          studentName: `${student.first_name} ${student.last_name}`,
-          grade: `${student.current_class} ${student.stream}`,
-          student_id: student.id
-        });
-        
-        setSearchingStudent(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Error searching for student:", error);
-      setSearchingStudent(false);
-    }
+    setLocalFormData(updatedData);
+    setFormData(updatedData); // Sync with parent state
   };
 
   const handleSubmit = (e) => {
@@ -199,7 +214,8 @@ const IncidentFormDialog = ({
       }
     }
     
-    // Pass the form data to the parent component
+    // Pass the form data to the parent component - this is redundant now
+    // since we're keeping them in sync, but keeping it for safety
     setFormData(localFormData);
     onSave();
   };

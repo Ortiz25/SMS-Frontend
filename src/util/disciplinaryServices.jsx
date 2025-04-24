@@ -95,7 +95,6 @@ const disciplinaryService = {
       end_date: incidentData.endDate,
       auto_restore: incidentData.autoRestore,
     };
-    console.log(apiData)
 
     const response = await axios.put(
       `${BASE_URL}/disciplinary/incidents/${id}`,

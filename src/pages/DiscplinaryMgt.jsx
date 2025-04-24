@@ -12,16 +12,35 @@ import { redirect } from "react-router-dom";
 
 const DisciplineMgt = () => {
   const { updateActiveModule } = useStore();
+  const [incidentForm, setIncidentForm] = useState({
+    studentName: "",
+    admissionNumber: "",
+    grade: "",
+    date: "",
+    type: "",
+    severity: "",
+    description: "",
+    location: "",
+    witnesses: "",
+    action: "",
+    status: "",
+    followUp: "",
+    // New fields for status change functionality
+    affectsStatus: false,
+    statusChange: "",
+    effectiveDate: new Date().toISOString().split('T')[0],
+    endDate: "",
+    autoRestore: true
+  });
 
   useEffect(() => {
     updateActiveModule("disciplinary");
-    
     // Fetch all incidents once when component mounts
     fetchAllIncidents();
     
     // Fetch status mapping data
     fetchStatusMappings();
-  }, [updateActiveModule]);
+  }, [updateActiveModule, incidentForm]);
 
   // State for incidents
   const [allIncidents, setAllIncidents] = useState([]);
@@ -45,26 +64,7 @@ const DisciplineMgt = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
   
-  const [incidentForm, setIncidentForm] = useState({
-    studentName: "",
-    admissionNumber: "",
-    grade: "",
-    date: "",
-    type: "",
-    severity: "",
-    description: "",
-    location: "",
-    witnesses: "",
-    action: "",
-    status: "Pending",
-    followUp: "",
-    // New fields for status change functionality
-    affectsStatus: false,
-    statusChange: "",
-    effectiveDate: new Date().toISOString().split('T')[0],
-    endDate: "",
-    autoRestore: true
-  });
+
 
   // Fetch status mappings data
   const fetchStatusMappings = async () => {
@@ -144,7 +144,6 @@ const DisciplineMgt = () => {
 
   const handleEditIncident = (incident) => {
     setIsEditing(true);
-    
     // Format the date correctly for the date input
     const formattedIncident = {
       ...incident,
@@ -183,7 +182,6 @@ const DisciplineMgt = () => {
   const handleSaveIncident = async () => {
     try {
       setFormLoading(true);
-      
       if (isEditing) {
         // Update existing incident
         const updatedIncident = await disciplinaryService.updateIncident(

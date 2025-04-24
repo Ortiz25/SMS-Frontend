@@ -27,7 +27,7 @@ const TeacherManagement = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [teachers, updateTeachers] = useState();
   const data = useLoaderData();
-
+    console.log(data)
     useEffect(() => {
       const adminRights = userInfo.role === "admin";
       setIsAdmin(adminRights);
@@ -220,8 +220,6 @@ export async function loader({ params, request }) {
       },
     });
 
-    // Log response status for debugging
-    //console.log("Response Status:", response.status);
 
     // Handle authentication failure
     if (response.status === 401 || response.status === 403) {
