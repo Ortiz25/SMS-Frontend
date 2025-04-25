@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
-const EditScheduleModal = ({ isOpen, onClose, onSave, scheduleData, teachers, subjects, rooms }) => {
+const EditScheduleModal = ({ isOpen, onClose, onSave, scheduleData, teachers, subjects, rooms, notification }) => {
   const [formData, setFormData] = useState({
     id: "",
     subject: "",
@@ -80,6 +80,18 @@ const EditScheduleModal = ({ isOpen, onClose, onSave, scheduleData, teachers, su
             <X className="h-5 w-5" />
           </button>
         </div>
+        {/* Notification */}
+      {notification && (
+        <div
+          className={`p-4 rounded-lg mb-4 ${
+            notification.type === "success"
+              ? "bg-green-50 text-green-700"
+              : "bg-red-50 text-red-700"
+          }`}
+        >
+          {notification.message}
+        </div>
+      )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -109,8 +121,8 @@ const EditScheduleModal = ({ isOpen, onClose, onSave, scheduleData, teachers, su
                 required
               >
                 <option value="">Select Teacher</option>
-                {teachers && teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.name}>
+                {teachers && teachers.map((teacher, index) => (
+                  <option key={`${teacher.id}-${index}`} value={teacher.name}>
                     {teacher.name}
                   </option>
                 ))}

@@ -159,7 +159,7 @@ const TimetableManagement = () => {
 
         if (!teachersResponse.ok) throw new Error("Failed to fetch classes");
         const teachersData = await teachersResponse.json();
-        console.log(teachersData)
+       
         setTeachers(teachersData.data);
       } catch (err) {
         console.error(err);

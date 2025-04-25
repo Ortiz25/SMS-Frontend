@@ -356,7 +356,7 @@ const LibraryManagement = () => {
             <div className="mt-6 flex gap-4 justify-between">
               <button
                 onClick={handleAddBook}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center cursor-pointer px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Book

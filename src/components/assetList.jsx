@@ -434,7 +434,7 @@ const AssetsList = ({ categoryFilter }) => {
         aria-hidden="true"
       ></div>
       <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center  mb-4">
           <h3 className="text-lg font-medium">Add New Asset</h3>
           <button
             onClick={closeModal}

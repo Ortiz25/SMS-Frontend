@@ -136,7 +136,7 @@ const TeacherProfiles = ({ teachers }) => {
         }
       );
 
-      console.log(response);
+    
     } catch (error) {
       console.error("Error updating teacher:", error);
     }
@@ -317,7 +317,7 @@ const TeacherProfiles = ({ teachers }) => {
               <select
                 value={recordsPerPage}
                 onChange={handleRecordsPerPageChange}
-                className="border rounded-md px-2 py-1 text-sm"
+                className="border rounded-md px-2 cursor-pointer py-1 text-sm"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -333,7 +333,7 @@ const TeacherProfiles = ({ teachers }) => {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`p-1 rounded-md ${
+                className={`p-1 rounded-md cursor-pointer ${
                   currentPage === 1
                     ? "text-gray-300 cursor-not-allowed"
                     : "text-gray-700 hover:bg-gray-100"
@@ -358,7 +358,7 @@ const TeacherProfiles = ({ teachers }) => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded-md text-sm ${
+                        className={`px-3 py-1 cursor-pointer rounded-md text-sm ${
                           currentPage === page
                             ? "bg-blue-600 text-white"
                             : "text-gray-700 hover:bg-gray-100"
@@ -388,7 +388,7 @@ const TeacherProfiles = ({ teachers }) => {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`p-1 rounded-md ${
+                className={`p-1 rounded-md cursor-pointer ${
                   currentPage === totalPages
                     ? "text-gray-300 cursor-not-allowed"
                     : "text-gray-700 hover:bg-gray-100"

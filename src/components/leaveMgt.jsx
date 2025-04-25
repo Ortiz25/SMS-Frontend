@@ -495,7 +495,7 @@ const LeaveManagement = () => {
       icon: isAdmin ? Users : Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: isAdmin ? "Currently on leave" : "Available leave days",
+      description: isAdmin ? "Currently on leave" : "Available Annual leave days",
     },
     {
       title: isAdmin ? "Leaves Ending Today" : "Leave Utilization",

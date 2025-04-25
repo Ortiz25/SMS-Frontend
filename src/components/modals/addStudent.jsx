@@ -454,7 +454,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-400 cursor-pointer hover:text-gray-500"
             >
               <X className="h-6 w-6" />
             </button>
@@ -925,18 +925,18 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         </div>
 
         {/* Form Actions */}
-        <div className="border-t px-6 py-4 bg-gray-50 flex justify-between space-x-4 rounded-b-lg">
+        <div className="border-t px-6 py-4 bg-gray-50  flex justify-between space-x-4 rounded-b-lg">
           <button
             type="button"
             onClick={() => setShowAddModal(false)}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 border rounded-lg"
             disabled={loading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
+            className="px-4 py-2 text-sm font-medium cursor-pointer text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
             disabled={loading}
           >
             {loading ? (

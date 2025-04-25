@@ -539,14 +539,14 @@ const StudentManagement = () => {
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <button
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 onClick={() => setShowAddModal(true)}
               >
                 <UserPlus className="h-5 w-5" />
                 <span>Add Student</span>
               </button>
               <button
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 onClick={() => setShowAttendanceModal(true)}
               >
                 <Cctv className="h-5 w-5" />
@@ -568,7 +568,7 @@ const StudentManagement = () => {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${
+                  className={`px-6 py-4 text-sm font-medium cursor-pointer whitespace-nowrap ${
                     activeTab === tab.id
                       ? "border-b-2 border-blue-600 text-blue-600"
                       : "text-gray-500 hover:text-gray-700"
@@ -711,7 +711,7 @@ const StudentManagement = () => {
                         <button
                           key={`size-${size}`}
                           onClick={() => handleItemsPerPageChange(size)}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm cursor-pointer ${
                             itemsPerPage === size
                               ? "bg-blue-600 text-white"
                               : "bg-white text-gray-600 hover:bg-gray-50"
@@ -728,7 +728,7 @@ const StudentManagement = () => {
                   <button
                     onClick={handlePrevPage}
                     disabled={currentPage === 1}
-                    className={`flex items-center justify-center w-8 h-8 border rounded mx-1 ${
+                    className={`flex items-center cursor-pointer justify-center w-8 h-8 border rounded mx-1 ${
                       currentPage === 1
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-600 hover:bg-gray-50"
@@ -749,7 +749,7 @@ const StudentManagement = () => {
                       <button
                         key={`page-${page}`}
                         onClick={() => goToPage(page)}
-                        className={`w-8 h-8 flex items-center justify-center rounded mx-1 ${
+                        className={`w-8 h-8 flex items-center cursor-pointer justify-center rounded mx-1 ${
                           currentPage === page
                             ? "bg-blue-600 text-white"
                             : "border text-gray-600 hover:bg-gray-50"
@@ -763,7 +763,7 @@ const StudentManagement = () => {
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className={`flex items-center justify-center w-8 h-8 border rounded mx-1 ${
+                    className={`flex items-center justify-center cursor-pointer w-8 h-8 border rounded mx-1 ${
                       currentPage === totalPages
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-600 hover:bg-gray-50"

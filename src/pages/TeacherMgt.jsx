@@ -27,7 +27,7 @@ const TeacherManagement = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [teachers, updateTeachers] = useState();
   const data = useLoaderData();
-    console.log(data)
+    
     useEffect(() => {
       const adminRights = userInfo.role === "admin";
       setIsAdmin(adminRights);
@@ -112,7 +112,7 @@ const TeacherManagement = () => {
             {isAdmin && <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <UserPlus className="h-5 w-5" />
                 <span>Add Teacher</span>
@@ -157,7 +157,7 @@ const TeacherManagement = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium whitespace-nowrap ${
+                  className={`flex items-center space-x-2 px-6 cursor-pointer py-4 text-sm font-medium whitespace-nowrap ${
                     activeTab === tab.id
                       ? "border-b-2 border-blue-600 text-blue-600"
                       : "text-gray-500 hover:text-gray-700"

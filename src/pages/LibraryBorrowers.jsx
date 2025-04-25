@@ -301,7 +301,7 @@ const Borrowers = () => {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter("all")}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium ${
+              className={`px-3 py-1.5 rounded-md cursor-pointer text-sm font-medium ${
                 filter === "all" 
                   ? "bg-blue-100 text-blue-800 border border-blue-200" 
                   : "bg-gray-100 text-gray-800"
@@ -311,7 +311,7 @@ const Borrowers = () => {
             </button>
             <button
               onClick={() => setFilter("active")}
-              className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${
+              className={`inline-flex items-center px-3 py-1.5 cursor-pointer rounded-md text-sm font-medium ${
                 filter === "active" 
                   ? "bg-green-100 text-green-800 border border-green-200" 
                   : "bg-gray-100 text-gray-800"
@@ -322,7 +322,7 @@ const Borrowers = () => {
             </button>
             <button
               onClick={() => setFilter("overdue")}
-              className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${
+              className={`inline-flex items-center px-3 py-1.5 cursor-pointer rounded-md text-sm font-medium ${
                 filter === "overdue" 
                   ? "bg-red-100 text-red-800 border border-red-200" 
                   : "bg-gray-100 text-gray-800"

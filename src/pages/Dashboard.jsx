@@ -99,7 +99,8 @@ const Dashboard = () => {
     }
   }, [data]);
 
-  // Split the useEffect into two separate effects:
+  const year = new Date().getFullYear();
+  console.log(year)
 
   // 1. First effect: Fetch academic sessions once when component mounts
   useEffect(() => {
@@ -223,7 +224,7 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-        console.log("Performance data:", classData);
+        
 
         // Filter examinations by the selected session if one is selected
         let filteredExaminations = classData.examinations;

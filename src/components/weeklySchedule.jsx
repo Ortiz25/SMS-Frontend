@@ -65,7 +65,8 @@ const WeeklySchedule = ({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update schedule");
+        const error = await response.json()
+        throw new Error(error.message);
       }
 
       // Show success notification
@@ -82,14 +83,11 @@ const WeeklySchedule = ({
       // Refetch the timetable data
       const refetchSuccess = await refetchTimetableData();
 
-      // if (!refetchSuccess) {
-      //   setScheduleSuccess("Schedule was added, but the timetable couldn't be refreshed. Please reload the page.");
-      // }
     } catch (error) {
-      console.error("Error updating schedule:", error);
+      console.error( error);
       setNotification({
         type: "error",
-        message: "Error updating schedule",
+        message:  error.message,
       });
     }
   };
@@ -354,7 +352,6 @@ const WeeklySchedule = ({
     if (isBreakTime(timeSlot)) return "(Break Time)";
     return "";
   };
-  console.log(timetableData);
   // Get all teachers for the legend
   const getAllTeachers = () => {
     if (!timetableData || !timetableData.teachers) return [];
@@ -500,6 +497,7 @@ const WeeklySchedule = ({
         onSave={handleEditSave}
         scheduleData={selectedSchedule}
         teachers={getAllTeachers()}
+        notification={notification}
       />
 
       {/* Delete Modal */}

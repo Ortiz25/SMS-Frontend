@@ -251,7 +251,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 cursor-pointer hover:text-gray-500"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -419,14 +419,14 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
+                  className="px-4 py-2 text-sm cursor-pointer font-medium text-gray-700 hover:bg-gray-100 border rounded-lg"
                   disabled={loading || saving}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
+                  className="px-4 py-2 text-sm cursor-pointer font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center"
                   disabled={loading || saving}
                 >
                   {saving ? (

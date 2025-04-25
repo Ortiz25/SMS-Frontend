@@ -461,7 +461,7 @@ const WorkloadSchedule = ({ teachers }) => {
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className="text-blue-600 cursor-pointer hover:text-blue-800 text-sm font-medium"
                       onClick={() => {
                         setSelectedTeacher(teacher);
                         setShowScheduleModal(true);
@@ -476,7 +476,7 @@ const WorkloadSchedule = ({ teachers }) => {
                         setSelectedTeacher(teacher);
                         setShowAssignModal(true);
                       }}
-                      className="flex items-center space-x-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                      className="flex items-center cursor-pointer space-x-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
                     >
                       <Plus className="h-4 w-4" />
                       <span>Assign</span>
