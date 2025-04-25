@@ -45,6 +45,7 @@ const LeaveManagement = () => {
     totalLeaveRequests: 0,
   });
   const [leaveBalances, setLeaveBalances] = useState([]);
+  console.log(leaveStats)
 
   useEffect(() => {
     const fetchLeaveStats = async () => {
@@ -144,6 +145,7 @@ const LeaveManagement = () => {
           new Date(leave.start_date) <= new Date(today) &&
           new Date(leave.end_date) >= new Date(today)
       ).length;
+      console.log(leaves)
       console.log(
         leaves.filter(
           (leave) =>

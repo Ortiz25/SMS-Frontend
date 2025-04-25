@@ -162,7 +162,7 @@ const DepartmentTab = () => {
           { headers }
         );
       } else {
-        response = await axios.post(`${BASE_URL}/departments`, formData, {
+        response = await axios.post(`${BASE_URL}/school-structure/departments`, formData, {
           headers,
         });
       }
@@ -211,7 +211,7 @@ const DepartmentTab = () => {
     }
 
     try {
-      const response = await axios.delete(`${BASE_URL}/departments/${id}`, {
+      const response = await axios.delete(`${BASE_URL}/school-structure/departments/${id}`, {
         headers,
       });
 

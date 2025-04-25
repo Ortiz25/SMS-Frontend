@@ -54,7 +54,6 @@ const SettingsModule = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedLog, setSelectedLog] = useState(null);
   const userData = useLoaderData()
-  console.log(userData)
 
   // Handlers for Log Modal
   const handleViewLog = (log) => {

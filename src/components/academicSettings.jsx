@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Calendar, BookOpen, GraduationCap, FileText } from "lucide-react";
+import { Calendar, BookOpen, GraduationCap, FileText, Book } from "lucide-react";
 
 // Import tab components
 import AcademicSessionsTab from "../components/ui/academicSectionTab";
 import ExaminationsTab from "./ui/examinationsTab";
 import GradingSystemsTab from "../components/ui/gradingSystemTabs";
 import ExamTypesTab from "../components/ui/examTypesTab";
-
-
+import SubjectsTab from "../components/ui/subjectsTab"; // New import for Subjects tab
 
 // Main Academic Settings component - integrates all tabs
 const AcademicSettings = () => {
@@ -55,6 +54,20 @@ const AcademicSettings = () => {
           </li>
           <li className="mr-1 sm:mr-2">
             <button
+              onClick={() => setActiveTab("subjects")}
+              className={`inline-flex items-center gap-1 sm:gap-2 py-2 px-2 sm:p-4 border-b-2 rounded-t-lg ${
+                activeTab === "subjects"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent hover:text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              <Book size={14} className="sm:text-base" />
+              <span className="hidden xs:inline">Subjects</span>
+              <span className="xs:hidden">Subjects</span>
+            </button>
+          </li>
+          <li className="mr-1 sm:mr-2">
+            <button
               onClick={() => setActiveTab("grading-systems")}
               className={`inline-flex items-center gap-1 sm:gap-2 py-2 px-2 sm:p-4 border-b-2 rounded-t-lg ${
                 activeTab === "grading-systems"
@@ -88,6 +101,7 @@ const AcademicSettings = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {activeTab === "academic-sessions" && <AcademicSessionsTab />}
         {activeTab === "examinations" && <ExaminationsTab />}
+        {activeTab === "subjects" && <SubjectsTab />}
         {activeTab === "grading-systems" && <GradingSystemsTab />}
         {activeTab === "exam-types" && <ExamTypesTab />}
       </div>
