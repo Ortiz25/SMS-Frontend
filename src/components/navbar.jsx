@@ -133,7 +133,7 @@ const Navbar = ({ children }) => {
               <Menu className="h-9 w-9" />
             </button>
             <div className="flex items-center space-x-4">
-              <Bell className="h-6 w-6 text-gray-600 cursor-pointer" />
+              {/* <Bell className="h-6 w-6 text-gray-600 cursor-pointer" /> */}
               <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
                 {user.teacher? user.teacher.first_name.charAt(0).toUpperCase() : user.role.charAt(0).toUpperCase() }
               </div>

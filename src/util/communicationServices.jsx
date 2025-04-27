@@ -1,4 +1,3 @@
-// services/communicationService.js
 import axios from 'axios';
 
 const API_URL = '/backend/api/communications';
