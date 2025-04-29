@@ -43,7 +43,7 @@ const YearlyAttendanceChart = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get('http://localhost:5010/api/yearly',{
+        const response = await axios.get('/backend/api/yearly',{
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
@@ -82,7 +82,7 @@ const YearlyAttendanceChart = () => {
     const fetchAttendanceData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`http://localhost:5010/api/yearly/summary/weekly?academic_session_id=${selectedSession}`,{
+        const response = await axios.get(`/backend/api/yearly/summary/weekly?academic_session_id=${selectedSession}`,{
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`

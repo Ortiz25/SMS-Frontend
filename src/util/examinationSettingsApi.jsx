@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Base API URL 
-const BASE_URL = 'http://localhost:5010/api';
+const BASE_URL = '/backend/api';
 
 const examinationsAPI = {
   // Get all examinations with optional filtering

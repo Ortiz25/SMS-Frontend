@@ -109,7 +109,7 @@ const Dashboard = () => {
 
       try {
         const sessionsResponse = await fetch(
-          "http://localhost:5010/api/sessions/academic-sessions",
+          "/backend/api/sessions/academic-sessions",
           {
             method: "GET",
             headers: {
@@ -206,8 +206,8 @@ const Dashboard = () => {
       try {
         // Use selectedSession to filter if available
         const url = selectedSession
-          ? `http://localhost:5010/api/dashboard/form-performance?academicSessionId=${selectedSession.id}`
-          : "http://localhost:5010/api/dashboard/form-performance";
+          ? `/backend/api/dashboard/form-performance?academicSessionId=${selectedSession.id}`
+          : "/backend/api/dashboard/form-performance";
 
         const classesSummaryResponse = await fetch(url, {
           method: "GET",
@@ -1183,7 +1183,7 @@ export async function loader({ params, request }) {
     return redirect("/");
   }
 
-  const tokenUrl = "http://localhost:5010/api/auth/verify-token";
+  const tokenUrl = "/backend/api/auth/verify-token";
 
   try {
     const tokenResponse = await fetch(tokenUrl, {
@@ -1225,7 +1225,7 @@ export async function loader({ params, request }) {
 
     // Make API call to fetch dashboard data
     const dashboardResponse = await fetch(
-      "http://localhost:5010/api/dashboard/summary",
+      "/backend/api/dashboard/summary",
       {
         method: "GET",
         headers: {

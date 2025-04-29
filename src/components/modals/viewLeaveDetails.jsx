@@ -23,7 +23,7 @@ const ViewLeaveDetailsModal = ({ isOpen, onClose, leaveRequest, isAdmin }) => {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `http://localhost:5010/api/teachers/${leaveRequest.teacher_id}`,
+            `/backend/api/teachers/${leaveRequest.teacher_id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

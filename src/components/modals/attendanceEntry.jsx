@@ -40,7 +40,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:5010/api/sessions/academic-sessions/current",
+        "/backend/api/sessions/academic-sessions/current",
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -61,7 +61,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5010/api/classes", {
+      const response = await axios.get("/backend/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -102,7 +102,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5010/api/students/by-class?classId=${selectedClass}&stream=${selectedStream}`, 
+        `/backend/api/students/by-class?classId=${selectedClass}&stream=${selectedStream}`, 
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -145,7 +145,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5010/api/attendance/class/${selectedClass}?date=${selectedDate}`,
+        `/backend/api/attendance/class/${selectedClass}?date=${selectedDate}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -206,7 +206,7 @@ const AttendanceEntryModal = ({ isOpen, onClose }) => {
       // Save attendance
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5010/api/attendance/bulk",
+        "/backend/api/attendance/bulk",
         { attendanceRecords },
         {
           headers: {

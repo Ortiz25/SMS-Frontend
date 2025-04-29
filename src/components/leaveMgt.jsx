@@ -55,7 +55,7 @@ const LeaveManagement = () => {
 
         // If we're using a stats endpoint
         const response = await axios.get(
-          "http://localhost:5010/api/dashboard/leavestats",
+          "/backend/api/dashboard/leavestats",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -112,7 +112,7 @@ const LeaveManagement = () => {
 
       // Get all leave requests with different statuses
       const allLeavesResponse = await axios.get(
-        "http://localhost:5010/api/leaves",
+        "/backend/api/leaves",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -164,7 +164,7 @@ const LeaveManagement = () => {
       if (currentTeacherId) {
         try {
           const balanceResponse = await axios.get(
-            `http://localhost:5010/api/leaves/balances/${currentTeacherId}`,
+            `/backend/api/leaves/balances/${currentTeacherId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -245,7 +245,7 @@ const LeaveManagement = () => {
   const fetchLeavesEndingToday = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5010/api/leaves/ending-today",
+        "/backend/api/leaves/ending-today",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -277,7 +277,7 @@ const LeaveManagement = () => {
           params.teacher_id = currentTeacherId;
         }
 
-        const response = await axios.get("http://localhost:5010/api/leaves", {
+        const response = await axios.get("/backend/api/leaves", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -321,7 +321,7 @@ const LeaveManagement = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5010/api/leaves/check-status-updates",
+        "/backend/api/leaves/check-status-updates",
         {},
         {
           headers: {
@@ -358,7 +358,7 @@ const LeaveManagement = () => {
   const handleApproveLeave = async (data) => {
     try {
       const response = await axios.patch(
-        `http://localhost:5010/api/leaves/${data.id}/status`,
+        `/backend/api/leaves/${data.id}/status`,
         {
           status: "approved",
         },
@@ -407,7 +407,7 @@ const LeaveManagement = () => {
       }
 
       const response = await axios.patch(
-        `http://localhost:5010/api/leaves/${data.id}/status`,
+        `/backend/api/leaves/${data.id}/status`,
         {
           status: "rejected",
           rejection_reason: data.rejection_reason,
@@ -444,7 +444,7 @@ const LeaveManagement = () => {
   const handleLeaveSubmission = async (formData) => {
     try {
       await axios.post(
-        "http://localhost:5010/api/leaves",
+        "/backend/api/leaves",
         {
           ...formData,
           teacher_id: userInfo.teacher.teacher_id,
