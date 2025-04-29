@@ -133,14 +133,6 @@ const DisciplineAnalytics = ({ incidents }) => {
           incidentsByClass
         });
         
-        console.log("Analytics calculated:", {
-          incidentsByType,
-          incidentsBySeverity,
-          incidentsByStatus,
-          incidentsByMonth,
-          incidentsByClass
-        });
-        
       } catch (err) {
         console.error("Error calculating analytics:", err);
         setError("Failed to calculate analytics data");

@@ -90,7 +90,6 @@ const GradeEntry = () => {
           }
         );
 
-        console.log(response)
         setExams(response.data.examinations);
         setLoading(false);
       } catch (err) {

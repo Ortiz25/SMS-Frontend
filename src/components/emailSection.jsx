@@ -44,7 +44,6 @@ const EmailSection = () => {
         getClasses(),
         getDepartments()
       ]);
-      console.log(classesData, departmentsData)
       setClasses(classesData.data);
       setDepartments(departmentsData);
     } catch (error) {
@@ -56,7 +55,6 @@ const EmailSection = () => {
     fetchEmails();
     fetchRecipientOptions();
   }, []);
- console.log(emails)
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;

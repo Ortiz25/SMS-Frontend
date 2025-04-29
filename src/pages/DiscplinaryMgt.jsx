@@ -265,7 +265,7 @@ const DisciplineMgt = () => {
       const history = await disciplinaryService.getStudentStatusHistory(studentId);
       
       // Always ensure we have an array
-      console.log(history)
+    
       setStatusHistory(Array.isArray(history) ? history : []);
       
     } catch (err) {

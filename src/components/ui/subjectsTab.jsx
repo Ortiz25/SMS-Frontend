@@ -42,6 +42,7 @@ const SubjectsTab = () => {
     "Lower Primary",
     "Upper Primary",
     "Junior Secondary",
+    "Senior Secondary",
     "Secondary",
   ];
 

@@ -10,13 +10,13 @@ import {
   ChevronRight,
   CheckCircle,
 } from "lucide-react";
-import EditTeacherModal, {
+import EditTeacherModal,{
   ViewTeacherModal,
   DeleteConfirmationModal,
 } from "./modals/teacherProfileModal";
 import axios from "axios";
 
-const TeacherProfiles = ({ teachers }) => {
+const TeacherProfiles = ({ teachers, updateTeachers }) => {
   const token = localStorage.getItem("token");
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -32,6 +32,28 @@ const TeacherProfiles = ({ teachers }) => {
     departments: { total: 0 },
     experience: { averageYears: 0 },
   });
+
+  const fetchTeachers = async () =>{
+    try{
+      const apiUrl = `/backend/api/teachers`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      // Parse the response data
+      const data = await response.json();
+  
+      console.log(data)
+      updateTeachers(data.data)
+    }catch(error){
+      console.log(error)
+    }
+  
+  }
+
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -65,7 +87,7 @@ const TeacherProfiles = ({ teachers }) => {
     };
 
     fetchDashboardStats();
-  }, []);
+  }, [teachers]);
 
   // Calculate pagination whenever teachers or pagination settings change
   useEffect(() => {
@@ -122,23 +144,39 @@ const TeacherProfiles = ({ teachers }) => {
   };
 
   const handleSave = async (updatedTeacher) => {
-    console.log(updatedTeacher);
+    // First, check if updatedTeacher is an object with message/status/timestamp
+    if (updatedTeacher && typeof updatedTeacher === 'object') {
+      // Check if it has message/status/timestamp keys which shouldn't be rendered
+      if (updatedTeacher.message && updatedTeacher.status && updatedTeacher.timestamp) {
+        console.log("API response object received instead of teacher data");
+        setShowEditModal(false);
+        setSelectedTeacher(null);
+        return;
+      }
+    }
+
+   //console.log("Saving updated teacher:", updatedTeacher);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `/backend/api/teachers/${updatedTeacher.id}`,
-        updatedTeacher,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Only make API call if not already done in the modal
+      if (updatedTeacher && updatedTeacher.id) {
+        await axios.put(
+          `/backend/api/teachers/${updatedTeacher.id}`,
+          updatedTeacher,
+          {
+            headers: {
+              "Content-Type": "application/json", // Changed from multipart/form-data as formData upload happens in modal
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+      
+      // After successful save, you may want to refresh your teacher list
+       fetchTeachers(); // Uncomment if you have a function to refresh the list
 
-    
     } catch (error) {
-      console.error("Error updating teacher:", error);
+      console.error("Error in parent component handling teacher update:", error);
     }
     setShowEditModal(false);
     setSelectedTeacher(null);
@@ -424,6 +462,7 @@ const TeacherProfiles = ({ teachers }) => {
         <EditTeacherModal
           isOpen={showEditModal}
           teacher={selectedTeacher}
+          teacherId={selectedTeacher.id}
           onClose={() => {
             setShowEditModal(false);
             setSelectedTeacher(null);

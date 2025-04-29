@@ -14,8 +14,7 @@ import { useNavigate } from "react-router-dom";
 
 const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
   const token = localStorage.getItem("token");
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: teacher?.name || "",
@@ -29,7 +28,7 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
   });
 
   const [subjects, updatedSubjects] = useState();
-
+  const [departments, updatedDepartments] = useState([]);
 
   useEffect(() => {
     const url = "/backend/api/helpers/reference-data";
@@ -47,13 +46,35 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
         }
         const result = await response.json();
         updatedSubjects(result.data.subjects); // Set the subjects state
-        
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch(
+          "/backend/api/inventory/departments",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const result = await response.json();
+        updatedDepartments(result);
       } catch (err) {
         console.error(err.message);
       }
     };
 
     fetchData();
+    fetchDepartments();
   }, []);
 
   const handleChange = (field, value) => {
@@ -65,7 +86,6 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
     onSave({ ...formData, id: teacher?.id });
   };
 
@@ -183,10 +203,11 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
                       required
                     >
                       <option value="">Select department</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="Sciences">Sciences</option>
-                      <option value="Languages">Languages</option>
-                      <option value="Humanities">Humanities</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -219,10 +240,11 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
                           (subjects || [])
                             .filter(
                               (s) =>
-                                s.curriculum_type === "844" &&
+                                s.curriculum_type === "844" ||
+                                s.curriculum_type === "CBC" ||
                                 s.level === "Secondary"
                             )
-                            .map((s) => s.name)
+                            .map((s) => `${s.name}`)
                         ),
                       ]
                         .sort()
@@ -385,7 +407,9 @@ export const ViewTeacherModal = ({ teacher, isOpen, onClose }) => (
                 <label className="text-sm font-bold text-gray-800">
                   Join Date :
                 </label>
-                <p className="mt-1 text-gray-500">{extractDate(teacher?.joinDate)}</p>
+                <p className="mt-1 text-gray-500">
+                  {extractDate(teacher?.joinDate)}
+                </p>
               </div>
             </div>
           </div>
@@ -395,6 +419,12 @@ export const ViewTeacherModal = ({ teacher, isOpen, onClose }) => (
               Professional Details
             </h3>
             <div className="space-y-3">
+              <div>
+                <label className="text-sm font-bold text-gray-800">
+                  TSC Number :
+                </label>
+                <p className="mt-1 text-gray-500">{teacher?.tsc_number}</p>
+              </div>
               <div>
                 <label className="text-sm font-bold text-gray-800">
                   Department :

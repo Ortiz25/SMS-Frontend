@@ -15,7 +15,6 @@ import MedicalInfoForm from "../forms/medicalInfoForm";
 import axios from "axios";
 
 const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
-  console.log(student);
   const [activeTab, setActiveTab] = useState("personal");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

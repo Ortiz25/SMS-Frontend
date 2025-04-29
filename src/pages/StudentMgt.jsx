@@ -79,6 +79,7 @@ const StudentManagement = () => {
     previous_school: "",
   });
 
+
   // Attendance state
   const [attendanceData, setAttendanceData] = useState([]);
   const [attendanceSummary, setAttendanceSummary] = useState({
@@ -108,7 +109,7 @@ const StudentManagement = () => {
     attendance: { current: 0, previous: 0, change: 0 },
     performance: { currentGrade: "", previousGrade: "" },
   });
- console.log(stats)
+ 
   useEffect(() => {
     const fetchStudentStats = async () => {
       try {
@@ -892,7 +893,6 @@ export async function loader({ params, request }) {
     if (!response.ok || !data.success) {
       throw new Error(data.error || "Failed to fetch detailed student data");
     }
-
     // Return the detailed student data
     return data;
   } catch (error) {

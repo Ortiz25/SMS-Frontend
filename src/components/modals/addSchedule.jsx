@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms }) => {
+const AddScheduleModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  classes,
+  teachers,
+  rooms,
+}) => {
   const token = localStorage.getItem("token");
   const initialState = {
     classId: "",
@@ -14,14 +21,14 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     day: "",
     startTime: "",
     endTime: "",
-    academicSessionId: ""
+    academicSessionId: "",
   };
 
   // Get time slots for dropdown
   const timeSlots = [
     { label: "8:00 AM - 9:00 AM", start: "08:00", end: "09:00" },
     { label: "9:00 AM - 10:00 AM", start: "09:00", end: "10:00" },
-   // { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
+    // { label: "10:00 AM - 11:00 AM", start: "10:00", end: "11:00" },
     { label: "11:00 AM - 12:00 PM", start: "11:00", end: "12:00" },
     { label: "12:00 PM - 1:00 PM", start: "12:00", end: "13:00" },
     { label: "2:00 PM - 3:00 PM", start: "14:00", end: "15:00" },
@@ -53,7 +60,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
         }
 
         const data = await response.json();
-        console.log(data);
+
         updateSubjects(data.data);
         setError(null);
       } catch (err) {
@@ -65,9 +72,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     };
 
     fetchSubjects();
-  }, []); 
-
-  
+  }, []);
 
   // Reset form when modal is opened/closed
   useEffect(() => {
@@ -80,52 +85,54 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "class" && classes) {
-      const selectedClass = classes.find(c => c.name === value);
+      const selectedClass = classes.find((c) => c.name === value);
       setFormData({
         ...formData,
         class: value,
-        classId: selectedClass ? selectedClass.id : ""
+        classId: selectedClass ? selectedClass.id : "",
       });
     } else if (name === "teacher" && teachers) {
-      const selectedTeacher = teachers.find(t => t.name === value);
+      const selectedTeacher = teachers.find((t) => t.name === value);
       setFormData({
         ...formData,
         teacherName: value,
-        teacherId: selectedTeacher ? selectedTeacher.id : ""
+        teacherId: selectedTeacher ? selectedTeacher.id : "",
       });
     } else if (name === "subject" && subjects) {
       // Add this case to handle subject selection
-      const selectedSubject = subjects.find(s => s.name === value);
+      const selectedSubject = subjects.find((s) => s.name === value);
       setFormData({
         ...formData,
         subject: value,
-        subjectId: selectedSubject ? selectedSubject.id : ""
+        subjectId: selectedSubject ? selectedSubject.id : "",
       });
     } else if (name === "timeSlot") {
       setSelectedTimeSlot(value);
-      
+
       if (value) {
-        const slot = timeSlots.find(slot => `${slot.start}-${slot.end}` === value);
+        const slot = timeSlots.find(
+          (slot) => `${slot.start}-${slot.end}` === value
+        );
         if (slot) {
           setFormData({
             ...formData,
             startTime: slot.start,
-            endTime: slot.end
+            endTime: slot.end,
           });
         }
       } else {
         setFormData({
           ...formData,
           startTime: "",
-          endTime: ""
+          endTime: "",
         });
       }
     } else {
       setFormData({
         ...formData,
-        [name]: value
+        [name]: value,
       });
     }
 
@@ -133,14 +140,14 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     if (errors[name]) {
       setErrors({
         ...errors,
-        [name]: ""
+        [name]: "",
       });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.class) newErrors.class = "Class is required";
     if (!formData.subject) newErrors.subject = "Subject is required";
     if (!formData.subjectId) newErrors.subjectId = "Subject ID is required";
@@ -149,7 +156,7 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
     if (!formData.day) newErrors.day = "Day is required";
     if (!formData.startTime) newErrors.timeSlot = "Time slot is required";
     if (!formData.endTime) newErrors.timeSlot = "Time slot is required";
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -191,16 +198,21 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="class"
                 value={formData.class}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.class ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.class ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Class</option>
-                {classes && classes.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
+                {classes &&
+                  classes.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
               </select>
-              {errors.class && <p className="text-red-500 text-xs mt-1">{errors.class}</p>}
+              {errors.class && (
+                <p className="text-red-500 text-xs mt-1">{errors.class}</p>
+              )}
             </div>
 
             <div>
@@ -211,16 +223,21 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.subject ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.subject ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Subject</option>
-                {subjects && subjects.map((subject) => (
-                  <option key={subject.id} value={subject.name}>
-                    {subject.name} ({subject.code})
-                  </option>
-                ))}
+                {subjects &&
+                  subjects.map((subject) => (
+                    <option key={subject.id} value={subject.name}>
+                      {subject.name} ({subject.code})
+                    </option>
+                  ))}
               </select>
-              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+              {errors.subject && (
+                <p className="text-red-500 text-xs mt-1">{errors.subject}</p>
+              )}
             </div>
 
             <div>
@@ -232,10 +249,14 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="subjectId"
                 value={formData.subjectId}
                 readOnly
-                className={`w-full p-2 border rounded-lg bg-gray-100 ${errors.subjectId ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg bg-gray-100 ${
+                  errors.subjectId ? "border-red-500" : ""
+                }`}
                 placeholder="Subject ID will be auto-populated"
               />
-              {errors.subjectId && <p className="text-red-500 text-xs mt-1">{errors.subjectId}</p>}
+              {errors.subjectId && (
+                <p className="text-red-500 text-xs mt-1">{errors.subjectId}</p>
+              )}
             </div>
 
             <div>
@@ -246,16 +267,21 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="teacher"
                 value={formData.teacherName}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.teacher ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.teacher ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Teacher</option>
-                {teachers && teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.name}>
-                    {teacher.name}
-                  </option>
-                ))}
+                {teachers &&
+                  teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.name}>
+                      {teacher.name}
+                    </option>
+                  ))}
               </select>
-              {errors.teacher && <p className="text-red-500 text-xs mt-1">{errors.teacher}</p>}
+              {errors.teacher && (
+                <p className="text-red-500 text-xs mt-1">{errors.teacher}</p>
+              )}
             </div>
 
             <div>
@@ -266,16 +292,21 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="room"
                 value={formData.room}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.room ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.room ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Room</option>
-                {rooms && rooms.map((room) => (
-                  <option key={room.room_number} value={room.room_number}>
-                    {room.name}
-                  </option>
-                ))}
+                {rooms &&
+                  rooms.map((room) => (
+                    <option key={room.room_number} value={room.room_number}>
+                      {room.name}
+                    </option>
+                  ))}
               </select>
-              {errors.room && <p className="text-red-500 text-xs mt-1">{errors.room}</p>}
+              {errors.room && (
+                <p className="text-red-500 text-xs mt-1">{errors.room}</p>
+              )}
             </div>
 
             <div>
@@ -286,7 +317,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="day"
                 value={formData.day}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.day ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.day ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Day</option>
                 {days.map((day) => (
@@ -295,7 +328,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   </option>
                 ))}
               </select>
-              {errors.day && <p className="text-red-500 text-xs mt-1">{errors.day}</p>}
+              {errors.day && (
+                <p className="text-red-500 text-xs mt-1">{errors.day}</p>
+              )}
             </div>
 
             <div>
@@ -306,7 +341,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 name="timeSlot"
                 value={selectedTimeSlot}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-lg ${errors.timeSlot ? 'border-red-500' : ''}`}
+                className={`w-full p-2 border rounded-lg ${
+                  errors.timeSlot ? "border-red-500" : ""
+                }`}
               >
                 <option value="">Select Time Slot</option>
                 {timeSlots.map((slot, index) => (
@@ -315,7 +352,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   </option>
                 ))}
               </select>
-              {errors.timeSlot && <p className="text-red-500 text-xs mt-1">{errors.timeSlot}</p>}
+              {errors.timeSlot && (
+                <p className="text-red-500 text-xs mt-1">{errors.timeSlot}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -330,7 +369,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   readOnly
                   className="w-full p-2 border rounded-lg bg-gray-100"
                 />
-                <p className="text-xs text-gray-500 mt-1">Auto-filled from time slot</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from time slot
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -343,7 +384,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                   readOnly
                   className="w-full p-2 border rounded-lg bg-gray-100"
                 />
-                <p className="text-xs text-gray-500 mt-1">Auto-filled from time slot</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Auto-filled from time slot
+                </p>
               </div>
             </div>
 
@@ -359,7 +402,9 @@ const AddScheduleModal = ({ isOpen, onClose, onSave, classes, teachers, rooms })
                 className="w-full p-2 border rounded-lg"
                 placeholder="Leave blank for current session"
               />
-              <p className="text-xs text-gray-500 mt-1">Optional - defaults to current session</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Optional - defaults to current session
+              </p>
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">

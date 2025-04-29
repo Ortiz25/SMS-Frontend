@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Calendar, Clock, Plus, X, Users, BookOpen, CheckCircle } from "lucide-react";
 import axios from "axios";
 
-const WorkloadSchedule = ({ teachers }) => {
+const WorkloadSchedule = ({ teachers, updateTeachers }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -27,6 +27,25 @@ const WorkloadSchedule = ({ teachers }) => {
     subjects: { total: 0 },
     utilization: { percentage: 0 }
   });
+
+  const fetchTeachers = async () =>{
+    try{
+      const apiUrl = `/backend/api/teachers`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      // Parse the response data
+      const data = await response.json();
+      updateTeachers(data.data)
+    }catch(error){
+      console.log(error)
+    }
+  
+  }
 
   useEffect(() => {
     const fetchAcademicStats = async () => {
@@ -329,6 +348,7 @@ const WorkloadSchedule = ({ teachers }) => {
       });
 
       // Refresh teacher data - this would typically be handled by your app's state management
+      fetchTeachers()
       // For this example, we'll just show a success message
       alert("Class successfully assigned to teacher");
     } catch (err) {

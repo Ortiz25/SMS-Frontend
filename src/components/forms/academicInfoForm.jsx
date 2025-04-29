@@ -17,6 +17,8 @@ const AcademicInfoForm = ({
   const [loadingError, setLoadingError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  console.log(formData)
+
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -375,7 +377,7 @@ const AcademicInfoForm = ({
             {isEditing ? (
               <input
                 type="text"
-                value={formData.previous_school || ""}
+                value={formData.previousSchool || ""}
                 onChange={(e) => handleChange("previousSchool", e.target.value)}
                 onBlur={() => handleBlur("previousSchool")}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${

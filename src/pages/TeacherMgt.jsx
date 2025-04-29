@@ -17,6 +17,7 @@ import { useStore } from "../store/store";
 import { redirect, useLoaderData } from "react-router-dom";
 
 const TeacherManagement = () => {
+  const data = useLoaderData();
   const { activeModule, updateActiveModule } = useStore();
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
    const [isAdmin, setIsAdmin] = useState(false);
@@ -25,8 +26,8 @@ const TeacherManagement = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
-  const [teachers, updateTeachers] = useState();
-  const data = useLoaderData();
+  const [teachers, updateTeachers] = useState(data?.teachers || []);
+
     
     useEffect(() => {
       const adminRights = userInfo.role === "admin";
@@ -35,11 +36,11 @@ const TeacherManagement = () => {
 
   useEffect(() => {
     updateActiveModule("teachers");
-    let filtered = [...(data?.teachers ?? [])];
+    let filtered = [...teachers];
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      console.log("Search term:", term);
+      //console.log("Search term:", term);
 
       filtered = filtered?.filter(
         (teacher) =>
@@ -55,7 +56,7 @@ const TeacherManagement = () => {
     // const start = (currentPage - 1) * itemsPerPage;
     // const end = Math.min(start + itemsPerPage, filtered?.length);
     // setDisplayedData(filtered?.slice(start, end));
-  }, [data, , searchTerm, searchTerm]);
+  }, [teachers , searchTerm]);
 
   const handleAddTeacher = (teacherData) => {
     console.log("New teacher data:", teacherData);
@@ -174,10 +175,10 @@ const TeacherManagement = () => {
         {/* Content area - will be replaced with specific tab content */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           {activeTab === "profiles" && (
-            <TeacherProfiles teachers={filteredData} />
+            <TeacherProfiles teachers={filteredData} updateTeachers={updateTeachers}/>
           )}
           {activeTab === "workload" && (
-            <WorkloadSchedule teachers={filteredData} />
+            <WorkloadSchedule teachers={filteredData} updateTeachers={updateTeachers} />
           )}
           {/* {activeTab === "payroll" && <PayrollTable />} */}
           {activeTab === "leave" && <LeaveManagement />}

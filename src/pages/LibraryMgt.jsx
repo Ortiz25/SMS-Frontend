@@ -402,7 +402,7 @@ const LibraryManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentBooks.map((book) => {
-                    console.log(book)
+              
                    
                     const isBorrowed =
                       book.copies_available < (book.total_copies || 0);

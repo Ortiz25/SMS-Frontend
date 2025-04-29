@@ -179,7 +179,6 @@ const disciplinaryService = {
         }
       );
 
-      console.log(response.data)
 
       return Array.isArray(response.data) ? response.data : [];
     } catch (error) {

@@ -31,7 +31,6 @@ const SMSSection = () => {
         getSmsMessages(),
         getSmsTemplates()
       ]);
-      console.log(messagesData, templatesData)
       setSmsMessages(messagesData);
       setTemplates(templatesData);
       setError(null);

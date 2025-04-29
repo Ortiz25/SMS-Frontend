@@ -137,7 +137,6 @@ export async function loader({ params }) {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log(tokenData)
 
     // If token is invalid or expired
     if (!tokenResponse.ok || tokenData.error) {

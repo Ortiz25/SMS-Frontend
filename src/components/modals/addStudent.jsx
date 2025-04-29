@@ -163,31 +163,48 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     if (name === "class") {
       // Find the selected class from the classes array
       const selectedClass = classes.find((cls) => cls.id.toString() === value);
-      
+
       if (selectedClass) {
         //console.log("Selected class:", selectedClass);
-        
+
         // Filter subjects based on curriculum type and level
-        const filteredSubjects = subjects.filter((subject) => 
-          // Match both curriculum type and either exact level or "all" level
-          subject.curriculum_type === selectedClass.curriculum_type && 
-          (subject.level === selectedClass.level || 
-           // For 844 curriculum, "Secondary" level applies to all Form levels
-           (selectedClass.curriculum_type === "844" && 
-            selectedClass.level.startsWith("Form") && 
-            subject.level === "Secondary") ||
-           // For CBC curriculum, "Junior Secondary" level applies to all JSS levels
-           (selectedClass.curriculum_type === "CBC" && 
-            selectedClass.level.startsWith("JSS") && 
-            subject.level === "Junior Secondary") ||
-           // For CBC curriculum, "Upper Primary" level applies to Grade 4-6
-           (selectedClass.curriculum_type === "CBC" && 
-            selectedClass.level.startsWith("Grade") && 
-            parseInt(selectedClass.level.split(" ")[1]) <= 6 && 
-            subject.level === "Upper Primary"))
+        const filteredSubjects = subjects.filter(
+          (subject) =>
+            subject.curriculum_type === selectedClass.curriculum_type &&
+            (subject.level === selectedClass.level ||
+              // For 8-4-4: Secondary level applies to all Forms
+              (selectedClass.curriculum_type === "844" &&
+                selectedClass.level.startsWith("Form") &&
+                subject.level === "Secondary") ||
+              // For CBC: Lower Primary for Grades 1-3
+              (selectedClass.curriculum_type === "CBC" &&
+                selectedClass.level.startsWith("Grade") &&
+                parseInt(selectedClass.level.split(" ")[1]) >= 1 &&
+                parseInt(selectedClass.level.split(" ")[1]) <= 3 &&
+                subject.level === "Lower Primary") ||
+              // For CBC: Upper Primary for Grades 4-6
+              (selectedClass.curriculum_type === "CBC" &&
+                selectedClass.level.startsWith("Grade") &&
+                parseInt(selectedClass.level.split(" ")[1]) >= 4 &&
+                parseInt(selectedClass.level.split(" ")[1]) <= 6 &&
+                subject.level === "Upper Primary") ||
+              // For CBC: Junior Secondary for Grades 7-9
+              (selectedClass.curriculum_type === "CBC" &&
+                (selectedClass.level.startsWith("Grade 7") ||
+                  selectedClass.level.startsWith("Grade 8") ||
+                  selectedClass.level.startsWith("Grade 9") ||
+                  selectedClass.level.startsWith("JSS")) &&
+                subject.level === "Junior Secondary") ||
+              // For CBC: Senior Secondary for Grades 10-12 or SSS
+              (selectedClass.curriculum_type === "CBC" &&
+                (selectedClass.level.startsWith("Grade 10") ||
+                  selectedClass.level.startsWith("Grade 11") ||
+                  selectedClass.level.startsWith("Grade 12") ||
+                  selectedClass.level.startsWith("SSS")) &&
+                subject.level === "Senior Secondary"))
         );
-        
-       // console.log("Filtered subjects:", filteredSubjects);
+
+       
         setAvailableSubjects(filteredSubjects);
 
         // Store the actual class level instead of id
@@ -384,7 +401,8 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
       return (
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
           <p className="text-sm text-yellow-700">
-            No subjects available for this class level and curriculum type. Please contact the administrator.
+            No subjects available for this class level and curriculum type.
+            Please contact the administrator.
           </p>
         </div>
       );
@@ -394,9 +412,9 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
     const selectedClass = classes.find(
       (cls) => cls.level === formData.class && cls.stream === formData.stream
     );
-    
+
     const curriculumType = selectedClass ? selectedClass.curriculum_type : "";
-    console.log(hostels)
+    
 
     return (
       <div>
@@ -405,8 +423,8 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         </h3>
         <div className="bg-white p-4 border rounded-lg">
           <p className="text-sm text-gray-600 mb-3">
-            Select the subjects for this student. Only subjects compatible with {curriculumType} curriculum 
-            and {formData.class} level are shown.
+            Select the subjects for this student. Only subjects compatible with{" "}
+            {curriculumType} curriculum and {formData.class} level are shown.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableSubjects.map((subject) => (
@@ -756,7 +774,8 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
                       <option value="">Select hostel</option>
                       {hostels.map((hostel) => (
                         <option key={hostel.id} value={hostel.name}>
-                          {hostel?.name}-{hostel?.hostel_type} ({hostel?.occupied || 0}/{hostel?.capacity || 0})
+                          {hostel?.name}-{hostel?.hostel_type} (
+                          {hostel?.occupied || 0}/{hostel?.capacity || 0})
                         </option>
                       ))}
                     </select>
