@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/backend/api/communications';
+const API_URL = 'http://localhost:5010/api/communications';
 
 // Create a reusable function to get headers with the current token
 const getAuthHeaders = () => {
@@ -125,7 +125,7 @@ export const createSmsTemplate = async (templateData) => {
 export const getClasses = async () => {
   try {
     // Note: This endpoint is outside our base URL
-    const response = await axios.get('/backend/api/helpers/classes', {
+    const response = await axios.get('http://localhost:5010/api/helpers/classes', {
       headers: getAuthHeaders()
     });
     return response.data;
@@ -139,7 +139,7 @@ export const getClasses = async () => {
 export const getDepartments = async () => {
   try {
     // Note: This endpoint is outside our base URL
-    const response = await axios.get('/backend/api/inventory/departments', {
+    const response = await axios.get('http://localhost:5010/api/inventory/departments', {
       headers: getAuthHeaders()
     });
     return response.data;

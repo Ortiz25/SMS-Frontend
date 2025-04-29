@@ -44,7 +44,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/dormitories",
+          "http://localhost:5010/api/hostel-transport/dormitories",
           {
             method: "GET",
             headers: {
@@ -70,7 +70,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/allocations",
+          "http://localhost:5010/api/hostel-transport/allocations",
           {
             method: "GET",
             headers: {
@@ -96,7 +96,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/boarders",
+          "http://localhost:5010/api/hostel-transport/boarders",
           {
             method: "GET",
             headers: {
@@ -135,7 +135,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/dormitories",
+          "http://localhost:5010/api/hostel-transport/dormitories",
           {
             method: "GET",
             headers: {
@@ -161,7 +161,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/allocations",
+          "http://localhost:5010/api/hostel-transport/allocations",
           {
             method: "GET",
             headers: {
@@ -187,7 +187,7 @@ const HostelSection = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "/backend/api/hostel-transport/boarders",
+          "http://localhost:5010/api/hostel-transport/boarders",
           {
             method: "GET",
             headers: {

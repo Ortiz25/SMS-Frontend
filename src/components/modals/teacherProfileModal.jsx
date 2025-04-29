@@ -31,7 +31,7 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
   const [departments, updatedDepartments] = useState([]);
 
   useEffect(() => {
-    const url = "/backend/api/helpers/reference-data";
+    const url = "http://localhost:5010/api/helpers/reference-data";
     const fetchData = async () => {
       try {
         const response = await fetch(url, {
@@ -54,7 +54,7 @@ const EditTeacherModal = ({ teacher, isOpen, onClose, onSave }) => {
     const fetchDepartments = async () => {
       try {
         const response = await fetch(
-          "/backend/api/inventory/departments",
+          "http://localhost:5010/api/inventory/departments",
           {
             method: "GET",
             headers: {

@@ -46,7 +46,7 @@ const WeeklySchedule = ({
       console.log(editedData);
       // API call to update the schedule
       const response = await fetch(
-        `/backend/api/timetable/${editedData.id}`,
+        `http://localhost:5010/api/timetable/${editedData.id}`,
         {
           method: "PUT",
           headers: {
@@ -105,7 +105,7 @@ const WeeklySchedule = ({
 
       // API call to delete the schedule
       const response = await fetch(
-        `/backend/api/timetable/${selectedSchedule.id}`,
+        `http://localhost:5010/api/timetable/${selectedSchedule.id}`,
         {
           method: "DELETE",
           headers: {

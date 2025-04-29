@@ -36,7 +36,7 @@ const ReportCards = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get('/backend/api/grading/sessions',{
+        const response = await axios.get('http://localhost:5010/api/grading/sessions',{
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -71,7 +71,7 @@ const ReportCards = () => {
     const fetchClasses = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/backend/api/grading/classes?academic_session_id=${selectedSession}`,{
+        const response = await axios.get(`http://localhost:5010/api/grading/classes?academic_session_id=${selectedSession}`,{
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ const ReportCards = () => {
     const fetchExams = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/backend/api/examgrading?academic_session_id=${selectedSession}`,{
+        const response = await axios.get(`http://localhost:5010/api/examgrading?academic_session_id=${selectedSession}`,{
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -132,7 +132,7 @@ const ReportCards = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/backend/api/grading/students/${selectedClass}`,{
+        const response = await axios.get(`http://localhost:5010/api/grading/students/${selectedClass}`,{
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -169,7 +169,7 @@ const ReportCards = () => {
     try {
       setLoading(true);
       
-      const response = await axios.post('/backend/api/grading/batch-report-cards', {
+      const response = await axios.post('http://localhost:5010/api/grading/batch-report-cards', {
         class_id: data.classId,
         academic_session_id: data.academicSessionId
       },{
@@ -200,7 +200,7 @@ const ReportCards = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `/backend/api/grading/report-card/${studentId}/${selectedSession}`,
+        `http://localhost:5010/api/grading/report-card/${studentId}/${selectedSession}`,
         {
           responseType: 'blob',
           headers: {
@@ -235,7 +235,7 @@ const ReportCards = () => {
   const emailReportCard = async (studentId) => {
     try {
       setLoading(true);
-      await axios.post(`/backend/api/grading/email-report-card`, {
+      await axios.post(`http://localhost:5010/api/grading/email-report-card`, {
         student_id: studentId,
         academic_session_id: selectedSession,
         examination_id: selectedExam

@@ -16,7 +16,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 // API base URL
-const BASE_URL = "/backend/api";
+const BASE_URL = "http://localhost:5010/api";
 
 const SchoolStructureTab = () => {
   // Active tab state

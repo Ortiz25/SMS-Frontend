@@ -42,12 +42,12 @@ function RoomsTab() {
       try {
         setIsLoading(true);
         const [roomsRes, dormitoriesRes] = await Promise.all([
-          axios.get("/backend/api/hostel-transport/rooms", {
+          axios.get("http://localhost:5010/api/hostel-transport/rooms", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }),
-          axios.get("/backend/api/hostel-transport/dormitories", {
+          axios.get("http://localhost:5010/api/hostel-transport/dormitories", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
@@ -93,7 +93,7 @@ function RoomsTab() {
 
     try {
       const response = await axios.post(
-        "/backend/api/hostel-transport/rooms",
+        "http://localhost:5010/api/hostel-transport/rooms",
         formData,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -119,7 +119,7 @@ function RoomsTab() {
 
     try {
       const response = await axios.put(
-        `/backend/api/hostel-transport/rooms/${selectedRoom.id}`,
+        `http://localhost:5010/api/hostel-transport/rooms/${selectedRoom.id}`,
         formData,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

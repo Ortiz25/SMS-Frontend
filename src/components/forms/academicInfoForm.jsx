@@ -62,7 +62,7 @@ const AcademicInfoForm = ({
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/backend/api/classes", {
+      const response = await axios.get("http://localhost:5010/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -115,7 +115,7 @@ const AcademicInfoForm = ({
       console.log("Subject fetch params:", params);
 
       const response = await axios.get(
-        "/backend/api/classes/subjects",
+        "http://localhost:5010/api/classes/subjects",
         {
           headers: {
             Authorization: `Bearer ${token}`,
