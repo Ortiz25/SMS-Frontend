@@ -10,13 +10,20 @@ import {
   ChevronRight,
   CheckCircle,
 } from "lucide-react";
-import EditTeacherModal,{
+import EditTeacherModal, {
   ViewTeacherModal,
   DeleteConfirmationModal,
 } from "./modals/teacherProfileModal";
 import axios from "axios";
 
-const TeacherProfiles = ({ teachers, updateTeachers }) => {
+const TeacherProfiles = ({
+  teachers,
+  updateTeachers,
+  fetchDashboardStats,
+  loading,
+  error,
+  stats,
+}) => {
   const token = localStorage.getItem("token");
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -25,16 +32,9 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [paginatedTeachers, setPaginatedTeachers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState({
-    teachers: { total: 0, newThisTerm: 0 },
-    departments: { total: 0 },
-    experience: { averageYears: 0 },
-  });
 
-  const fetchTeachers = async () =>{
-    try{
+  const fetchTeachers = async () => {
+    try {
       const apiUrl = `/backend/api/teachers`;
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -45,47 +45,15 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
       });
       // Parse the response data
       const data = await response.json();
-  
-      console.log(data)
-      updateTeachers(data.data)
-    }catch(error){
-      console.log(error)
-    }
-  
-  }
 
+      console.log(data);
+      updateTeachers(data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-
-        const response = await axios.get(
-          "/backend/api/dashboard/teacher-summary",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.data.success) {
-          setStats(response.data.data);
-        } else {
-          setError(response.data.message || "Failed to fetch stats");
-        }
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            "An error occurred while fetching stats"
-        );
-        console.error("Dashboard stats error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardStats();
   }, [teachers]);
 
@@ -123,12 +91,15 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
 
   const handleDeleteTeacher = async (teacherId) => {
     try {
-      const response = await fetch(`/backend/api/teachers/${teacherId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/backend/api/teachers/${teacherId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete teacher");
@@ -145,9 +116,13 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
 
   const handleSave = async (updatedTeacher) => {
     // First, check if updatedTeacher is an object with message/status/timestamp
-    if (updatedTeacher && typeof updatedTeacher === 'object') {
+    if (updatedTeacher && typeof updatedTeacher === "object") {
       // Check if it has message/status/timestamp keys which shouldn't be rendered
-      if (updatedTeacher.message && updatedTeacher.status && updatedTeacher.timestamp) {
+      if (
+        updatedTeacher.message &&
+        updatedTeacher.status &&
+        updatedTeacher.timestamp
+      ) {
         console.log("API response object received instead of teacher data");
         setShowEditModal(false);
         setSelectedTeacher(null);
@@ -155,7 +130,7 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
       }
     }
 
-   //console.log("Saving updated teacher:", updatedTeacher);
+    //console.log("Saving updated teacher:", updatedTeacher);
     try {
       const token = localStorage.getItem("token");
       // Only make API call if not already done in the modal
@@ -171,12 +146,14 @@ const TeacherProfiles = ({ teachers, updateTeachers }) => {
           }
         );
       }
-      
-      // After successful save, you may want to refresh your teacher list
-       fetchTeachers(); // Uncomment if you have a function to refresh the list
 
+      // After successful save, you may want to refresh your teacher list
+      fetchTeachers(); // Uncomment if you have a function to refresh the list
     } catch (error) {
-      console.error("Error in parent component handling teacher update:", error);
+      console.error(
+        "Error in parent component handling teacher update:",
+        error
+      );
     }
     setShowEditModal(false);
     setSelectedTeacher(null);

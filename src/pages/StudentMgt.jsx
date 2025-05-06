@@ -28,7 +28,7 @@ import axios from "axios";
 
 const StudentManagement = () => {
   const { data, count, success, error, message } = useLoaderData();
-  const { activeModule, updateActiveModule, updateStudents} = useStore();
+  const { activeModule, updateActiveModule, updateStudents } = useStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -79,7 +79,6 @@ const StudentManagement = () => {
     previous_school: "",
   });
 
-
   // Attendance state
   const [attendanceData, setAttendanceData] = useState([]);
   const [attendanceSummary, setAttendanceSummary] = useState({
@@ -109,39 +108,61 @@ const StudentManagement = () => {
     attendance: { current: 0, previous: 0, change: 0 },
     performance: { currentGrade: "", previousGrade: "" },
   });
- 
-  useEffect(() => {
-    const fetchStudentStats = async () => {
-      try {
-        setLoading(true);
 
-        // Get token from localStorage or your auth context
-        const token = localStorage.getItem("token");
+  const fetchStudents = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-        const response = await axios.get(
-          "/backend/api/dashboard/studentstats",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.data.success) {
-          setStats(response.data.data);
-        } else {
-          setError(response.data.message || "Failed to fetch student stats");
+      const apiUrl = `/backend/api/students/detailed`;
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      updateStudentData(data.data || [])
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchStudentStats = async () => {
+    try {
+      setLoading(true);
+
+      // Get token from localStorage or your auth context
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        "/backend/api/dashboard/studentstats",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            "An error occurred while fetching stats"
-        );
-        console.error("Student stats error:", err);
-      } finally {
-        setLoading(false);
+      );
+      if (response.data.success) {
+        setStats(response.data.data);
+      } else {
+        setError(response.data.message || "Failed to fetch student stats");
       }
-    };
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "An error occurred while fetching stats"
+      );
+      console.error("Student stats error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+ 
+  useEffect(() => { 
+    fetchStudents()
     fetchStudentStats();
   }, []);
 
@@ -206,6 +227,8 @@ const StudentManagement = () => {
     e.preventDefault();
     console.log("Form submitted:", formData);
     // Add form submission logic here
+    fetchStudents()
+    fetchStudentStats()
     setShowAddModal(false);
   };
 
@@ -360,11 +383,10 @@ const StudentManagement = () => {
 
   useEffect(() => {
     // Parse the perPage parameter from the URL and update state
-    updateStudents(data)
+    updateStudents(data);
     const perPage = parseInt(searchParams.get("perPage") || "10");
     setItemsPerPage(perPage);
   }, [searchParams]);
-
 
   useEffect(() => {
     updateActiveModule("students");
@@ -658,7 +680,13 @@ const StudentManagement = () => {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-2 py-1 text-xs font-medium ${student.status === "active"? "bg-blue-100 text-blue-700": "bg-red-200 text-gray-800"}  rounded-full`}>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium ${
+                            student.status === "active"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-red-200 text-gray-800"
+                          }  rounded-full`}
+                        >
                           {student.status}
                         </span>
                       </td>
@@ -786,6 +814,8 @@ const StudentManagement = () => {
           setShowAddModal={setShowAddModal}
           handleSubmit={handleSubmit}
           formData={formData}
+          fetchStudents={fetchStudents}
+          fetchStudentStats={fetchStudentStats}
           handleInputChange={handleInputChange}
         />
       )}
@@ -880,7 +910,7 @@ export async function loader({ params, request }) {
     });
 
     // If token is invalid or expired
-  
+
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");

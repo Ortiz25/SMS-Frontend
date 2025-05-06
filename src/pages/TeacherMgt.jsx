@@ -15,24 +15,82 @@ import LeaveManagement from "../components/leaveMgt";
 import AddTeacherModal from "../components/modals/addTeacher";
 import { useStore } from "../store/store";
 import { redirect, useLoaderData } from "react-router-dom";
+import axios from "axios";
 
 const TeacherManagement = () => {
   const data = useLoaderData();
   const { activeModule, updateActiveModule } = useStore();
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
-   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState("profiles");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [teachers, updateTeachers] = useState(data?.teachers || []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    teachers: { total: 0, newThisTerm: 0 },
+    departments: { total: 0 },
+    experience: { averageYears: 0 },
+  });
 
-    
-    useEffect(() => {
-      const adminRights = userInfo.role === "admin";
-      setIsAdmin(adminRights);
-    }, []);
+  useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
+  }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      // API endpoint
+      const apiUrl = `/backend/api/teachers`;
+
+      // Fetch teachers or teacher details with authentication
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      updateTeachers(data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        "/backend/api/dashboard/teacher-summary",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setStats(response.data.data);
+      } else {
+        setError(response.data.message || "Failed to fetch stats");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "An error occurred while fetching stats"
+      );
+      console.error("Dashboard stats error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     updateActiveModule("teachers");
@@ -56,11 +114,13 @@ const TeacherManagement = () => {
     // const start = (currentPage - 1) * itemsPerPage;
     // const end = Math.min(start + itemsPerPage, filtered?.length);
     // setDisplayedData(filtered?.slice(start, end));
-  }, [teachers , searchTerm]);
+  }, [teachers, searchTerm]);
 
   const handleAddTeacher = (teacherData) => {
     console.log("New teacher data:", teacherData);
     // Add your API call or data handling logic here
+    fetchTeachers();
+    fetchDashboardStats();
     setShowAddModal(false);
   };
 
@@ -110,19 +170,21 @@ const TeacherManagement = () => {
 
             {/* Actions */}
 
-            {isAdmin && <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                <UserPlus className="h-5 w-5" />
-                <span>Add Teacher</span>
-              </button>
-              {/* <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
+            {isAdmin && (
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span>Add Teacher</span>
+                </button>
+                {/* <button className="flex items-center space-x-2 px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
                 <Download className="h-5 w-5" />
                 <span>Export</span>
               </button> */}
-            </div>}
+              </div>
+            )}
           </div>
 
           {/* Filters Panel */}
@@ -175,10 +237,20 @@ const TeacherManagement = () => {
         {/* Content area - will be replaced with specific tab content */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           {activeTab === "profiles" && (
-            <TeacherProfiles teachers={filteredData} updateTeachers={updateTeachers}/>
+            <TeacherProfiles
+              teachers={filteredData}
+              updateTeachers={updateTeachers}
+              fetchDashboardStats={fetchDashboardStats}
+              loading={loading}
+              error={error}
+              stats={stats}
+            />
           )}
           {activeTab === "workload" && (
-            <WorkloadSchedule teachers={filteredData} updateTeachers={updateTeachers} />
+            <WorkloadSchedule
+              teachers={filteredData}
+              updateTeachers={updateTeachers}
+            />
           )}
           {/* {activeTab === "payroll" && <PayrollTable />} */}
           {activeTab === "leave" && <LeaveManagement />}
@@ -220,7 +292,6 @@ export async function loader({ params, request }) {
         "Content-Type": "application/json",
       },
     });
-
 
     // Handle authentication failure
     if (response.status === 401 || response.status === 403) {

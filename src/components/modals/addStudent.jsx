@@ -3,7 +3,8 @@ import { X, Loader, AlertCircle, Check } from "lucide-react";
 import AnimatedModal from "./animateModal";
 import axios from "axios";
 
-const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
+const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess,fetchStudents,
+  fetchStudentStats }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -259,7 +260,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         // Stream is already set by the class selection
       };
 
-      console.log("Submitting student data:", submitData);
+      //console.log("Submitting student data:", submitData);
 
       // Step 1: Create the student record
       const response = await axios.post(
@@ -275,7 +276,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
 
       if (response.data.success) {
         const newStudent = response.data.data;
-        console.log("Student created successfully:", newStudent);
+       // console.log("Student created successfully:", newStudent);
 
         // Step 2: If subjects were selected, create student-subject relationships
         if (
@@ -296,7 +297,7 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
               })
             );
 
-            console.log("Creating subject enrollments:", subjectEnrollments);
+           // console.log("Creating subject enrollments:", subjectEnrollments);
 
             // Create student-subject relationships
             const enrollmentResponse = await axios.post(
@@ -356,6 +357,8 @@ const AddStudentModal = ({ showAddModal, setShowAddModal, onSuccess }) => {
         });
 
         // Close modal and notify parent component
+        fetchStudents()
+        fetchStudentStats()
         setShowAddModal(false);
         if (onSuccess) {
           onSuccess(newStudent);
