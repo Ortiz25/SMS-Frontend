@@ -20,7 +20,6 @@ const YearlyAttendanceChart = () => {
   const [academicSessions, setAcademicSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
 
-  // Modern term configuration with updated colors
   const termConfigs = {
     "Term 1": {
       color: "#8B5CF6", // Modern purple
@@ -43,7 +42,7 @@ const YearlyAttendanceChart = () => {
   useEffect(() => {
     const fetchAcademicSessions = async () => {
       try {
-        const response = await axios.get('/backend/api/yearly',{
+        const response = await axios.get('http://localhost:5010/api/yearly',{
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
@@ -82,7 +81,7 @@ const YearlyAttendanceChart = () => {
     const fetchAttendanceData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`/backend/api/yearly/summary/weekly?academic_session_id=${selectedSession}`,{
+        const response = await axios.get(`http://localhost:5010/api/yearly/summary/weekly?academic_session_id=${selectedSession}`,{
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`

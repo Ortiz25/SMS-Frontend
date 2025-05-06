@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Base API URL - adjust as needed for your environment
-const API_URL = '/backend/api/academic-settings';
+const API_URL = 'http://localhost:5010/api/academic-settings';
 
 // Create axios instance with auth header
 const api = axios.create({

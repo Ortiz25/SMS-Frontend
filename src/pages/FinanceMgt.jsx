@@ -80,7 +80,7 @@ const FinanceDashboard = () => {
     const fetchAcademicSessions = async () => {
       try {
         const response = await axios.get(
-          "/backend/api/finance/academic-sessions",
+          "http://localhost:5010/api/finance/academic-sessions",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -116,7 +116,7 @@ const FinanceDashboard = () => {
   const fetchAllPayments = async () => {
     try {
       const response = await axios.get(
-        "/backend/api/finance/payments",
+        "http://localhost:5010/api/finance/payments",
         {
           params: {
             limit: 100, // Fetch more payments for client-side pagination
@@ -164,7 +164,7 @@ const FinanceDashboard = () => {
 
         // Fetch payment stats for dashboard cards
         const statsResponse = await axios.get(
-          "/backend/api/finance/stats",
+          "http://localhost:5010/api/finance/stats",
           {
             params: { academicSessionId },
             headers: {
@@ -338,7 +338,7 @@ const FinanceDashboard = () => {
 
       // Submit to backend
       const response = await axios.post(
-        "/backend/api/finance/payments",
+        "http://localhost:5010/api/finance/payments",
         paymentData,
         {
           headers: {
@@ -374,7 +374,7 @@ const FinanceDashboard = () => {
 
         // Refresh stats data
         const statsResponse = await axios.get(
-          "/backend/api/finance/stats",
+          "http://localhost:5010/api/finance/stats",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -405,7 +405,7 @@ const FinanceDashboard = () => {
   const viewPaymentDetails = async (paymentId) => {
     try {
       const response = await axios.get(
-        `/backend/api/finance/payments/${paymentId}`,
+        `http://localhost:5010/api/finance/payments/${paymentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1444,7 +1444,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
 
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

@@ -119,7 +119,7 @@ const StudentManagement = () => {
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
-          "/backend/api/dashboard/studentstats",
+          "http://localhost:5010/api/dashboard/studentstats",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -305,7 +305,7 @@ const StudentManagement = () => {
 
       // Fetch attendance data
       const response = await fetch(
-        `/backend/api/attendance?${queryParams.toString()}`,
+        `http://localhost:5010/api/attendance?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -382,7 +382,7 @@ const StudentManagement = () => {
 
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
-        console.log("Search term:", term);
+        //console.log("Search term:", term);
 
         filtered = filtered?.filter(
           (student) =>
@@ -392,7 +392,7 @@ const StudentManagement = () => {
             `${student.class} ${student.stream}`.toLowerCase().includes(term)
         );
 
-        console.log("Filtered results:", filtered);
+        //console.log("Filtered results:", filtered);
       }
 
       setFilteredData(filtered);
@@ -869,7 +869,7 @@ export async function loader({ params, request }) {
 
   try {
     // Set correct API endpoint for detailed student data
-    const apiUrl = `/backend/api/students/detailed`;
+    const apiUrl = `http://localhost:5010/api/students/detailed`;
 
     const response = await fetch(apiUrl, {
       method: "GET",

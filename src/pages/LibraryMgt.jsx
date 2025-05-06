@@ -37,18 +37,49 @@ const LibraryManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { updateActiveModule, activeModule } = useStore();
 
+  const fetchBooks = async ()=>{
+     try{
+      const token = localStorage.getItem("token");
+        // API endpoint for fetching books
+        const apiUrl = `http://localhost:5010/api/library/books`;
+    
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+       
+
+        setBooks(
+          data.data
+        );
+  
+
+     }catch(error){
+      console.log(error)
+     }
+  }
+
   useEffect(() => {
     updateActiveModule("library");
-  }, [activeModule]);
-
+     fetchBooks()
+  }, []);
+  console.log(books)
   // Filter books based on search query
   const filteredBooks = books.filter(
-    (book) =>
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.isbn.includes(searchQuery)
+    (book, index, self) =>
+      (
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.isbn.includes(searchQuery)
+      ) &&
+      index === self.findIndex(b => b.id === book.id)
   );
-
+  
   // Check for overdue books
   const overdueBooks = books.filter(
     (book) => book.status === "borrowed" && new Date(book.dueDate) < new Date()
@@ -62,6 +93,7 @@ const LibraryManagement = () => {
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
+  
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
   // Calculate available copies for a book
@@ -84,7 +116,7 @@ const LibraryManagement = () => {
       dueDate.setDate(dueDate.getDate() + 14); // 2 weeks borrowing period
 
       const response = await fetch(
-        `/backend/api/library/books/${selectedBook.id}/borrow`,
+        `http://localhost:5010/api/library/books/${selectedBook.id}/borrow`,
         {
           method: "POST",
           headers: {
@@ -105,19 +137,7 @@ const LibraryManagement = () => {
       if (!response.ok) throw new Error(data.error || "Failed to borrow book");
 
       // Update the books state to reflect the changes
-      setBooks(
-        books.map((book) =>
-          book.id === selectedBook.id
-            ? {
-                ...book,
-                borrower: borrowerDetails.name,
-                borrowed_by_contact: borrowerDetails.adminNo,
-                due_date: dueDate.toISOString().split("T")[0],
-                borrow_date: new Date().toISOString().split("T")[0],
-              }
-            : book
-        )
-      );
+      fetchBooks()
 
       setShowBorrowDialog(false);
       setBorrowerDetails({ adminNo: "", name: "" });
@@ -153,7 +173,7 @@ const LibraryManagement = () => {
 
     try {
       const response = await fetch(
-        `/backend/api/library/books/${bookId}`,
+        `http://localhost:5010/api/library/books/${bookId}`,
         {
           method: "DELETE",
           headers: {
@@ -180,8 +200,8 @@ const LibraryManagement = () => {
       };
 
       const url = isEditing
-        ? `/backend/api/library/books/${formattedData.id}`
-        : `/backend/api/library/books`;
+        ? `http://localhost:5010/api/library/books/${formattedData.id}`
+        : `http://localhost:5010/api/library/books`;
 
       const method = isEditing ? "PUT" : "POST";
 
@@ -214,8 +234,6 @@ const LibraryManagement = () => {
     }
   };
 
-  // This function has been moved to the Borrowers component
-  // The Library Management component now focuses only on book inventory
 
   return (
     <Navbar>
@@ -424,18 +442,18 @@ const LibraryManagement = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <span
                             className={
-                              book.copies_availables === 0
+                              book.copies_available === 0
                                 ? "text-red-600 font-medium"
                                 : ""
                             }
                           >
-                            {book.copies_available}
+                            {book.copies_available < 0 ? 0 : book.copies_available }
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                              book.copies_available> 0
+                              book.copies_available > 0
                                 ? "bg-green-100 text-green-800"
                                 : isBorrowed
                                 ? "bg-orange-100 text-orange-800"
@@ -611,7 +629,7 @@ export async function loader({ params, request }) {
   }
 
   try {
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",
@@ -632,7 +650,7 @@ export async function loader({ params, request }) {
     }
 
     // API endpoint for fetching books
-    const apiUrl = `/backend/api/library/books`;
+    const apiUrl = `http://localhost:5010/api/library/books`;
 
     const response = await fetch(apiUrl, {
       method: "GET",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Edit,
   Trash,
@@ -137,7 +137,7 @@ const AssetsList = ({ categoryFilter }) => {
   const fetchAssets = async () => {
     try {
       setLoading(true);
-      let url = "/backend/api/inventory/assets";
+      let url = "http://localhost:5010/api/inventory/assets";
       const params = {};
 
       if (categoryFilter && categoryFilter !== "all") {
@@ -163,7 +163,7 @@ const AssetsList = ({ categoryFilter }) => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(
-        "/backend/api/inventory/asset-categories",
+        "http://localhost:5010/api/inventory/asset-categories",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -179,7 +179,7 @@ const AssetsList = ({ categoryFilter }) => {
   const fetchDepartments = async () => {
     try {
       const response = await axios.get(
-        "/backend/api/inventory/departments",
+        "http://localhost:5010/api/inventory/departments",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -195,7 +195,7 @@ const AssetsList = ({ categoryFilter }) => {
   const fetchRooms = async () => {
     try {
       const response = await axios.get(
-        "/backend/api/inventory/rooms",
+        "http://localhost:5010/api/inventory/rooms",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -302,7 +302,7 @@ const AssetsList = ({ categoryFilter }) => {
   };
 
   // Form handlers
-  const handleEditFormChange = (e) => {
+  const handleEditFormChange = useCallback((e) => {
     const { name, value } = e.target;
     let parsedValue = value;
 
@@ -315,9 +315,9 @@ const AssetsList = ({ categoryFilter }) => {
       ...prev,
       [name]: parsedValue,
     }));
-  };
+  }, []);
 
-  const handleNewAssetChange = (e) => {
+  const handleNewAssetChange = useCallback((e) => {
     const { name, value } = e.target;
     let parsedValue = value;
 
@@ -330,7 +330,7 @@ const AssetsList = ({ categoryFilter }) => {
       ...prev,
       [name]: parsedValue,
     }));
-  };
+  }, []);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -342,7 +342,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.post(
-        "/backend/api/inventory/assets",
+        "http://localhost:5010/api/inventory/assets",
         newAssetData,
         {
           headers: {
@@ -365,7 +365,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `/backend/api/inventory/assets/${selectedAsset.id}`,
+        `http://localhost:5010/api/inventory/assets/${selectedAsset.id}`,
         { status: newStatus },
         {
           headers: {
@@ -388,7 +388,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `/backend/api/inventory/assets/${selectedAsset.id}`,
+        `http://localhost:5010/api/inventory/assets/${selectedAsset.id}`,
         editFormData,
         {
           headers: {
@@ -410,7 +410,7 @@ const AssetsList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.delete(
-        `/backend/api/inventory/assets/${selectedAsset.id}`,
+        `http://localhost:5010/api/inventory/assets/${selectedAsset.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -425,224 +425,281 @@ const AssetsList = ({ categoryFilter }) => {
       setActionLoading(false);
     }
   };
+  const NewAssetModal = useMemo(
+    () => {
+      if (modalType !== "new") return null;
+      return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black opacity-75 transition-opacity"
+          aria-hidden="true"
+        ></div>
+        <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
+          <div className="flex justify-between items-center  mb-4">
+            <h3 className="text-lg font-medium">Add New Asset</h3>
+            <button
+              onClick={closeModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <form onSubmit={handleCreateAsset} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Asset ID*
+                </label>
+                <input
+                  type="text"
+                  name="asset_id"
+                  value={newAssetData.asset_id}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
 
-  // Modal components
-  const NewAssetModal = () => (
-    <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black opacity-75 transition-opacity"
-        aria-hidden="true"
-      ></div>
-      <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
-        <div className="flex justify-between items-center  mb-4">
-          <h3 className="text-lg font-medium">Add New Asset</h3>
-          <button
-            onClick={closeModal}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Asset Name*
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newAssetData.name}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  name="category_id"
+                  value={newAssetData.category_id}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={newAssetData.location}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <select
+                  name="department_id"
+                  value={newAssetData.department_id}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Room
+                </label>
+                <select
+                  name="room_id"
+                  value={newAssetData.room_id}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select room</option>
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.room_number} - {room.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purchase Date
+                </label>
+                <input
+                  type="date"
+                  name="purchase_date"
+                  value={newAssetData.purchase_date}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purchase Cost
+                </label>
+                <input
+                  type="number"
+                  name="purchase_cost"
+                  value={newAssetData.purchase_cost}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Supplier
+                </label>
+                <input
+                  type="text"
+                  name="supplier"
+                  value={newAssetData.supplier}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Warranty Expiry
+                </label>
+                <input
+                  type="date"
+                  name="warranty_expiry"
+                  value={newAssetData.warranty_expiry}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={newAssetData.status}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="disposed">Disposed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assigned To
+                </label>
+                <input
+                  type="text"
+                  name="assigned_to"
+                  value={newAssetData.assigned_to}
+                  onChange={handleNewAssetChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+              </label>
+              <textarea
+                name="notes"
+                value={newAssetData.notes}
+                onChange={handleNewAssetChange}
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              ></textarea>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700"
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Creating..." : "Create Asset"}
+              </button>
+            </div>
+          </form>
         </div>
-        <form onSubmit={handleCreateAsset} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Asset ID*
-              </label>
-              <input
-                type="text"
-                name="asset_id"
-                value={newAssetData.asset_id}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
+      </div>
+    );},
+    [newAssetData, categories, departments, rooms, actionLoading]
+  );
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Asset Name*
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={newAssetData.name}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                name="category_id"
-                value={newAssetData.category_id}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={newAssetData.location}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <select
-                name="department_id"
-                value={newAssetData.department_id}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select department</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Room
-              </label>
-              <select
-                name="room_id"
-                value={newAssetData.room_id}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select room</option>
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.room_number} - {room.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Purchase Date
-              </label>
-              <input
-                type="date"
-                name="purchase_date"
-                value={newAssetData.purchase_date}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Purchase Cost
-              </label>
-              <input
-                type="number"
-                name="purchase_cost"
-                value={newAssetData.purchase_cost}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Supplier
-              </label>
-              <input
-                type="text"
-                name="supplier"
-                value={newAssetData.supplier}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Warranty Expiry
-              </label>
-              <input
-                type="date"
-                name="warranty_expiry"
-                value={newAssetData.warranty_expiry}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                name="status"
-                value={newAssetData.status}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="active">Active</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="disposed">Disposed</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Assigned To
-              </label>
-              <input
-                type="text"
-                name="assigned_to"
-                value={newAssetData.assigned_to}
-                onChange={handleNewAssetChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
+  const StatusModal = useMemo(
+    () => {
+      if (modalType !== "status") return null;
+      return (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black opacity-75 transition-opacity"
+          aria-hidden="true"
+        ></div>
+        <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">Change Asset Status</h3>
+            <button
+              onClick={closeModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="mb-6">
+            <p>
+              Are you sure you want to change the status of{" "}
+              <strong>{selectedAsset?.name}</strong> to{" "}
+              <strong>{newStatus}</strong>?
+            </p>
+            <div className="mt-4">
+              <p className="text-sm text-gray-600">
+                {newStatus === "active"
+                  ? "This will mark the asset as active and available for use."
+                  : "This will mark the asset as requiring maintenance and not available for regular use."}
+              </p>
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notes
-            </label>
-            <textarea
-              name="notes"
-              value={newAssetData.notes}
-              onChange={handleNewAssetChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
-
           <div className="flex justify-end space-x-3">
             <button
-              type="button"
               onClick={closeModal}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               disabled={actionLoading}
@@ -650,163 +707,169 @@ const AssetsList = ({ categoryFilter }) => {
               Cancel
             </button>
             <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700"
+              onClick={handleStatusChange}
+              className={`px-4 py-2 rounded-md text-white ${
+                newStatus === "active"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-yellow-600 hover:bg-yellow-700"
+              }`}
               disabled={actionLoading}
             >
-              {actionLoading ? "Creating..." : "Create Asset"}
+              {actionLoading ? "Processing..." : "Confirm"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    );},
+    [selectedAsset, newStatus, actionLoading]
   );
 
-  const StatusModal = () => (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div
-        className="fixed inset-0 bg-black opacity-75 transition-opacity"
-        aria-hidden="true"
-      ></div>
-      <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">Change Asset Status</h3>
-          <button
-            onClick={closeModal}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
+  const EditModal = useMemo(
+    () =>{
+      if (modalType !== "edit") return null;
+       return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black opacity-75 transition-opacity"
+          aria-hidden="true"
+        ></div>
+        <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">
+              Edit Asset: {selectedAsset?.name}
+            </h3>
+            <button
+              onClick={closeModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Asset Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  name="category_id"
+                  value={editFormData.category_id}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={editFormData.location}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <select
+                  name="department_id"
+                  value={editFormData.department_id}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* More form fields go here */}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700"
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
         </div>
-        <div className="mb-6">
-          <p>
-            Are you sure you want to change the status of{" "}
-            <strong>{selectedAsset?.name}</strong> to{" "}
-            <strong>{newStatus}</strong>?
-          </p>
-          <div className="mt-4">
-            <p className="text-sm text-gray-600">
-              {newStatus === "active"
-                ? "This will mark the asset as active and available for use."
-                : "This will mark the asset as requiring maintenance and not available for regular use."}
+      </div>
+    );},
+    [editFormData, selectedAsset, categories, departments, actionLoading]
+  );
+
+  const DeleteModal = useMemo(
+    () => { 
+      if (modalType !== "delete") return null;
+      return (
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black opacity-75 transition-opacity"
+          aria-hidden="true"
+        ></div>
+        <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-red-600">Delete Asset</h3>
+            <button
+              onClick={closeModal}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="mb-6">
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>{selectedAsset?.name}</strong>?
+            </p>
+            <p className="text-sm text-red-600 mt-2">
+              This action cannot be undone. All data associated with this asset
+              will be permanently removed.
             </p>
           </div>
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={closeModal}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            disabled={actionLoading}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleStatusChange}
-            className={`px-4 py-2 rounded-md text-white ${
-              newStatus === "active"
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-yellow-600 hover:bg-yellow-700"
-            }`}
-            disabled={actionLoading}
-          >
-            {actionLoading ? "Processing..." : "Confirm"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const EditModal = () => (
-    <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black opacity-75 transition-opacity"
-        aria-hidden="true"
-      ></div>
-      <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium">
-            Edit Asset: {selectedAsset?.name}
-          </h3>
-          <button
-            onClick={closeModal}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Asset Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={editFormData.name}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                name="category_id"
-                value={editFormData.category_id}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={editFormData.location}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <select
-                name="department_id"
-                value={editFormData.department_id}
-                onChange={handleEditFormChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select department</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* More form fields go here */}
-
           <div className="flex justify-end space-x-3">
             <button
-              type="button"
               onClick={closeModal}
               className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               disabled={actionLoading}
@@ -814,63 +877,19 @@ const AssetsList = ({ categoryFilter }) => {
               Cancel
             </button>
             <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700"
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
               disabled={actionLoading}
             >
-              {actionLoading ? "Saving..." : "Save Changes"}
+              {actionLoading ? "Deleting..." : "Delete Asset"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    );},
+    [selectedAsset, actionLoading]
   );
 
-  const DeleteModal = () => (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div
-        className="fixed inset-0 bg-black opacity-75 transition-opacity"
-        aria-hidden="true"
-      ></div>
-      <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-red-600">Delete Asset</h3>
-          <button
-            onClick={closeModal}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="mb-6">
-          <p>
-            Are you sure you want to delete{" "}
-            <strong>{selectedAsset?.name}</strong>?
-          </p>
-          <p className="text-sm text-red-600 mt-2">
-            This action cannot be undone. All data associated with this asset
-            will be permanently removed.
-          </p>
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={closeModal}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            disabled={actionLoading}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
-            disabled={actionLoading}
-          >
-            {actionLoading ? "Deleting..." : "Delete Asset"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -881,10 +900,10 @@ const AssetsList = ({ categoryFilter }) => {
 
   return (
     <div>
-      {modalType === "new" && <NewAssetModal />}
-      {modalType === "status" && <StatusModal />}
-      {modalType === "edit" && <EditModal />}
-      {modalType === "delete" && <DeleteModal />}
+      {NewAssetModal}
+      {StatusModal}
+      {EditModal}
+      {DeleteModal}
 
       {/* Header with search and add button */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">

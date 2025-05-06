@@ -1,46 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { X, Upload } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Upload, Trash2 } from "lucide-react";
 import axios from "axios";
 
-const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
+const EditTeacherModal = ({ 
+    isOpen, 
+    onClose, 
+    teacherId, 
+    onSave 
+}) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Personal Information
     first_name: "",
     last_name: "",
     id_number: "",
     email: "",
     phone_primary: "",
     phone_secondary: "",
-    gender: "",
-
-    // Employment Details
-    staff_id: "", // Auto-generated
     tsc_number: "",
     joining_date: "",
     employment_type: "",
     department: "",
-
-    // New Fields
     subject_specialization: [],
     education: "",
     certifications: "",
     experience: "",
     status: "active",
-    photo_url: "",
-
-    // Documents handling
-    documents: [],
+    photo_url: null,
+    documents: []
   });
+
+  const [files, setFiles] = useState([]);
+  const [existingDocuments, setExistingDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [subjects, updateSubjects] = useState([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [files, setFiles] = useState([]);
   const token = localStorage.getItem("token");
-
+  
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -58,6 +57,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
         }
 
         const data = await response.json();
+        console.log(data);
         updateSubjects(data.data);
         setError(null);
       } catch (err) {
@@ -70,40 +70,14 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
 
     fetchSubjects();
   }, []);
-
-  const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    const updatedFiles = [...files, ...newFiles];
-
-    setFiles(updatedFiles);
-
-    // Prepare documents with file details
-    const documentDetails = updatedFiles.map((file) => ({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    }));
-
-    setFormData((prev) => ({
-      ...prev,
-      documents: documentDetails,
-    }));
-  };
-
-  const removeFile = (index) => {
-    const updatedFiles = files.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
-    setFormData((prev) => ({
-      ...prev,
-      documents: updatedFiles,
-    }));
-  };
+  console.log(subjects)
 
   const steps = [
     { id: 1, title: "Personal Info" },
     { id: 2, title: "Employment" },
     { id: 3, title: "Qualifications" },
   ];
+
   const departments = [
     "Mathematics",
     "Sciences",
@@ -112,22 +86,156 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     "Technical Subjects",
   ];
 
-  const handleSubjectChange = (subjectName) => {
-    const currentSubjects = formData.subject_specialization || [];
+  // Fetch teacher details when modal opens
+  useEffect(() => {
+    console.log(isOpen, teacherId)
+    if (isOpen && teacherId) {
+      fetchTeacherDetails();
+      console.log("called clear")
+    }
+  }, [isOpen, teacherId]);
 
-    // Check using subjectName (strings)
-    const updatedSubjects = currentSubjects.includes(subjectName)
-      ? currentSubjects.filter((s) => s !== subjectName) // Remove if exists
-      : [...currentSubjects, subjectName]; // Add if not exists
+  const fetchTeacherDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:5010/api/teachers/${teacherId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-    handleChange("subject_specialization", updatedSubjects);
+      const teacherData = response.data.data;
+      console.log(response)
+      // Parse and set form data
+      setFormData({
+        first_name: teacherData.first_name,
+        last_name: teacherData.last_name,
+        id_number: teacherData.id_number,
+        email: teacherData.email,
+        phone_primary: teacherData.phone_primary,
+        phone_secondary: teacherData.phone_secondary || "",
+        tsc_number: teacherData.tsc_number,
+        joining_date: teacherData.joining_date 
+          ? new Date(teacherData.joining_date).toISOString().split('T')[0] 
+          : "",
+        employment_type: teacherData.employment_type,
+        department: teacherData.department,
+        subject_specialization: teacherData.subject_specialization || [],
+        education: teacherData.education || "",
+        certifications: teacherData.certifications || "",
+        experience: teacherData.experience || "",
+        status: teacherData.status || "active",
+        photo_url: teacherData.photo_url,
+        documents: []
+      });
+
+      // Set existing documents if any
+      try {
+        const existingDocs = teacherData.documents 
+          ? JSON.parse(teacherData.documents) 
+          : [];
+        setExistingDocuments(existingDocs);
+      } catch (parseError) {
+        console.warn('Error parsing existing documents:', parseError);
+      }
+
+    } catch (error) {
+      console.error('Error fetching teacher details:', error);
+      setError(error.response?.data?.error || 'Failed to fetch teacher details');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }));
+  };
+
+  const handleSubjectChange = (subjectName) => {
+    const currentSubjects = formData.subject_specialization || [];
+    const updatedSubjects = currentSubjects.includes(subjectName)
+      ? currentSubjects.filter((s) => s !== subjectName)
+      : [...currentSubjects, subjectName];
+    handleChange("subject_specialization", updatedSubjects);
+  };
+
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    setFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const removeFile = (index, isExisting = false) => {
+    if (isExisting) {
+      // Remove from existing documents
+      const updatedDocs = existingDocuments.filter((_, i) => i !== index);
+      setExistingDocuments(updatedDocs);
+    } else {
+      // Remove from newly added files
+      const updatedFiles = files.filter((_, i) => i !== index);
+      setFiles(updatedFiles);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+  
+    const formDataUpload = new FormData();
+    
+    // Append form fields
+    Object.keys(formData).forEach(key => {
+      if (key === 'subject_specialization') {
+        formDataUpload.append(key, formData[key].join(','));
+      } else if (key !== 'documents' && formData[key] !== null && formData[key] !== undefined) {
+        formDataUpload.append(key, formData[key]);
+      }
+    });
+  
+    // Append existing documents
+    formDataUpload.append('existing_documents', 
+      JSON.stringify(existingDocuments)
+    );
+  
+    // Append existing photo URL
+    if (formData.photo_url) {
+      formDataUpload.append('existing_photo_url', formData.photo_url);
+    }
+  
+    // Append new files
+    files.forEach((file, index) => {
+      formDataUpload.append('documents', file);
+    });
+  
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5010/api/teachers/${teacherId}`, formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+  
+      // Call onSave with a clean teacher object that matches the structure
+      // expected by the parent component
+      onSave({
+        id: teacherId,
+        ...formData
+      });
+      
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+      setError(error.response?.data?.error || 'Failed to update teacher');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleNext = () => {
@@ -138,61 +246,20 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formDataUpload = new FormData();
-
-    // Append other form fields
-    Object.keys(formData).forEach((key) => {
-      if (key === "subject_specialization") {
-        formDataUpload.append(key, formData[key].join(","));
-      } else if (key === "documents") {
-        // Skip documents field, we'll handle files separately
-        return;
-      } else if (formData[key] !== null && formData[key] !== undefined) {
-        formDataUpload.append(key, formData[key]);
-      }
-    });
-
-    // Append files to 'documents' field
-    files.forEach((file) => {
-      formDataUpload.append("documents", file);
-    });
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:5010/api/teachers",
-        formDataUpload,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log(response.data);
-      onSubmit(response.data);
-      onClose();
-    } catch (error) {
-      console.error("Error adding teacher:", error);
-      // Handle error (show error message, etc.)
-    }
-  };
   if (!isOpen) return null;
-  const uniqueSubjects = Array.from(new Set(subjects.map((subject) => subject.name)));
- 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
-        <div className="fixed inset-0 bg-black opacity-75" onClick={onClose} />
+        <div
+          className="fixed inset-0 bg-black opacity-75"
+          onClick={onClose}
+        />
 
         <div className="relative bg-white rounded-lg max-w-2xl w-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-lg font-medium">Add New Teacher</h3>
+            <h3 className="text-lg font-medium">Edit Teacher</h3>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-500"
@@ -229,6 +296,14 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
           </div>
 
+          {/* Loading and Error States */}
+          {isLoading && (
+            <div className="p-4 text-center text-blue-600">Loading...</div>
+          )}
+          {error && (
+            <div className="p-4 bg-red-100 text-red-600">{error}</div>
+          )}
+
           {/* Form Content */}
           <form onSubmit={handleSubmit}>
             <div className="p-6">
@@ -241,10 +316,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.first_name || ""}
-                        onChange={(e) =>
-                          handleChange("first_name", e.target.value)
-                        }
+                        value={formData.first_name}
+                        onChange={(e) => handleChange("first_name", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
@@ -256,38 +329,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.last_name || ""}
-                        onChange={(e) =>
-                          handleChange("last_name", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email*
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email || ""}
-                        onChange={(e) => handleChange("email", e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number*
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.phone_primary || ""}
-                        onChange={(e) =>
-                          handleChange("phone_primary", e.target.value)
-                        }
+                        value={formData.last_name}
+                        onChange={(e) => handleChange("last_name", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
@@ -299,10 +342,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </label>
                       <input
                         type="text"
-                        value={formData.id_number || ""}
-                        onChange={(e) =>
-                          handleChange("id_number", e.target.value)
-                        }
+                        value={formData.id_number}
+                        onChange={(e) => handleChange("id_number", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
@@ -310,14 +351,12 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date of Birth*
+                        Email*
                       </label>
                       <input
-                        type="date"
-                        value={formData.date_of_birth || ""}
-                        onChange={(e) =>
-                          handleChange("date_of_birth", e.target.value)
-                        }
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
@@ -325,63 +364,68 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Gender*
+                        Primary Phone*
                       </label>
-                      <select
-                        value={formData.gender || ""}
-                        onChange={(e) => handleChange("gender", e.target.value)}
+                      <input
+                        type="tel"
+                        value={formData.phone_primary}
+                        onChange={(e) => handleChange("phone_primary", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
-                      >
-                        <option value="">Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
+                      />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <textarea
-                      value={formData.address || ""}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                      rows="3"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Secondary Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.phone_secondary || ""}
+                        onChange={(e) => handleChange("phone_secondary", e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
+
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-6">
-                    {/* Employment Date */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Employment Date*
                       </label>
                       <input
                         type="date"
-                        value={formData.joining_date || ""}
-                        onChange={(e) =>
-                          handleChange("joining_date", e.target.value)
-                        }
+                        value={formData.joining_date}
+                        onChange={(e) => handleChange("joining_date", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       />
                     </div>
 
-                    {/* Department */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        TSC Number*
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.tsc_number}
+                        onChange={(e) => handleChange("tsc_number", e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
+                        required
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Department*
                       </label>
                       <select
-                        value={formData.department || ""}
-                        onChange={(e) =>
-                          handleChange("department", e.target.value)
-                        }
+                        value={formData.department}
+                        onChange={(e) => handleChange("department", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       >
@@ -394,52 +438,13 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </select>
                     </div>
 
-                    {/* Position */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Position*
-                      </label>
-                      <select
-                        value={formData.position || ""}
-                        onChange={(e) =>
-                          handleChange("position", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                        required
-                      >
-                        <option value="">Select Position</option>
-                        <option value="teacher">Teacher</option>
-                        <option value="hod">Head of Department</option>
-                        <option value="senior-teacher">Senior Teacher</option>
-                      </select>
-                    </div>
-
-                    {/* TSC Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        TSC Number*
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.tsc_number || ""}
-                        onChange={(e) =>
-                          handleChange("tsc_number", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                        required
-                      />
-                    </div>
-
-                    {/* Employment Type */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Employment Type*
                       </label>
                       <select
-                        value={formData.employment_type || ""}
-                        onChange={(e) =>
-                          handleChange("employment_type", e.target.value)
-                        }
+                        value={formData.employment_type}
+                        onChange={(e) => handleChange("employment_type", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
                         required
                       >
@@ -450,104 +455,94 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </select>
                     </div>
 
-                    {/* Salary Scale */}
-                    {/* <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Salary Scale
+                        Status
                       </label>
-                      <input
-                        type="text"
-                        value={formData.salaryScale || ""}
-                        onChange={(e) =>
-                          handleChange("salaryScale", e.target.value)
-                        }
+                      <select
+                        value={formData.status}
+                        onChange={(e) => handleChange("status", e.target.value)}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                        placeholder="e.g., T-Scale 10"
-                      />
-                    </div> */}
-                  </div>
+                      >
+                        <option value="active">Active</option>
+                        <option value="on_leave">On Leave</option>
+                        <option value="retired">Retired</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                    </div>
 
-                  {/* Teaching Subjects */}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Teaching Subjects*
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {uniqueSubjects.map((subject) => (
-                        <label
-                          key={subject}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={(
-                              formData.subject_specialization || []
-                            ).includes(subject)}
-                            onChange={() => handleSubjectChange(subject)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {subject}
-                          </span>
-                        </label>
-                      ))}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Teaching Subjects*
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {subjects && subjects.length > 0 ? subjects.map((subject) => (
+                          <label
+                            key={subject.id}
+                            className="flex items-center space-x-2"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.subject_specialization.includes(subject.name)}
+                              onChange={() => handleSubjectChange(subject.name)}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">
+                              {subject.name}
+                            </span>
+                          </label>
+                        )) : (
+                          <div className="text-gray-500">Loading subjects...</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
+
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  {/* Education Background */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Education Background*
                     </label>
                     <textarea
-                      value={formData.education || ""}
-                      onChange={(e) =>
-                        handleChange("education", e.target.value)
-                      }
+                      value={formData.education}
+                      onChange={(e) => handleChange("education", e.target.value)}
                       rows="3"
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                      placeholder="List your educational qualifications (e.g., Bachelor's in Education, Master's in Mathematics)"
+                      placeholder="List your educational qualifications"
                       required
                     />
                   </div>
 
-                  {/* Professional Certifications */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Professional Certifications
                     </label>
                     <textarea
-                      value={formData.certifications || ""}
-                      onChange={(e) =>
-                        handleChange("certifications", e.target.value)
-                      }
+                      value={formData.certifications}
+                      onChange={(e) => handleChange("certifications", e.target.value)}
                       rows="3"
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                      placeholder="List any relevant certifications or professional qualifications"
+                      placeholder="List any professional certifications"
                     />
                   </div>
 
-                  {/* Teaching Experience */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Teaching Experience
                     </label>
                     <textarea
-                      value={formData.experience || ""}
-                      onChange={(e) =>
-                        handleChange("experience", e.target.value)
-                      }
+                      value={formData.experience}
+                      onChange={(e) => handleChange("experience", e.target.value)}
                       rows="3"
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-300"
-                      placeholder="Describe your previous teaching experience"
+                      placeholder="Describe your teaching experience"
                     />
                   </div>
 
-                  {/* Document Upload */}
+                  {/* Document Upload Section */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Upload Documents
@@ -574,9 +569,38 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       </div>
                     </div>
 
-                    {/* File List */}
+                    {/* Existing Documents */}
+                    {existingDocuments.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <h4 className="text-sm font-medium text-gray-700">
+                          Existing Documents
+                        </h4>
+                        {existingDocuments.map((doc, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                          >
+                            <span className="text-sm text-gray-600">
+                              {doc.name || `Document ${index + 1}`}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index, true)}
+                              className="text-gray-400 hover:text-red-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Newly Added Files */}
                     {files.length > 0 && (
                       <div className="mt-4 space-y-2">
+                        <h4 className="text-sm font-medium text-gray-700">
+                          New Documents
+                        </h4>
                         {files.map((file, index) => (
                           <div
                             key={index}
@@ -590,7 +614,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                               onClick={() => removeFile(index)}
                               className="text-gray-400 hover:text-red-500"
                             >
-                              <X className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         ))}
@@ -625,7 +649,7 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                 >
-                  Submit
+                  Update Teacher
                 </button>
               )}
             </div>
@@ -636,4 +660,4 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-export default AddTeacherModal;
+export default EditTeacherModal;

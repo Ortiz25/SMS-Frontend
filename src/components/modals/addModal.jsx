@@ -22,7 +22,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
           const studentType =
             addType === "hostel-allocations" ? "/hostel-transport/boarders/" : "/hostel-transport//day-scholars";
           const studentsResponse = await fetch(
-            `/backend/api${studentType}`,
+            `http://localhost:5010/api${studentType}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -33,7 +33,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
           // Fetch academic sessions
           const sessionsResponse = await fetch(
-            "/backend/api/sessions/academic-sessions",
+            "http://localhost:5010/api/sessions/academic-sessions",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -47,7 +47,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         if (addType === "hostel-allocations") {
           // Fetch dormitory rooms with available beds
           const roomsResponse = await fetch(
-            "/backend/api/hostel-transport/rooms",
+            "http://localhost:5010/api/hostel-transport/rooms",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -57,7 +57,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "stops") {
           // Fetch routes for stops
           const routesResponse = await fetch(
-            "/backend/api/hostel-transport/routes",
+            "http://localhost:5010/api/hostel-transport/routes",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -68,7 +68,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "transport-allocations") {
           // Fetch active routes
           const routesResponse = await fetch(
-            "/backend/api/hostel-transport/routes",
+            "http://localhost:5010/api/hostel-transport/routes",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -90,7 +90,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       if (formData.route_id && addType === "transport-allocations") {
         try {
           const stopsResponse = await fetch(
-            `/backend/api/transport/stops?route_id=${formData.route_id}`,
+            `http://localhost:5010/api/transport/stops?route_id=${formData.route_id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -124,23 +124,23 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
       // Hostel endpoints
       if (addType === "dormitories") {
-        endpoint = "/backend/api/hostel-transport/dormitories";
+        endpoint = "http://localhost:5010/api/hostel-transport/dormitories";
         // Set default values if not provided
         if (!formData.status) formData.status = "active";
       } else if (addType === "hostel-allocations") {
-        endpoint = "/backend/api/hostel-transport/allocations";
+        endpoint = "http://localhost:5010/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
       // Transport endpoints
       else if (addType === "routes") {
-        endpoint = "/backend/api/hostel-transport/routes";
+        endpoint = "http://localhost:5010/api/hostel-transport/routes";
         // Set default values
         if (!formData.status) formData.status = "active";
       } else if (addType === "stops") {
-        endpoint = "/backend/api/hostel-transport/stops";
+        endpoint = "http://localhost:5010/api/hostel-transport/stops";
       } else if (addType === "transport-allocations") {
-        endpoint = "/backend/api/hostel-transport/allocations";
+        endpoint = "http://localhost:5010/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
@@ -480,7 +480,6 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
   };
 
   const renderStopForm = () => {
-    console.log(routes)
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">

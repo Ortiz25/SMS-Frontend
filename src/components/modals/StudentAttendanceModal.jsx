@@ -45,7 +45,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
 
       // Fetch attendance data
       const response = await fetch(
-        `/backend/api/students/student/${student.id}?startDate=${startDate}&endDate=${endDate}`,
+        `http://localhost:5010/api/students/student/${student.id}?startDate=${startDate}&endDate=${endDate}`,
         {
           method: "GET",
           headers: {
@@ -55,7 +55,7 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
         }
       );
 
-      console.log(response);
+    
 
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem("token");
@@ -65,7 +65,6 @@ const StudentAttendanceModal = ({ isOpen, student, onClose }) => {
 
       const data = await response.json();
 
-      console.log(data);
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to fetch attendance data");
       }

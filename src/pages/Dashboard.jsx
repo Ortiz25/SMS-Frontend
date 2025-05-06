@@ -100,8 +100,6 @@ const Dashboard = () => {
   }, [data]);
 
   const year = new Date().getFullYear();
-  console.log(year)
-
   // 1. First effect: Fetch academic sessions once when component mounts
   useEffect(() => {
     const fetchSessions = async () => {
@@ -109,7 +107,7 @@ const Dashboard = () => {
 
       try {
         const sessionsResponse = await fetch(
-          "/backend/api/sessions/academic-sessions",
+          "http://localhost:5010/api/sessions/academic-sessions",
           {
             method: "GET",
             headers: {
@@ -172,7 +170,6 @@ const Dashboard = () => {
             .flatMap((year) => groupedSessions[year]);
 
           setAcademicSessions(sortedSessions);
-          console.log(academicSessions);
           // Set the current session as default if it exists
           const currentSession = sortedSessions.find(
             (session) => session.is_current
@@ -206,8 +203,8 @@ const Dashboard = () => {
       try {
         // Use selectedSession to filter if available
         const url = selectedSession
-          ? `/backend/api/dashboard/form-performance?academicSessionId=${selectedSession.id}`
-          : "/backend/api/dashboard/form-performance";
+          ? `http://localhost:5010/api/dashboard/form-performance?academicSessionId=${selectedSession.id}`
+          : "http://localhost:5010/api/dashboard/form-performance";
 
         const classesSummaryResponse = await fetch(url, {
           method: "GET",
@@ -266,7 +263,6 @@ const Dashboard = () => {
   // 1. Memoize the session selection handler
   const handleSessionSelection = useCallback((session) => {
     setSelectedSession(session);
-    console.log(selectedSession);
     setSessionDropdownOpen(false);
   }, []);
 
@@ -1183,7 +1179,7 @@ export async function loader({ params, request }) {
     return redirect("/");
   }
 
-  const tokenUrl = "/backend/api/auth/verify-token";
+  const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
   try {
     const tokenResponse = await fetch(tokenUrl, {
@@ -1225,7 +1221,7 @@ export async function loader({ params, request }) {
 
     // Make API call to fetch dashboard data
     const dashboardResponse = await fetch(
-      "/backend/api/dashboard/summary",
+      "http://localhost:5010/api/dashboard/summary",
       {
         method: "GET",
         headers: {

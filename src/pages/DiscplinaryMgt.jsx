@@ -180,6 +180,7 @@ const DisciplineMgt = () => {
   };
 
   const handleSaveIncident = async () => {
+    console.log(incidentForm)
     try {
       setFormLoading(true);
       if (isEditing) {
@@ -200,6 +201,8 @@ const DisciplineMgt = () => {
       } else {
         // Create new incident
         const newIncident = await disciplinaryService.createIncident(incidentForm);
+
+        
         
         // Add to local state
         setAllIncidents([...allIncidents, newIncident]);
@@ -364,7 +367,7 @@ export async function loader({ params }) {
       return redirect("/");
     }
   
-    const tokenUrl = "/backend/api/auth/verify-token";
+    const tokenUrl = "http://localhost:5010/api/auth/verify-token";
 
     const tokenResponse = await fetch(tokenUrl, {
       method: "GET",

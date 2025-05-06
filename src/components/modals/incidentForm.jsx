@@ -217,7 +217,8 @@ const IncidentFormDialog = ({
     // Pass the form data to the parent component - this is redundant now
     // since we're keeping them in sync, but keeping it for safety
     setFormData(localFormData);
-    onSave();
+  
+   onSave();
   };
 
   if (!show) return null;

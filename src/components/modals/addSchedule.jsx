@@ -47,7 +47,7 @@ const AddScheduleModal = ({
     const fetchSubjects = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/backend/api/helpers", {
+        const response = await fetch("http://localhost:5010/api/helpers", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
