@@ -15,7 +15,7 @@ const ForgotPass = () => {
     setError("");
     try {
       const response = await fetch(
-        "http://localhost:5010/api/password/forgotpassword",
+        "/backend/api/password/forgotpassword",
         {
           method: "POST",
           headers: {

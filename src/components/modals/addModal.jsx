@@ -22,7 +22,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
           const studentType =
             addType === "hostel-allocations" ? "/hostel-transport/boarders/" : "/hostel-transport//day-scholars";
           const studentsResponse = await fetch(
-            `http://localhost:5010/api${studentType}`,
+            `/backend/api${studentType}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -33,7 +33,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
           // Fetch academic sessions
           const sessionsResponse = await fetch(
-            "http://localhost:5010/api/sessions/academic-sessions",
+            "/backend/api/sessions/academic-sessions",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -47,7 +47,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         if (addType === "hostel-allocations") {
           // Fetch dormitory rooms with available beds
           const roomsResponse = await fetch(
-            "http://localhost:5010/api/hostel-transport/rooms",
+            "/backend/api/hostel-transport/rooms",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -57,7 +57,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "stops") {
           // Fetch routes for stops
           const routesResponse = await fetch(
-            "http://localhost:5010/api/hostel-transport/routes",
+            "/backend/api/hostel-transport/routes",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -68,7 +68,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
         } else if (addType === "transport-allocations") {
           // Fetch active routes
           const routesResponse = await fetch(
-            "http://localhost:5010/api/hostel-transport/routes",
+            "/backend/api/hostel-transport/routes",
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -90,7 +90,7 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
       if (formData.route_id && addType === "transport-allocations") {
         try {
           const stopsResponse = await fetch(
-            `http://localhost:5010/api/transport/stops?route_id=${formData.route_id}`,
+            `/backend/api/transport/stops?route_id=${formData.route_id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -124,23 +124,23 @@ const AddModal = ({ addType, onClose, onAdd, token }) => {
 
       // Hostel endpoints
       if (addType === "dormitories") {
-        endpoint = "http://localhost:5010/api/hostel-transport/dormitories";
+        endpoint = "/backend/api/hostel-transport/dormitories";
         // Set default values if not provided
         if (!formData.status) formData.status = "active";
       } else if (addType === "hostel-allocations") {
-        endpoint = "http://localhost:5010/api/hostel-transport/allocations";
+        endpoint = "/backend/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }
       // Transport endpoints
       else if (addType === "routes") {
-        endpoint = "http://localhost:5010/api/hostel-transport/routes";
+        endpoint = "/backend/api/hostel-transport/routes";
         // Set default values
         if (!formData.status) formData.status = "active";
       } else if (addType === "stops") {
-        endpoint = "http://localhost:5010/api/hostel-transport/stops";
+        endpoint = "/backend/api/hostel-transport/stops";
       } else if (addType === "transport-allocations") {
-        endpoint = "http://localhost:5010/api/hostel-transport/allocations";
+        endpoint = "/backend/api/hostel-transport/allocations";
         // Set default values
         if (!formData.status) formData.status = "active";
       }

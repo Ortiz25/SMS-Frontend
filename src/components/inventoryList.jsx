@@ -117,7 +117,7 @@ const InventoryList = ({ categoryFilter }) => {
   const fetchInventoryItems = async () => {
     try {
       setLoading(true);
-      let url = "http://localhost:5010/api/inventory/inventory";
+      let url = "/backend/api/inventory/inventory";
       const params = {};
 
       if (categoryFilter && categoryFilter !== "all") {
@@ -142,7 +142,7 @@ const InventoryList = ({ categoryFilter }) => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5010/api/inventory/inventory-categories",
+        "/backend/api/inventory/inventory-categories",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -291,7 +291,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.post(
-        "http://localhost:5010/api/inventory/inventory",
+        "/backend/api/inventory/inventory",
         newItemData,
         {
           headers: {
@@ -321,7 +321,7 @@ const InventoryList = ({ categoryFilter }) => {
 
       // Create a transaction record
       await axios.post(
-        `http://localhost:5010/api/inventory/inventory/${selectedItem.id}/transactions`,
+        `/backend/api/inventory/inventory/${selectedItem.id}/transactions`,
         {
           transaction_type: stockAction === "increase" ? "in" : "out",
           quantity: stockAmount,
@@ -351,7 +351,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.patch(
-        `http://localhost:5010/api/inventory/inventory/${selectedItem.id}`,
+        `/backend/api/inventory/inventory/${selectedItem.id}`,
         editFormData,
         {
           headers: {
@@ -373,7 +373,7 @@ const InventoryList = ({ categoryFilter }) => {
     try {
       setActionLoading(true);
       await axios.delete(
-        `http://localhost:5010/api/inventory/inventory/${selectedItem.id}`,
+        `/backend/api/inventory/inventory/${selectedItem.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

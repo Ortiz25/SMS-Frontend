@@ -123,7 +123,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
   const fetchClasses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5010/api/classes", {
+      const response = await axios.get("/backend/api/classes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -454,7 +454,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
         const token = localStorage.getItem("token");
         try {
           const response = await axios.put(
-            `http://localhost:5010/api/students/${student.id}`,
+            `/backend/api/students/${student.id}`,
             updateData,
             {
               headers: {

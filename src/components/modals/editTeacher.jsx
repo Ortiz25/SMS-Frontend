@@ -44,7 +44,7 @@ const EditTeacherModal = ({
     const fetchSubjects = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:5010/api/helpers", {
+        const response = await fetch("/backend/api/helpers", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -100,7 +100,7 @@ const EditTeacherModal = ({
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5010/api/teachers/${teacherId}`, {
+      const response = await axios.get(`/backend/api/teachers/${teacherId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -214,7 +214,7 @@ const EditTeacherModal = ({
   
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5010/api/teachers/${teacherId}`, formDataUpload, {
+      await axios.put(`/backend/api/teachers/${teacherId}`, formDataUpload, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

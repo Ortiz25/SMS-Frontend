@@ -34,7 +34,7 @@ const SubjectsTab = () => {
     passing_marks: 50,
   });
 
-  const API_URL = "http://localhost:5010/api";
+  const API_URL = "/backend/api";
 
   // Available curriculum types and levels
   const curriculumTypes = ["CBC", "844"];
