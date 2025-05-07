@@ -31,7 +31,7 @@ const AttendanceInfo = ({ student }) => {
                 );
                 
                 setAttendanceData(response.data.data)
-                console.log(response.data.data)
+                
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching attendance data:', err);

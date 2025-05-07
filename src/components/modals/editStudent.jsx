@@ -153,7 +153,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
   // Initialize form with student data
   useEffect(() => {
     if (student) {
-      console.log("Initializing form with student data:", student);
+      //console.log("Initializing form with student data:", student);
 
       // Store original data for comparison
       const originalData = {
@@ -348,7 +348,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
   };
 
   const handleValidationChange = (section, isValid) => {
-    console.log(`Validation change for ${section}: ${isValid}`);
+    //console.log(`Validation change for ${section}: ${isValid}`);
     setValidation((prev) => ({
       ...prev,
       [section]: isValid,
@@ -520,7 +520,7 @@ const EditStudentModal = ({ isOpen, student, onClose, onSave }) => {
     { id: "academic", label: "Academic", icon: GraduationCap },
     { id: "medical", label: "Medical", icon: Heart },
   ];
-  console.log(formData);
+  
 
   if (!isOpen) return null;
 

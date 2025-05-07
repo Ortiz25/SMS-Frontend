@@ -143,7 +143,7 @@ const SidebarContent = ({ activeSection, setActiveSection, onItemClick }) => (
   <>
     <div className="px-6 pb-6 border-b border-gray-300 ">
       <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-4 mt-4">
-        <NavLink to={"/students"} className="text-gray-600 hover:text-gray-900">
+        <NavLink to={"/students"} className="text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-200 p-2">
           <ArrowLeftToLine className="w-6 h-6 text-gray-500" />
         </NavLink>
         Settings

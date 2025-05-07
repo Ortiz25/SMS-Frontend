@@ -4,7 +4,7 @@ const PersonalInfoForm = ({ formData, onChange, onValidationChange }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isValid, setIsValid] = useState(false);
-  console.log(formData)
+  
   const validateField = (name, value) => {
     let fieldError = '';
 

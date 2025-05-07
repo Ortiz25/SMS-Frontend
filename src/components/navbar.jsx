@@ -95,7 +95,7 @@ const Navbar = ({ children }) => {
               className={`w-full flex items-center space-x-3 px-4 py-3 text-sm rounded-lg transition-colors ${
                 activeModule === item.id
                   ? "bg-blue-50 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-50"
+                  : "text-gray-700 hover:bg-gray-200"
               }`}
             >
               <item.icon className="h-5 w-5" />
@@ -107,7 +107,7 @@ const Navbar = ({ children }) => {
         {/* Bottom Actions */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <div className="space-y-2">
-            <NavLink to={"/settings"} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+            <NavLink to={"/settings"} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 rounded-lg">
               <Settings className="h-5 w-5" />
               <span>Settings</span>
             </NavLink>

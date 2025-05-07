@@ -17,7 +17,7 @@ const AcademicInfoForm = ({
   const [loadingError, setLoadingError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  console.log(formData)
+  
 
   // Fetch data on component mount
   useEffect(() => {

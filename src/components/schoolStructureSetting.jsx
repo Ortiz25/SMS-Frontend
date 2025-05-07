@@ -1490,6 +1490,8 @@ const ClassesTab = () => {
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
 
+  console.log(teachers)
+
   // Token from localStorage
   const token = localStorage.getItem("token");
 
@@ -1516,12 +1518,13 @@ const ClassesTab = () => {
         }
 
         if (teachersResponse.data.success) {
+          console.log(teachersResponse.data.data)
           // Only include active teachers
           setTeachers(
-            teachersResponse.data.data.filter((t) => t.status === "active")
+            teachersResponse.data.data
           );
         }
-
+      console.log(teachers)
         if (sessionsResponse.data.success) {
           const sessions = sessionsResponse.data.data;
           setAcademicSessions(sessions);
@@ -1685,7 +1688,7 @@ const ClassesTab = () => {
   const getTeacherName = (id) => {
     if (!id) return "Not Assigned";
     const teacher = teachers.find((t) => t.id === parseInt(id));
-    return teacher ? `${teacher.first_name} ${teacher.last_name}` : "Unknown";
+    return teacher ? `${teacher.name}` : "Unknown";
   };
 
   const getSessionName = (id) => {
@@ -1860,8 +1863,7 @@ const ClassesTab = () => {
                   <option value="">Select Class Teacher</option>
                   {teachers.map((teacher) => (
                     <option key={teacher.id} value={teacher.id.toString()}>
-                      {teacher.first_name} {teacher.last_name} (
-                      {teacher.staff_id})
+                      {teacher.name}
                     </option>
                   ))}
                 </select>
