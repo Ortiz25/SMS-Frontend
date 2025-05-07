@@ -3,8 +3,8 @@ import { X, AlertCircle } from 'lucide-react';
 
 const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, subjects }) => {
   const [formData, setFormData] = useState({
-    classidId: '',
-    subject: '',
+    classId: '',
+    subjectId: '',
     teacherId: '',
     hours: '',
     room: '',
@@ -12,14 +12,14 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
   });
   const uniqueSubjects = [...new Set(subjects.map((subject) => subject.name))];
   const formattedSubjects = uniqueSubjects.map(name => ({ name }));
-  console.log(subjects)
   const [errors, setErrors] = useState({});
 
+ 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.class) newErrors.class = 'Class is required';
-    if (!formData.subject) newErrors.subject = 'Subject is required';
-    if (!formData.teacher) newErrors.teacher = 'Teacher is required';
+    if (!formData.classId) newErrors.classId = 'Class is required';
+    if (!formData.subjectId) newErrors.subjectId = 'Subject is required';
+    if (!formData.teacherId) newErrors.teacherId = 'Teacher is required';
     if (!formData.hours) newErrors.hours = 'Hours per week is required';
 
     setErrors(newErrors);
@@ -28,12 +28,13 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
 
   const handleSubmit = (e) => {
     e.preventDefault();
+ 
     if (validateForm()) {
-      console.log(formData)
       onSave(formData);
       onClose();
     }
   };
+  const random = Math.floor(Math.random() * 10);
 
   if (!isOpen) return null;
 
@@ -56,15 +57,15 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
                 Class*
               </label>
               <select
-                value={formData.class}
-                onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                value={formData.classId}
+                onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
                 className={`w-full px-3 py-2 border rounded-lg ${
                   errors.class ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
                 <option value="">Select Class</option>
-                {classes.map(cls => (
-                  <option key={cls.name} value={cls.name}>
+                {classes.map((cls, index) => (
+                  <option key={`${cls.id}-${random}`} value={cls.id}>
                     {cls.name}
                   </option>
                 ))}
@@ -80,16 +81,16 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
                 Subject*
               </label>
               <select
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                value={formData.subjectId}
+                onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
                 className={`w-full px-3 py-2 border rounded-lg ${
                   errors.subject ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
                 <option value="">Select Subject</option>
-                {formattedSubjects.map(sb => (
-                  <option key={sb.name} value={sb.name}>
-                    {sb.name}
+                {subjects.map(sb => (
+                  <option key={sb.id} value={sb.id}>
+                    {`${sb.name}-${sb.code}`}
                   </option>
                 ))}
              
@@ -104,8 +105,8 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
                 Teacher*
               </label>
               <select
-                value={formData.teacher}
-                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
+                value={formData.teacherId}
+                onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
                 className={`w-full px-3 py-2 border rounded-lg ${
                   errors.teacher ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -154,7 +155,7 @@ const AllocationModal = ({ isOpen, onClose, onSave, classes, teachers, rooms, su
               >
                 <option value="">Select Room</option>
                 {rooms.map(sb => (
-                  <option key={sb.name} value={sb.name}>
+                  <option key={sb.id} value={sb.name}>
                     {sb.name}
                   </option>
                 ))}

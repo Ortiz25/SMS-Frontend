@@ -45,7 +45,6 @@ const LeaveManagement = () => {
     totalLeaveRequests: 0,
   });
   const [leaveBalances, setLeaveBalances] = useState([]);
-  console.log(leaveStats)
 
   useEffect(() => {
     const fetchLeaveStats = async () => {
@@ -62,7 +61,7 @@ const LeaveManagement = () => {
             },
           }
         );
-        console.log(response);
+      
         if (response.data.success) {
           setLeaveStats((prevStats) => ({
             ...prevStats,
@@ -125,7 +124,7 @@ const LeaveManagement = () => {
       );
 
       const leaves = allLeavesResponse.data.results || [];
-      console.log(leaves);
+
       // Count different stats
       const pending = leaves.filter(
         (leave) => leave.status === "pending"
@@ -145,15 +144,7 @@ const LeaveManagement = () => {
           new Date(leave.start_date) <= new Date(today) &&
           new Date(leave.end_date) >= new Date(today)
       ).length;
-      console.log(leaves)
-      console.log(
-        leaves.filter(
-          (leave) =>
-            leave.status === "approved" &&
-            new Date(leave.start_date) <= new Date(today) &&
-            new Date(leave.end_date) >= new Date(today)
-        )
-      );
+
       // Get leaves ending today
       const leavesEndingToday = leaves.filter(
         (leave) => leave.status === "approved" && leave.end_date === today
@@ -174,7 +165,7 @@ const LeaveManagement = () => {
           );
 
           const balances = balanceResponse.data || [];
-          console.log(balanceResponse);
+
           setLeaveBalances(balances);
 
           // Find annual leave balance
@@ -497,7 +488,9 @@ const LeaveManagement = () => {
       icon: isAdmin ? Users : Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: isAdmin ? "Currently on leave" : "Available Annual leave days",
+      description: isAdmin
+        ? "Currently on leave"
+        : "Available Annual leave days",
     },
     {
       title: isAdmin ? "Leaves Ending Today" : "Leave Utilization",

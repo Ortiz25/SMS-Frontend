@@ -68,7 +68,7 @@ const LibraryManagement = () => {
     updateActiveModule("library");
      fetchBooks()
   }, []);
-  console.log(books)
+ 
   // Filter books based on search query
   const filteredBooks = books.filter(
     (book, index, self) =>

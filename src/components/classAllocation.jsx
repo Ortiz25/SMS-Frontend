@@ -191,8 +191,8 @@ const ClassAllocation = ({ rooms }) => {
   const handleSaveAllocation = useCallback(async (allocationData) => {
     try {
       const token = localStorage.getItem("token");
-
-      const response = await fetch("/backend/api/allocations", {
+      console.log(allocationData)
+      const response = await fetch("/backend/api/allocations/allocations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,10 +203,10 @@ const ClassAllocation = ({ rooms }) => {
           subject_id: allocationData.subjectId,
           class_id: allocationData.classId,
           academic_session_id:
-            allocationData.academicSessionId || currentSession,
+            allocationData.academicSessionId || currentSession.id,
         }),
       });
-
+      console.log(response)
       if (!response.ok) throw new Error("Failed to create allocation");
 
       const result = await response.json();
@@ -260,7 +260,7 @@ const ClassAllocation = ({ rooms }) => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `/backend/api/allocations/${allocationData.id}`,
+        `/backend/api/allocations/allocations/${allocationData.id}`,
         {
           method: "PUT",
           headers: {
@@ -423,8 +423,8 @@ const ClassAllocation = ({ rooms }) => {
             onChange={(e) => setSelectedClass(e.target.value)}
           >
             <option value="">All Classes</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
+            {classes.map((cls,index) => (
+              <option key={`${cls.id}-${index}`} value={cls.id}>
                 {cls.name}
               </option>
             ))}
