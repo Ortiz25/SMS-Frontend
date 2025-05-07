@@ -39,11 +39,14 @@ const SubjectsTab = () => {
   // Available curriculum types and levels
   const curriculumTypes = ["CBC", "844"];
   const educationLevels = [
+    "Pre-Primary",
     "Lower Primary",
     "Upper Primary",
     "Junior Secondary",
     "Senior Secondary",
+    "Primary",
     "Secondary",
+    
   ];
 
   // Fetch subjects and departments on component mount
