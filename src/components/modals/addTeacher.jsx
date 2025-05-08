@@ -40,6 +40,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [files, setFiles] = useState([]);
   const token = localStorage.getItem("token");
+  const [departments, setDepartments ] = useState([])
+
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -53,11 +55,23 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
           },
         });
 
+        const deptResponse = await fetch("/backend/api/inventory/departments", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+       
+        const deptData = await deptResponse.json()
+       
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
+        if (deptResponse.status === 200) setDepartments(deptData || []);
+        console.log(deptResponse.data)
         updateSubjects(data.data);
         setError(null);
       } catch (err) {
@@ -103,13 +117,6 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
     { id: 1, title: "Personal Info" },
     { id: 2, title: "Employment" },
     { id: 3, title: "Qualifications" },
-  ];
-  const departments = [
-    "Mathematics",
-    "Sciences",
-    "Languages",
-    "Humanities",
-    "Technical Subjects",
   ];
 
   const handleSubjectChange = (subjectName) => {
@@ -387,8 +394,8 @@ const AddTeacherModal = ({ isOpen, onClose, onSubmit }) => {
                       >
                         <option value="">Select Department</option>
                         {departments.map((dept) => (
-                          <option key={dept} value={dept}>
-                            {dept}
+                          <option key={dept.id} value={dept.name}>
+                            {dept.name}
                           </option>
                         ))}
                       </select>
