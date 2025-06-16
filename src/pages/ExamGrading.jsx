@@ -411,7 +411,7 @@ const ExamGrading = () => {
             </button> */}
             <button
               onClick={() => setShowAddGrades(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700  transform hover:scale-105 transition-transform duration-200 ease-in-out"
             >
               <Plus className="h-5 w-5" />
               <span>Add Grades</span>

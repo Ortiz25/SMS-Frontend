@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import LoadingSpinner from "./../util/loaderSpinner";
+import { checkTokenAuth } from "../util/helperFunctions";
+import { useNavigate } from "react-router-dom";
 
 const GradeEntry = () => {
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,21 @@ const GradeEntry = () => {
   const [grades, setGrades] = useState([]);
   const [examSchedule, setExamSchedule] = useState(null);
   const token = localStorage.getItem("token");
-
+  
+    
   // Search filter
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
+
+  
   // Load initial data - academic sessions
   useEffect(() => {
     const fetchAcademicSessions = async () => {

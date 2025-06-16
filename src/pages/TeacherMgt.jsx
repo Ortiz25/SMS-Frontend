@@ -14,8 +14,9 @@ import PayrollTable from "../components/payrollTable";
 import LeaveManagement from "../components/leaveMgt";
 import AddTeacherModal from "../components/modals/addTeacher";
 import { useStore } from "../store/store";
-import { redirect, useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const TeacherManagement = () => {
   const data = useLoaderData();
@@ -35,10 +36,17 @@ const TeacherManagement = () => {
     departments: { total: 0 },
     experience: { averageYears: 0 },
   });
+  const navigate = useNavigate(); 
+
 
   useEffect(() => {
     const adminRights = userInfo.role === "admin";
     setIsAdmin(adminRights);
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
   }, []);
 
   const fetchTeachers = async () => {
@@ -174,7 +182,7 @@ const TeacherManagement = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700  transform hover:scale-105 transition-transform duration-200 ease-in-out"
                 >
                   <UserPlus className="h-5 w-5" />
                   <span>Add Teacher</span>

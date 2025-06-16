@@ -35,6 +35,8 @@ import {
   Area,
 } from "recharts";
 import LoadingSpinner from "../util/loaderSpinner";
+import { checkTokenAuth } from "../util/helperFunctions";
+import { useNavigate } from "react-router-dom";
 
 // Constants for chart colors
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
@@ -79,6 +81,15 @@ const Analytics = () => {
     students: true,
     comparison: true,
   });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -201,6 +212,7 @@ const Analytics = () => {
             },
           }
         );
+        console.log(response.data);
         setSubjects(response.data);
 
         if (response.data.length > 0) {
@@ -238,7 +250,7 @@ const Analytics = () => {
 
         console.log(response);
         setClassPerformance(response.data);
-        console.log(classPerformance)
+        console.log(classPerformance);
         // Extract trend data
         if (response.data.trendData) {
           setTrendData(response.data.trendData);
@@ -311,6 +323,7 @@ const Analytics = () => {
             },
           }
         );
+        console.log(response.data);
         setSubjectPerformance(response.data);
         setLoading(false);
       } catch (err) {
@@ -494,7 +507,7 @@ const Analytics = () => {
   const formatPercentage = (value) => {
     return `${value.toFixed(1)}%`;
   };
-
+  console.log(classPerformance);
   return (
     <div className="space-y-6">
       {/* Error message */}
@@ -581,9 +594,9 @@ const Analytics = () => {
               disabled={loading || !selectedClass}
             >
               <option value="">All Subjects</option>
-              {subjects.map((subject) => (
-                <option key={subject.id} value={subject.id}>
-                  {subject.name}
+              {subjectPerformance.map((subject) => (
+                <option key={subject.subject_id} value={subject.subject_id}>
+                  {subject.subject_name}
                 </option>
               ))}
             </select>
@@ -674,11 +687,12 @@ const Analytics = () => {
                               Class Average
                             </div>
                             <div className="text-2xl font-bold">
-                              {classPerformance.examPerformance[0].performance?.average_score?.toFixed(
-                                1
-                              ) || 0}
-                              %
+                              {typeof classPerformance?.examPerformance?.[0]
+                                ?.performance?.average_score === "string"
+                                ? `${classPerformance.examPerformance[0].performance.average_score}%`
+                                : "0%"}
                             </div>
+
                             <div className="text-sm text-blue-600">
                               for {getExamName(selectedExam)}
                             </div>
@@ -689,11 +703,12 @@ const Analytics = () => {
                               Highest Score
                             </div>
                             <div className="text-2xl font-bold">
-                              {classPerformance.examPerformance[0].performance?.highest_score?.toFixed(
-                                1
-                              ) || 0}
-                              %
+                              {typeof classPerformance?.examPerformance?.[0]
+                                ?.performance?.highest_score === "string"
+                                ? `${classPerformance.examPerformance[0].performance.highest_score}%`
+                                : "0%"}
                             </div>
+
                             <div className="text-sm text-green-600">
                               achieved in this exam
                             </div>
@@ -710,13 +725,9 @@ const Analytics = () => {
                                 .total_students > 0
                                 ? (
                                     (((classPerformance.examPerformance[0]
-                                      .performance.a_grade_count || 0) +
+                                      .performance.total_students || 0) -
                                       (classPerformance.examPerformance[0]
-                                        .performance.b_grade_count || 0) +
-                                      (classPerformance.examPerformance[0]
-                                        .performance.c_grade_count || 0) +
-                                      (classPerformance.examPerformance[0]
-                                        .performance.d_grade_count || 0)) /
+                                        .performance.fail_count || 0)) /
                                       classPerformance.examPerformance[0]
                                         .performance.total_students) *
                                     100

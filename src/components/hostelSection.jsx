@@ -39,7 +39,12 @@ const HostelSection = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+
   useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
     const fetchDormitories = async () => {
       try {
         setLoading(true);
@@ -597,12 +602,14 @@ const HostelSection = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(dormitory)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900"
+                          onClick={() => handleEdit(dormitory)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -734,12 +741,14 @@ const HostelSection = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(allocation)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900"
+                          onClick={() => handleEdit(allocation)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -813,6 +822,7 @@ const HostelSection = () => {
                 >
                   Status
                 </th>
+
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -887,12 +897,14 @@ const HostelSection = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(student)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900"
+                          onClick={() => handleEdit(student)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -970,36 +982,38 @@ const HostelSection = () => {
             Boarders
           </button>
         </div>
-   
+
         <div className="flex space-x-2">
-          {activeView !== "rooms" && 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+          {activeView !== "rooms" && (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>}
-          {activeView !== "rooms" && activeView !== "students" &&
-          <button
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={handleAdd}
-            disabled={activeView === "students"} // Disable for students view
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New
-          </button>}
+          )}
+          {activeView !== "rooms" && activeView !== "students" && isAdmin &&(
+            <button
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={handleAdd}
+              disabled={activeView === "students"} // Disable for students view
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New
+            </button>
+          )}
         </div>
       </div>
 
       {/* Content based on active view */}
       {activeView === "dormitories" && renderDormitories()}
-      {activeView === 'rooms' && <RoomsTab />}
+      {activeView === "rooms" && <RoomsTab isAdmin={isAdmin} />}
       {activeView === "allocations" && renderAllocations()}
       {activeView === "students" && renderBoarders()}
 

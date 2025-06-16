@@ -14,11 +14,13 @@ import RequestLeaveModal from "./modals/requestLeave";
 import ViewLeaveDetailsModal from "./modals/viewLeaveDetails";
 import LeaveApprovalModal from "./modals/leaveApproval";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const LeaveManagement = () => {
   const token = localStorage.getItem("token");
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
-  const [activeView, setActiveView] = useState("all");
+  const [activeView, setActiveView] = useState("filter");
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -31,6 +33,7 @@ const LeaveManagement = () => {
   const [currentTeacherId, setCurrentTeacherId] = useState(
     userInfo?.teacher?.teacher_id
   );
+  
   const [isAdmin, setIsAdmin] = useState(false);
   const [leavesEndingToday, setLeavesEndingToday] = useState([]);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
@@ -45,6 +48,15 @@ const LeaveManagement = () => {
     totalLeaveRequests: 0,
   });
   const [leaveBalances, setLeaveBalances] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   useEffect(() => {
     const fetchLeaveStats = async () => {
@@ -61,7 +73,7 @@ const LeaveManagement = () => {
             },
           }
         );
-      
+
         if (response.data.success) {
           setLeaveStats((prevStats) => ({
             ...prevStats,
@@ -276,7 +288,7 @@ const LeaveManagement = () => {
           params: params,
         });
         setLeaveRequests(response.data.results);
-
+       
         // Also fetch stats
         fetchLeaveStats();
       } catch (err) {
@@ -288,8 +300,9 @@ const LeaveManagement = () => {
     };
 
     if (currentTeacherId || isAdmin) {
-      fetchLeaveRequests();
+      
     }
+    fetchLeaveRequests();
   }, [activeView, currentTeacherId, isAdmin]);
 
   // Fetch leave stats
@@ -502,7 +515,28 @@ const LeaveManagement = () => {
       bgColor: "bg-indigo-50",
       description: isAdmin ? "Returns expected today" : "Of total leave used",
     },
+    ...(isAdmin
+      ? [
+          {
+            title: "Leave Balance",
+            count: leaveStats.balance,
+            icon: Calendar,
+            color: "text-blue-600",
+            bgColor: "bg-blue-50",
+            description: "Available Annual leave days",
+          },
+          {
+            title: "Leave Utilization",
+            count: `${leaveStats.leaveUtilization}%`,
+            icon: Briefcase,
+            color: "text-indigo-600",
+            bgColor: "bg-indigo-50",
+            description: "Of total leave used",
+          },
+        ]
+      : []),
   ];
+  
 
   return (
     <div className="space-y-6">
@@ -623,7 +657,7 @@ const LeaveManagement = () => {
             </h3>
             <button
               onClick={() => setShowRequestModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700  transform hover:scale-105 transition-transform duration-200 ease-in-out"
               disabled={loading}
             >
               <Plus className="h-4 w-4" />
@@ -691,6 +725,7 @@ const LeaveManagement = () => {
             value={activeView}
             onChange={(e) => setActiveView(e.target.value)}
           >
+            <option value="filter">Filter Requests</option>
             <option value="all">All Requests</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>

@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Filter, Search, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  Search,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import AllocationModal from "./modals/addAllocation";
 import EditAllocationModal from "./modals/editAllocation";
 import DeleteConfirmationModal from "./modals/deleteAllocation";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 // Move this outside the component to prevent recreation on every render
 const SUBJECT_HOURS = {
@@ -41,6 +51,15 @@ const ClassAllocation = ({ rooms }) => {
   const [subjects, setSubjects] = useState([]);
   const [academicSessions, setAcademicSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   // Memoize the calculateWeeklyHours function to prevent recreation on every render
   const calculateWeeklyHours = useCallback((allocation) => {
@@ -104,20 +123,21 @@ const ClassAllocation = ({ rooms }) => {
           }
         );
 
-        if (!referenceResponse.ok) 
+        if (!referenceResponse.ok)
           throw new Error("Failed to fetch reference data");
 
         const referenceData = await referenceResponse.json();
-        
+
         // Now you have all data in one object
-        const { classes, teachers, subjects, currentSession } = referenceData.data;
+        const { classes, teachers, subjects, currentSession } =
+          referenceData.data;
 
         // Update your state
         setClasses(classes);
         setTeachers(teachers);
         setSubjects(subjects);
         if (currentSession) setCurrentSession(currentSession);
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -133,20 +153,34 @@ const ClassAllocation = ({ rooms }) => {
   const filteredAllocations = useMemo(() => {
     return allocations.filter((allocation) => {
       const matchesSearch =
-        allocation.class_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        allocation.subject_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        allocation.teacher_name?.toLowerCase().includes(searchTerm.toLowerCase());
+        allocation.class_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        allocation.subject_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        allocation.teacher_name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesClass =
         !selectedClass || allocation.class_id?.toString() === selectedClass;
       const matchesTeacher =
-        !selectedTeacher || allocation.teacher_id?.toString() === selectedTeacher;
+        !selectedTeacher ||
+        allocation.teacher_id?.toString() === selectedTeacher;
       const matchesSubject =
-        !selectedSubject || allocation.subject_id?.toString() === selectedSubject;
+        !selectedSubject ||
+        allocation.subject_id?.toString() === selectedSubject;
 
       return matchesSearch && matchesClass && matchesTeacher && matchesSubject;
     });
-  }, [allocations, searchTerm, selectedClass, selectedTeacher, selectedSubject]);
+  }, [
+    allocations,
+    searchTerm,
+    selectedClass,
+    selectedTeacher,
+    selectedSubject,
+  ]);
 
   // Memoize total pages calculation
   const totalPages = useMemo(() => {
@@ -157,178 +191,193 @@ const ClassAllocation = ({ rooms }) => {
   useEffect(() => {
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    setPaginatedAllocations(filteredAllocations.slice(indexOfFirstRecord, indexOfLastRecord));
-    
+    setPaginatedAllocations(
+      filteredAllocations.slice(indexOfFirstRecord, indexOfLastRecord)
+    );
+
     // Reset to first page if current page is now invalid
-    if (currentPage > Math.ceil(filteredAllocations.length / recordsPerPage) && filteredAllocations.length > 0) {
+    if (
+      currentPage > Math.ceil(filteredAllocations.length / recordsPerPage) &&
+      filteredAllocations.length > 0
+    ) {
       setCurrentPage(1);
     }
   }, [filteredAllocations, currentPage, recordsPerPage]);
-  
+
   // Pagination controls - use callbacks to prevent recreation on every render
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [currentPage, totalPages]);
-  
+
   const handlePrevPage = useCallback(() => {
     if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   }, [currentPage]);
-  
+
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
   }, []);
-  
+
   const handleRecordsPerPageChange = useCallback((e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page when changing records per page
   }, []);
 
   // Handler for new allocation submission - use callback
-  const handleSaveAllocation = useCallback(async (allocationData) => {
-    try {
-      const token = localStorage.getItem("token");
-      console.log(allocationData)
-      const response = await fetch("/backend/api/allocations/allocations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          teacher_id: allocationData.teacherId,
-          subject_id: allocationData.subjectId,
-          class_id: allocationData.classId,
-          academic_session_id:
-            allocationData.academicSessionId || currentSession.id,
-        }),
-      });
-      console.log(response)
-      if (!response.ok) throw new Error("Failed to create allocation");
+  const handleSaveAllocation = useCallback(
+    async (allocationData) => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log(allocationData);
+        const response = await fetch(
+          "/backend/api/allocations/allocations",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              teacher_id: allocationData.teacherId,
+              subject_id: allocationData.subjectId,
+              class_id: allocationData.classId,
+              academic_session_id:
+                allocationData.academicSessionId || currentSession.id,
+            }),
+          }
+        );
+        console.log(response);
+        if (!response.ok) throw new Error("Failed to create allocation");
 
-      const result = await response.json();
+        const result = await response.json();
 
-      // Update local state
-      setAllocations((prev) => [
-        ...prev,
-        {
-          id: result.data.id,
-          teacher_id: allocationData.teacherId,
-          teacher_name:
-            teachers.find(
-              (t) => t.id.toString() === allocationData.teacherId.toString()
-            )?.full_name || "",
-          subject_id: allocationData.subjectId,
-          subject_name:
-            subjects.find(
-              (s) => s.id.toString() === allocationData.subjectId.toString()
-            )?.name || "",
-          class_id: allocationData.classId,
-          class_name:
-            classes.find(
-              (c) => c.id.toString() === allocationData.classId.toString()
-            )?.name || "",
-          academic_session_id:
-            allocationData.academicSessionId || currentSession,
-          status: "active",
-        },
-      ]);
-
-      setShowAddModal(false);
-      setNotification({
-        type: "success",
-        message: "Allocation created successfully",
-      });
-
-      // Clear notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000);
-    } catch (error) {
-      console.error("Error saving allocation:", error);
-      setNotification({
-        type: "error",
-        message: error.message,
-      });
-    }
-  }, [teachers, subjects, classes, currentSession]);
-
-  // Handler for editing allocation - use callback
-  const handleEditAllocation = useCallback(async (allocationData) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `/backend/api/allocations/allocations/${allocationData.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
+        // Update local state
+        setAllocations((prev) => [
+          ...prev,
+          {
+            id: result.data.id,
             teacher_id: allocationData.teacherId,
+            teacher_name:
+              teachers.find(
+                (t) => t.id.toString() === allocationData.teacherId.toString()
+              )?.full_name || "",
             subject_id: allocationData.subjectId,
+            subject_name:
+              subjects.find(
+                (s) => s.id.toString() === allocationData.subjectId.toString()
+              )?.name || "",
             class_id: allocationData.classId,
+            class_name:
+              classes.find(
+                (c) => c.id.toString() === allocationData.classId.toString()
+              )?.name || "",
             academic_session_id:
               allocationData.academicSessionId || currentSession,
-          }),
-        }
-      );
+            status: "active",
+          },
+        ]);
 
-      if (!response.ok) throw new Error("Failed to update allocation");
+        setShowAddModal(false);
+        setNotification({
+          type: "success",
+          message: "Allocation created successfully",
+        });
 
-      // Update local state
-      setAllocations((prev) =>
-        prev.map((item) =>
-          item.id === allocationData.id
-            ? {
-                ...item,
-                teacher_id: allocationData.teacherId,
-                teacher_name:
-                  teachers.find(
-                    (t) =>
-                      t.id.toString() === allocationData.teacherId.toString()
-                  )?.full_name || "",
-                subject_id: allocationData.subjectId,
-                subject_name:
-                  subjects.find(
-                    (s) =>
-                      s.id.toString() === allocationData.subjectId.toString()
-                  )?.name || "",
-                class_id: allocationData.classId,
-                class_name:
-                  classes.find(
-                    (c) => c.id.toString() === allocationData.classId.toString()
-                  )?.name || "",
-              }
-            : item
-        )
-      );
+        // Clear notification after 3 seconds
+        setTimeout(() => setNotification(null), 3000);
+      } catch (error) {
+        console.error("Error saving allocation:", error);
+        setNotification({
+          type: "error",
+          message: error.message,
+        });
+      }
+    },
+    [teachers, subjects, classes, currentSession]
+  );
 
-      setShowEditModal(false);
-      setSelectedAllocation(null);
-      setNotification({
-        type: "success",
-        message: "Allocation updated successfully",
-      });
+  // Handler for editing allocation - use callback
+  const handleEditAllocation = useCallback(
+    async (allocationData) => {
+      try {
+        const token = localStorage.getItem("token");
 
-      // Clear notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000);
-    } catch (error) {
-      console.error("Error updating allocation:", error);
-      setNotification({
-        type: "error",
-        message: error.message,
-      });
-    }
-  }, [teachers, subjects, classes, currentSession]);
+        const response = await fetch(
+          `/backend/api/allocations/allocations/${allocationData.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              teacher_id: allocationData.teacherId,
+              subject_id: allocationData.subjectId,
+              class_id: allocationData.classId,
+              academic_session_id:
+                allocationData.academicSessionId || currentSession,
+            }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to update allocation");
+
+        // Update local state
+        setAllocations((prev) =>
+          prev.map((item) =>
+            item.id === allocationData.id
+              ? {
+                  ...item,
+                  teacher_id: allocationData.teacherId,
+                  teacher_name:
+                    teachers.find(
+                      (t) =>
+                        t.id.toString() === allocationData.teacherId.toString()
+                    )?.full_name || "",
+                  subject_id: allocationData.subjectId,
+                  subject_name:
+                    subjects.find(
+                      (s) =>
+                        s.id.toString() === allocationData.subjectId.toString()
+                    )?.name || "",
+                  class_id: allocationData.classId,
+                  class_name:
+                    classes.find(
+                      (c) =>
+                        c.id.toString() === allocationData.classId.toString()
+                    )?.name || "",
+                }
+              : item
+          )
+        );
+
+        setShowEditModal(false);
+        setSelectedAllocation(null);
+        setNotification({
+          type: "success",
+          message: "Allocation updated successfully",
+        });
+
+        // Clear notification after 3 seconds
+        setTimeout(() => setNotification(null), 3000);
+      } catch (error) {
+        console.error("Error updating allocation:", error);
+        setNotification({
+          type: "error",
+          message: error.message,
+        });
+      }
+    },
+    [teachers, subjects, classes, currentSession]
+  );
 
   // Handler for deleting allocation - use callback
   const handleDeleteAllocation = useCallback(async () => {
     if (!selectedAllocation) return;
-    
+
     try {
       const token = localStorage.getItem("token");
 
@@ -387,7 +436,6 @@ const ClassAllocation = ({ rooms }) => {
     );
   }
 
- 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Notification */}
@@ -423,7 +471,7 @@ const ClassAllocation = ({ rooms }) => {
             onChange={(e) => setSelectedClass(e.target.value)}
           >
             <option value="">All Classes</option>
-            {classes.map((cls,index) => (
+            {classes.map((cls, index) => (
               <option key={`${cls.id}-${index}`} value={cls.id}>
                 {cls.name}
               </option>
@@ -459,7 +507,7 @@ const ClassAllocation = ({ rooms }) => {
           {/* Button inside the grid */}
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 w-full sm:w-auto sm:col-span-2 lg:col-span-1"
+            className="flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 w-full sm:w-auto sm:col-span-2 lg:col-span-  transform hover:scale-105 transition-transform duration-200 ease-in-out"
           >
             <Plus className="h-4 w-4" />
             <span>New</span>
@@ -554,13 +602,15 @@ const ClassAllocation = ({ rooms }) => {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination Controls */}
         {filteredAllocations.length > 0 && (
           <div className="px-6 py-4 border-t">
             <div className="flex flex-col sm:flex-row items-center justify-between">
               <div className="flex items-center space-x-2 mb-3 sm:mb-0">
-                <label className="text-sm text-gray-600">Records per page:</label>
+                <label className="text-sm text-gray-600">
+                  Records per page:
+                </label>
                 <select
                   value={recordsPerPage}
                   onChange={handleRecordsPerPageChange}
@@ -572,33 +622,34 @@ const ClassAllocation = ({ rooms }) => {
                   <option value={50}>50</option>
                 </select>
                 <span className="text-sm text-gray-700">
-                  Showing {paginatedAllocations.length} of {filteredAllocations.length} allocations
+                  Showing {paginatedAllocations.length} of{" "}
+                  {filteredAllocations.length} allocations
                 </span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
                   className={`p-1 rounded-md ${
-                    currentPage === 1 
-                      ? 'text-gray-300 cursor-not-allowed' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                    currentPage === 1
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                
+
                 <div className="flex space-x-1">
                   {/* Show pagination numbers */}
                   {[...Array(totalPages)].map((_, index) => {
                     // Show limited page buttons with ellipsis for better UX
                     const page = index + 1;
-                    
+
                     // Always show first, last, current, and pages around current
                     if (
-                      page === 1 || 
-                      page === totalPages || 
+                      page === 1 ||
+                      page === totalPages ||
                       (page >= currentPage - 1 && page <= currentPage + 1)
                     ) {
                       return (
@@ -607,34 +658,38 @@ const ClassAllocation = ({ rooms }) => {
                           onClick={() => handlePageChange(page)}
                           className={`px-3 py-1 rounded-md text-sm ${
                             currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-700 hover:bg-gray-100"
                           }`}
                         >
                           {page}
                         </button>
                       );
                     }
-                    
+
                     // Show ellipsis (but only once on each side)
                     if (
-                      (page === 2 && currentPage > 3) || 
+                      (page === 2 && currentPage > 3) ||
                       (page === totalPages - 1 && currentPage < totalPages - 2)
                     ) {
-                      return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                      return (
+                        <span key={page} className="px-2 py-1 text-gray-500">
+                          ...
+                        </span>
+                      );
                     }
-                    
+
                     return null;
                   })}
                 </div>
-                
+
                 <button
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
                   className={`p-1 rounded-md ${
-                    currentPage === totalPages 
-                      ? 'text-gray-300 cursor-not-allowed' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                    currentPage === totalPages
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <ChevronRight className="h-5 w-5" />

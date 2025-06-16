@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import EditScheduleModal from "./modals/editSchedule";
 import DeleteConfirmationModal from "./modals/deleteSchedule";
-import { redirect } from "react-router-dom";
+import { redirect, useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const WeeklySchedule = ({
   timetableData,
@@ -15,6 +16,15 @@ const WeeklySchedule = ({
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [notification, setNotification] = useState(null);
+  const navigate = useNavigate(); 
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth(); 
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   // Define time slots and days
   const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];

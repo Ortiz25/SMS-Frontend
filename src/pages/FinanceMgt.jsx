@@ -68,11 +68,14 @@ const FinanceDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [paymentsPerPage] = useState(10);
   const [allPayments, setAllPayments] = useState([]);
-
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
   const { updateActiveModule, activeModule } = useStore();
 
   useEffect(() => {
     updateActiveModule("finance");
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
   }, [updateActiveModule, activeModule]);
 
   // Fetch academic sessions for dropdown
@@ -480,7 +483,7 @@ const FinanceDashboard = () => {
   };
 
   // For colors in pie chart - only MPesa and Bank
-  const COLORS = [ "#00C49F", "#0088FE"];
+  const COLORS = ["#00C49F", "#0088FE"];
 
   // Custom tooltip for displaying formatted currency
   const CustomTooltip = ({ active, payload, label }) => {
@@ -680,8 +683,8 @@ const FinanceDashboard = () => {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="mpesa" name="M-Pesa" fill="#00C49F"/>
-                <Bar dataKey="bank" name="Bank" fill="#0088FE"/>
+                <Bar dataKey="mpesa" name="M-Pesa" fill="#00C49F" />
+                <Bar dataKey="bank" name="Bank" fill="#0088FE" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -883,308 +886,310 @@ const FinanceDashboard = () => {
             )}
           </div>
           {/* Updated Payment Entry Form with M-Pesa and Bank options */}
-          <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
-            <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
-              Enter Payment
-            </h2>
-            <form
-              className="space-y-3 sm:space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handlePaymentSubmit();
-              }}
-            >
-              {/* Payment Method Selection */}
-              <div>
-                <label className="block text-xs sm:text-sm font-medium mb-1">
-                  Payment Method
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        paymentMethod: "mpesa",
-                      })
-                    }
-                    className={`p-2 rounded border transition-colors ${
-                      paymentForm.paymentMethod === "mpesa"
-                        ? "bg-green-100 border-green-500 text-green-700"
-                        : "bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-xs font-semibold uppercase">
-                        M-Pesa
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        paymentMethod: "bank",
-                      })
-                    }
-                    className={`p-2 rounded border transition-colors ${
-                      paymentForm.paymentMethod === "bank" ||
-                      !paymentForm.paymentMethod
-                        ? "bg-blue-100 border-blue-500 text-blue-700"
-                        : "bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-xs font-semibold uppercase">
-                        Bank Transfer
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {isAdmin && (
+            <div className="bg-white p-3 sm:p-4 rounded-lg shadow">
+              <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+                Enter Payment
+              </h2>
+              <form
+                className="space-y-3 sm:space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handlePaymentSubmit();
+                }}
+              >
+                {/* Payment Method Selection */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium mb-1">
-                    Student Admission Number
+                    Payment Method
                   </label>
-                  <input
-                    type="text"
-                    value={paymentForm.admissionNumber}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        admissionNumber: e.target.value,
-                      })
-                    }
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    placeholder="e.g. ADM001/2024"
-                    required
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPaymentForm({
+                          ...paymentForm,
+                          paymentMethod: "mpesa",
+                        })
+                      }
+                      className={`p-2 rounded border transition-colors ${
+                        paymentForm.paymentMethod === "mpesa"
+                          ? "bg-green-100 border-green-500 text-green-700"
+                          : "bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-xs font-semibold uppercase">
+                          M-Pesa
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPaymentForm({
+                          ...paymentForm,
+                          paymentMethod: "bank",
+                        })
+                      }
+                      className={`p-2 rounded border transition-colors ${
+                        paymentForm.paymentMethod === "bank" ||
+                        !paymentForm.paymentMethod
+                          ? "bg-blue-100 border-blue-500 text-blue-700"
+                          : "bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-xs font-semibold uppercase">
+                          Bank Transfer
+                        </span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">
-                    Amount (KES)
-                  </label>
-                  <input
-                    type="number"
-                    value={paymentForm.amount}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        amount: e.target.value,
-                      })
-                    }
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    placeholder="Enter amount"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* M-Pesa specific fields */}
-              {paymentForm.paymentMethod === "mpesa" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1">
-                      M-Pesa Transaction Code
+                      Student Admission Number
                     </label>
                     <input
                       type="text"
-                      value={paymentForm.mpesaCode || ""}
+                      value={paymentForm.admissionNumber}
                       onChange={(e) =>
                         setPaymentForm({
                           ...paymentForm,
-                          mpesaCode: e.target.value,
+                          admissionNumber: e.target.value,
                         })
                       }
-                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                      placeholder="e.g. QWE123XYZP"
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      placeholder="e.g. ADM001/2024"
                       required
                     />
                   </div>
+
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1">
-                      M-Pesa Phone
+                      Amount (KES)
                     </label>
                     <input
-                      type="text"
-                      value={paymentForm.mpesaPhone || ""}
+                      type="number"
+                      value={paymentForm.amount}
                       onChange={(e) =>
                         setPaymentForm({
                           ...paymentForm,
-                          mpesaPhone: e.target.value,
+                          amount: e.target.value,
                         })
                       }
-                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                      placeholder="e.g. 07XXXXXXXX"
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      placeholder="Enter amount"
+                      required
                     />
                   </div>
                 </div>
-              )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">
-                    Payment Date
-                  </label>
-                  <input
-                    type="date"
-                    value={paymentForm.paymentDate}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        paymentDate: e.target.value,
-                      })
-                    }
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    required
-                  />
-                </div>
+                {/* M-Pesa specific fields */}
+                {paymentForm.paymentMethod === "mpesa" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-1">
+                        M-Pesa Transaction Code
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentForm.mpesaCode || ""}
+                        onChange={(e) =>
+                          setPaymentForm({
+                            ...paymentForm,
+                            mpesaCode: e.target.value,
+                          })
+                        }
+                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                        placeholder="e.g. QWE123XYZP"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-1">
+                        M-Pesa Phone
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentForm.mpesaPhone || ""}
+                        onChange={(e) =>
+                          setPaymentForm({
+                            ...paymentForm,
+                            mpesaPhone: e.target.value,
+                          })
+                        }
+                        className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                        placeholder="e.g. 07XXXXXXXX"
+                      />
+                    </div>
+                  </div>
+                )}
 
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">
-                    Academic Term
-                  </label>
-                  <select
-                    value={paymentForm.academicSessionId}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        academicSessionId: e.target.value,
-                      })
-                    }
-                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    required
-                  >
-                    <option value="">Select Term</option>
-                    {academicSessions.map((session) => (
-                      <option key={session.id} value={session.id.toString()}>
-                        Term {session.term} - {session.year}{" "}
-                        {session.is_current ? "(Current)" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Show different transaction reference field based on payment method */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1">
-                    {paymentForm.paymentMethod === "mpesa"
-                      ? "Transaction Reference"
-                      : "Bank Reference Number"}
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentForm.transactionReference}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        transactionReference: e.target.value,
-                      })
-                    }
-                    className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${
-                      paymentForm.paymentMethod === "mpesa"
-                        ? "focus:ring-green-500"
-                        : "focus:ring-blue-500"
-                    } text-sm`}
-                    placeholder={
-                      paymentForm.paymentMethod === "mpesa"
-                        ? "Additional reference (optional)"
-                        : "Bank reference number"
-                    }
-                    required={paymentForm.paymentMethod === "bank"}
-                  />
-                </div>
-
-                {/* Bank-specific fields */}
-                {paymentForm.paymentMethod === "bank" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium mb-1">
-                      Bank Name
+                      Payment Date
                     </label>
-                    <select
-                      value={paymentForm.bankName || ""}
+                    <input
+                      type="date"
+                      value={paymentForm.paymentDate}
                       onChange={(e) =>
                         setPaymentForm({
                           ...paymentForm,
-                          bankName: e.target.value,
+                          paymentDate: e.target.value,
+                        })
+                      }
+                      className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium mb-1">
+                      Academic Term
+                    </label>
+                    <select
+                      value={paymentForm.academicSessionId}
+                      onChange={(e) =>
+                        setPaymentForm({
+                          ...paymentForm,
+                          academicSessionId: e.target.value,
                         })
                       }
                       className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                       required
                     >
-                      <option value="">Select bank</option>
-                      <option value="kcb">KCB</option>
-                      <option value="equity">Equity</option>
-                      <option value="cooperative">Co-operative</option>
-                      <option value="absa">ABSA</option>
-                      <option value="stanbic">Stanbic</option>
-                      <option value="other">Other</option>
+                      <option value="">Select Term</option>
+                      {academicSessions.map((session) => (
+                        <option key={session.id} value={session.id.toString()}>
+                          Term {session.term} - {session.year}{" "}
+                          {session.is_current ? "(Current)" : ""}
+                        </option>
+                      ))}
                     </select>
                   </div>
-                )}
+                </div>
 
-                {/* Additional bank field for branch */}
-                {paymentForm.paymentMethod === "bank" &&
-                  paymentForm.bankName && (
-                    <div className="col-span-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Show different transaction reference field based on payment method */}
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium mb-1">
+                      {paymentForm.paymentMethod === "mpesa"
+                        ? "Transaction Reference"
+                        : "Bank Reference Number"}
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentForm.transactionReference}
+                      onChange={(e) =>
+                        setPaymentForm({
+                          ...paymentForm,
+                          transactionReference: e.target.value,
+                        })
+                      }
+                      className={`w-full p-2 border rounded focus:outline-none focus:ring-2 ${
+                        paymentForm.paymentMethod === "mpesa"
+                          ? "focus:ring-green-500"
+                          : "focus:ring-blue-500"
+                      } text-sm`}
+                      placeholder={
+                        paymentForm.paymentMethod === "mpesa"
+                          ? "Additional reference (optional)"
+                          : "Bank reference number"
+                      }
+                      required={paymentForm.paymentMethod === "bank"}
+                    />
+                  </div>
+
+                  {/* Bank-specific fields */}
+                  {paymentForm.paymentMethod === "bank" && (
+                    <div>
                       <label className="block text-xs sm:text-sm font-medium mb-1">
-                        Bank Branch
+                        Bank Name
                       </label>
-                      <input
-                        type="text"
-                        value={paymentForm.bankBranch || ""}
+                      <select
+                        value={paymentForm.bankName || ""}
                         onChange={(e) =>
                           setPaymentForm({
                             ...paymentForm,
-                            bankBranch: e.target.value,
+                            bankName: e.target.value,
                           })
                         }
                         className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="e.g. Nairobi Main"
-                      />
+                        required
+                      >
+                        <option value="">Select bank</option>
+                        <option value="kcb">KCB</option>
+                        <option value="equity">Equity</option>
+                        <option value="cooperative">Co-operative</option>
+                        <option value="absa">ABSA</option>
+                        <option value="stanbic">Stanbic</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                   )}
-              </div>
 
-              <div>
-                <label className="block text-xs sm:text-sm font-medium mb-1">
-                  Notes
-                </label>
-                <textarea
-                  value={paymentForm.notes}
-                  onChange={(e) =>
-                    setPaymentForm({
-                      ...paymentForm,
-                      notes: e.target.value,
-                    })
-                  }
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Additional notes"
-                  rows="2"
-                ></textarea>
-              </div>
+                  {/* Additional bank field for branch */}
+                  {paymentForm.paymentMethod === "bank" &&
+                    paymentForm.bankName && (
+                      <div className="col-span-full">
+                        <label className="block text-xs sm:text-sm font-medium mb-1">
+                          Bank Branch
+                        </label>
+                        <input
+                          type="text"
+                          value={paymentForm.bankBranch || ""}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              bankBranch: e.target.value,
+                            })
+                          }
+                          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="e.g. Nairobi Main"
+                        />
+                      </div>
+                    )}
+                </div>
 
-              <button
-                type="submit"
-                className={`w-full p-2 rounded font-medium transition duration-150 text-white ${
-                  paymentForm.paymentMethod === "mpesa"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                Record{" "}
-                {paymentForm.paymentMethod === "mpesa" ? "M-Pesa" : "Bank"}{" "}
-                Payment
-              </button>
-            </form>
-          </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={paymentForm.notes}
+                    onChange={(e) =>
+                      setPaymentForm({
+                        ...paymentForm,
+                        notes: e.target.value,
+                      })
+                    }
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="Additional notes"
+                    rows="2"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`w-full p-2 rounded font-medium transition duration-150 text-white ${
+                    paymentForm.paymentMethod === "mpesa"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  Record{" "}
+                  {paymentForm.paymentMethod === "mpesa" ? "M-Pesa" : "Bank"}{" "}
+                  Payment
+                </button>
+              </form>
+            </div>
+          ) }
         </div>
 
         {/* Payment Details Modal */}

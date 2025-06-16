@@ -37,49 +37,42 @@ const LibraryManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { updateActiveModule, activeModule } = useStore();
 
-  const fetchBooks = async ()=>{
-     try{
+  const fetchBooks = async () => {
+    try {
       const token = localStorage.getItem("token");
-        // API endpoint for fetching books
-        const apiUrl = `/backend/api/library/books`;
-    
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+      // API endpoint for fetching books
+      const apiUrl = `/backend/api/library/books`;
 
-        const data = await response.json();
-       
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        setBooks(
-          data.data
-        );
-  
+      const data = await response.json();
 
-     }catch(error){
-      console.log(error)
-     }
-  }
+      setBooks(data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     updateActiveModule("library");
-     fetchBooks()
+    fetchBooks();
   }, []);
- 
+
   // Filter books based on search query
   const filteredBooks = books.filter(
     (book, index, self) =>
-      (
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.isbn.includes(searchQuery)
-      ) &&
-      index === self.findIndex(b => b.id === book.id)
+        book.isbn.includes(searchQuery)) &&
+      index === self.findIndex((b) => b.id === book.id)
   );
-  
+
   // Check for overdue books
   const overdueBooks = books.filter(
     (book) => book.status === "borrowed" && new Date(book.dueDate) < new Date()
@@ -93,7 +86,7 @@ const LibraryManagement = () => {
   const indexOfLastBook = currentPage * booksPerPage;
   const indexOfFirstBook = indexOfLastBook - booksPerPage;
   const currentBooks = filteredBooks.slice(indexOfFirstBook, indexOfLastBook);
-  
+
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
   // Calculate available copies for a book
@@ -102,8 +95,8 @@ const LibraryManagement = () => {
     const borrowedCount = books.filter(
       (b) => b.id === book.id && b.borrower
     ).length;
-    console.log(books)
-    console.log(totalCopies, borrowedCount)
+    console.log(books);
+    console.log(totalCopies, borrowedCount);
     return totalCopies - borrowedCount;
   };
 
@@ -137,7 +130,7 @@ const LibraryManagement = () => {
       if (!response.ok) throw new Error(data.error || "Failed to borrow book");
 
       // Update the books state to reflect the changes
-      fetchBooks()
+      fetchBooks();
 
       setShowBorrowDialog(false);
       setBorrowerDetails({ adminNo: "", name: "" });
@@ -234,7 +227,6 @@ const LibraryManagement = () => {
     }
   };
 
-
   return (
     <Navbar>
       <div className="p-6 space-y-6 bg-white rounded-lg shadow-sm m-4">
@@ -261,7 +253,7 @@ const LibraryManagement = () => {
             </span>
             <Link
               to="/borrowers"
-              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium  text-white  bg-blue-600 hover:bg-blue-700"
+              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transform hover:scale-105 transition-transform duration-200 ease-in-out"
             >
               <BookmarkIcon className="w-4 h-4 mr-2" />
               Manage Borrowers
@@ -374,7 +366,7 @@ const LibraryManagement = () => {
             <div className="mt-6 flex gap-4 justify-between">
               <button
                 onClick={handleAddBook}
-                className="inline-flex items-center cursor-pointer px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center cursor-pointer px-4 py-2 border  transform hover:scale-105 transition-transform duration-200 ease-in-out border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Book
@@ -420,8 +412,6 @@ const LibraryManagement = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentBooks.map((book) => {
-              
-                   
                     const isBorrowed =
                       book.copies_available < (book.total_copies || 0);
 
@@ -447,7 +437,9 @@ const LibraryManagement = () => {
                                 : ""
                             }
                           >
-                            {book.copies_available < 0 ? 0 : book.copies_available }
+                            {book.copies_available < 0
+                              ? 0
+                              : book.copies_available}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -487,7 +479,7 @@ const LibraryManagement = () => {
                               onClick={() => {
                                 setSelectedBook(book);
                                 setShowBorrowDialog(true);
-                                setErrorMessage("")
+                                setErrorMessage("");
                               }}
                               className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
@@ -549,7 +541,6 @@ const LibraryManagement = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black opacity-50"></div>
-          
 
             {/* Dialog Content */}
             <div className="relative bg-white rounded-lg max-w-md w-full p-6 z-60">

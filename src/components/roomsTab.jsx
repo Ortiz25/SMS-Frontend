@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 // Pagination component to add after the table
 
-function RoomsTab() {
+function RoomsTab({ isAdmin }) {
   const [rooms, setRooms] = useState([]);
   const [dormitories, setDormitories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -355,15 +355,18 @@ function RoomsTab() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Rooms Management</h2>
-        <button
-          onClick={() => {
-            resetForm();
-            setIsAdding(true);
-          }}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Add New Room
-        </button>
+
+        {isAdmin && (
+          <button
+            onClick={() => {
+              resetForm();
+              setIsAdding(true);
+            }}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Add New Room
+          </button>
+        )}
       </div>
       {/* Add/Edit Room Form */}
       {(isAdding || isEditing) && (
@@ -483,12 +486,14 @@ function RoomsTab() {
                     >
                       Occupied
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Actions
-                    </th>
+                    {isAdmin && (
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -523,14 +528,16 @@ function RoomsTab() {
                             {room.occupied} / {room.capacity}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <button
-                            onClick={() => handleSelectRoomForEdit(room)}
-                            className="text-indigo-600 hover:text-indigo-900 transition duration-150 ease-in-out"
-                          >
-                            <Edit />
-                          </button>
-                        </td>
+                        {isAdmin && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <button
+                              onClick={() => handleSelectRoomForEdit(room)}
+                              className="text-indigo-600 hover:text-indigo-900 transition duration-150 ease-in-out"
+                            >
+                              <Edit />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (

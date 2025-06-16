@@ -15,6 +15,8 @@ import EditTeacherModal, {
   DeleteConfirmationModal,
 } from "./modals/teacherProfileModal";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const TeacherProfiles = ({
   teachers,
@@ -32,6 +34,19 @@ const TeacherProfiles = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [paginatedTeachers, setPaginatedTeachers] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   const fetchTeachers = async () => {
     try {
@@ -304,18 +319,24 @@ const TeacherProfiles = ({
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => handleEdit(teacher)}
-                        className="text-gray-400 hover:text-blue-600"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(teacher)}
-                        className="text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {isAdmin ? (
+                        <>
+                          <button
+                            onClick={() => handleEdit(teacher)}
+                            className="text-gray-400 hover:text-blue-600"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(teacher)}
+                            className="text-gray-400 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <></>
+                      )}
                     </div>
                   </td>
                 </tr>

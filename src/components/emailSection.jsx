@@ -1,7 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { PlusCircle, Filter, ChevronDown, Mail, Users, Search, X, Send, UserPlus, Loader2 } from 'lucide-react';
-import { getEmails, sendEmail, getClasses, getDepartments } from '../util/communicationServices';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import {
+  PlusCircle,
+  Filter,
+  ChevronDown,
+  Mail,
+  Users,
+  Search,
+  X,
+  Send,
+  UserPlus,
+  Loader2,
+} from "lucide-react";
+import {
+  getEmails,
+  sendEmail,
+  getClasses,
+  getDepartments,
+} from "../util/communicationServices";
+import { format } from "date-fns";
 
 const EmailSection = () => {
   const [emails, setEmails] = useState([]);
@@ -11,16 +27,18 @@ const EmailSection = () => {
   const [success, setSuccess] = useState(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [formData, setFormData] = useState({
-    subject: '',
-    message: '',
-    recipientType: 'individual',
-    recipientEmails: [''],
-    recipientGroupId: '',
+    subject: "",
+    message: "",
+    recipientType: "individual",
+    recipientEmails: [""],
+    recipientGroupId: "",
   });
   const [classes, setClasses] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
 
   // Fetch emails
   const fetchEmails = async () => {
@@ -30,7 +48,7 @@ const EmailSection = () => {
       setEmails(data);
       setError(null);
     } catch (error) {
-      setError('Failed to load emails');
+      setError("Failed to load emails");
       console.error(error);
     } finally {
       setLoading(false);
@@ -42,16 +60,18 @@ const EmailSection = () => {
     try {
       const [classesData, departmentsData] = await Promise.all([
         getClasses(),
-        getDepartments()
+        getDepartments(),
       ]);
       setClasses(classesData.data);
       setDepartments(departmentsData);
     } catch (error) {
-      console.error('Error fetching recipient options:', error);
+      console.error("Error fetching recipient options:", error);
     }
   };
 
   useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
     fetchEmails();
     fetchRecipientOptions();
   }, []);
@@ -78,15 +98,17 @@ const EmailSection = () => {
   const addEmailField = () => {
     setFormData((prev) => ({
       ...prev,
-      recipientEmails: [...prev.recipientEmails, ''],
+      recipientEmails: [...prev.recipientEmails, ""],
     }));
   };
 
   // Remove email input field
   const removeEmailField = (index) => {
-    if (formData.recipientEmails.length <= 1) return; 
-    
-    const updatedEmails = formData.recipientEmails.filter((_, i) => i !== index);
+    if (formData.recipientEmails.length <= 1) return;
+
+    const updatedEmails = formData.recipientEmails.filter(
+      (_, i) => i !== index
+    );
     setFormData((prev) => ({
       ...prev,
       recipientEmails: updatedEmails,
@@ -96,70 +118,87 @@ const EmailSection = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Filter out empty email addresses
     const emailData = {
       ...formData,
-      recipientEmails: formData.recipientEmails.filter(email => email.trim() !== '')
+      recipientEmails: formData.recipientEmails.filter(
+        (email) => email.trim() !== ""
+      ),
     };
-    
+
     // Validate form data
-    if (formData.recipientType === 'individual' && emailData.recipientEmails.length === 0) {
-      setError('Please add at least one valid email address');
+    if (
+      formData.recipientType === "individual" &&
+      emailData.recipientEmails.length === 0
+    ) {
+      setError("Please add at least one valid email address");
       return;
     }
-    
-    if ((formData.recipientType === 'class' || formData.recipientType === 'department') 
-        && !formData.recipientGroupId) {
-      setError(`Please select a ${formData.recipientType === 'class' ? 'class' : 'department'}`);
+
+    if (
+      (formData.recipientType === "class" ||
+        formData.recipientType === "department") &&
+      !formData.recipientGroupId
+    ) {
+      setError(
+        `Please select a ${
+          formData.recipientType === "class" ? "class" : "department"
+        }`
+      );
       return;
     }
-    
+
     try {
       setSending(true);
       setError(null);
-      
+
       const response = await sendEmail(emailData);
-      
+
       // Show success message
-      setSuccess(`Email${response.count > 1 ? 's' : ''} sent successfully to ${response.count} recipient${response.count > 1 ? 's' : ''}`);
-      
+      setSuccess(
+        `Email${response.count > 1 ? "s" : ""} sent successfully to ${
+          response.count
+        } recipient${response.count > 1 ? "s" : ""}`
+      );
+
       // Clear form and hide it after a delay
       setTimeout(() => {
         setFormData({
-          subject: '',
-          message: '',
-          recipientType: 'individual',
-          recipientEmails: [''],
-          recipientGroupId: '',
+          subject: "",
+          message: "",
+          recipientType: "individual",
+          recipientEmails: [""],
+          recipientGroupId: "",
         });
         setShowNewForm(false);
         setSuccess(null);
       }, 3000);
-      
+
       // Refresh emails list
       fetchEmails();
     } catch (error) {
-      console.error('Error sending email:', error);
-      setError(error.response?.data?.message || 'Failed to send email');
+      console.error("Error sending email:", error);
+      setError(error.response?.data?.message || "Failed to send email");
     } finally {
       setSending(false);
     }
   };
 
   // Filter emails by search term and status
-  const filteredEmails = emails.filter(email => {
-    const matchesSearch = searchTerm 
-      ? (email.recipient_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         email.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         email.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredEmails = emails.filter((email) => {
+    const matchesSearch = searchTerm
+      ? email.recipient_email
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        email.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.sender_name?.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
-    
-    const matchesStatus = filterStatus === 'all' 
-      ? true 
-      : email.status === filterStatus;
-    
+
+    const matchesStatus =
+      filterStatus === "all" ? true : email.status === filterStatus;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -196,13 +235,15 @@ const EmailSection = () => {
             </select>
             <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
           </div>
-          <button 
-            onClick={() => setShowNewForm(true)}
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Compose Email
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowNewForm(true)}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Compose Email
+            </button>
+          )}
         </div>
       </div>
 
@@ -211,21 +252,30 @@ const EmailSection = () => {
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-medium text-gray-900">Compose Email</h3>
-            <button 
-              onClick={() => setShowNewForm(false)} 
+            <button
+              onClick={() => setShowNewForm(false)}
               className="text-gray-400 hover:text-gray-500 focus:outline-none"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
-          
+
           {/* Success message */}
           {success && (
             <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-green-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -234,14 +284,23 @@ const EmailSection = () => {
               </div>
             </div>
           )}
-          
+
           {/* Error message */}
           {error && (
             <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -250,7 +309,7 @@ const EmailSection = () => {
               </div>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -258,13 +317,18 @@ const EmailSection = () => {
                   Recipient Type
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {['individual', 'all', 'class', 'department'].map(type => (
-                    <label key={type} className={`
+                  {["individual", "all", "class", "department"].map((type) => (
+                    <label
+                      key={type}
+                      className={`
                       flex items-center justify-center p-3 border rounded-md cursor-pointer
-                      ${formData.recipientType === type 
-                        ? 'bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm' 
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'}
-                    `}>
+                      ${
+                        formData.recipientType === type
+                          ? "bg-blue-50 border-blue-500 text-blue-700 font-medium shadow-sm"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }
+                    `}
+                    >
                       <input
                         type="radio"
                         name="recipientType"
@@ -279,7 +343,7 @@ const EmailSection = () => {
                 </div>
               </div>
 
-              {formData.recipientType === 'individual' && (
+              {formData.recipientType === "individual" && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email Recipients
@@ -294,7 +358,9 @@ const EmailSection = () => {
                           <input
                             type="email"
                             value={email}
-                            onChange={(e) => handleEmailChange(index, e.target.value)}
+                            onChange={(e) =>
+                              handleEmailChange(index, e.target.value)
+                            }
                             className="pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                             placeholder="Enter email address"
                             required={index === 0}
@@ -323,12 +389,12 @@ const EmailSection = () => {
                 </div>
               )}
 
-              {formData.recipientType === 'class' && (
+              {formData.recipientType === "class" && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Select Class
                   </label>
-                  <select 
+                  <select
                     name="recipientGroupId"
                     value={formData.recipientGroupId}
                     onChange={handleChange}
@@ -336,7 +402,7 @@ const EmailSection = () => {
                     required
                   >
                     <option value="">Select a class...</option>
-                    {classes.map(classItem => (
+                    {classes.map((classItem) => (
                       <option key={classItem.id} value={classItem.id}>
                         {classItem.name}
                       </option>
@@ -345,12 +411,12 @@ const EmailSection = () => {
                 </div>
               )}
 
-              {formData.recipientType === 'department' && (
+              {formData.recipientType === "department" && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Select Department
                   </label>
-                  <select 
+                  <select
                     name="recipientGroupId"
                     value={formData.recipientGroupId}
                     onChange={handleChange}
@@ -358,7 +424,7 @@ const EmailSection = () => {
                     required
                   >
                     <option value="">Select a department...</option>
-                    {departments.map(dept => (
+                    {departments.map((dept) => (
                       <option key={dept.id} value={dept.id}>
                         {dept.name}
                       </option>
@@ -399,7 +465,7 @@ const EmailSection = () => {
             </div>
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowNewForm(false)}
                 className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -407,7 +473,7 @@ const EmailSection = () => {
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="submit"
                 className="inline-flex justify-center items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
                 disabled={sending}
@@ -442,17 +508,22 @@ const EmailSection = () => {
             <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow text-gray-500">
               <Mail className="h-12 w-12 text-gray-300 mb-4" />
               <p>No emails found</p>
-              {searchTerm && <p className="text-sm">Try adjusting your search</p>}
+              {searchTerm && (
+                <p className="text-sm">Try adjusting your search</p>
+              )}
             </div>
           ) : (
             filteredEmails.map((email) => (
-              <div key={email.id} className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div
+                key={email.id}
+                className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-3">
                   <div>
                     <div className="flex items-center">
                       <Mail className="h-4 w-4 mr-2 text-blue-500" />
                       <h3 className="text-md font-medium text-gray-900">
-                        {email.subject || 'No Subject'}
+                        {email.subject || "No Subject"}
                       </h3>
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
@@ -463,29 +534,47 @@ const EmailSection = () => {
                           <span>{email.recipient_email}</span>
                         </>
                       )}
-                      {email.recipient_type === 'class' && <span className="text-blue-600 ml-1">(Class)</span>}
-                      {email.recipient_type === 'department' && <span className="text-green-600 ml-1">(Department)</span>}
-                      {email.recipient_type === 'all' && <span className="text-purple-600 ml-1">(All Users)</span>}
+                      {email.recipient_type === "class" && (
+                        <span className="text-blue-600 ml-1">(Class)</span>
+                      )}
+                      {email.recipient_type === "department" && (
+                        <span className="text-green-600 ml-1">
+                          (Department)
+                        </span>
+                      )}
+                      {email.recipient_type === "all" && (
+                        <span className="text-purple-600 ml-1">
+                          (All Users)
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {format(new Date(email.created_at), 'MMM d, yyyy • h:mm a')}
+                      {format(
+                        new Date(email.created_at),
+                        "MMM d, yyyy • h:mm a"
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center">
-                    <div className={`text-xs px-2.5 py-1 rounded-full flex items-center ${
-                      email.status === 'sent' || email.status === 'delivered' 
-                        ? 'bg-green-100 text-green-800' 
-                        : email.status === 'pending' 
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full mr-1 ${
-                        email.status === 'sent' || email.status === 'delivered'
-                          ? 'bg-green-600'
-                          : email.status === 'pending'
-                          ? 'bg-yellow-600'
-                          : 'bg-red-600'
-                      }`}></span>
+                    <div
+                      className={`text-xs px-2.5 py-1 rounded-full flex items-center ${
+                        email.status === "sent" || email.status === "delivered"
+                          ? "bg-green-100 text-green-800"
+                          : email.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full mr-1 ${
+                          email.status === "sent" ||
+                          email.status === "delivered"
+                            ? "bg-green-600"
+                            : email.status === "pending"
+                            ? "bg-yellow-600"
+                            : "bg-red-600"
+                        }`}
+                      ></span>
                       {email.status}
                     </div>
                   </div>

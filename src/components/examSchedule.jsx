@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Calendar, Search, Filter, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import ExamList from "./examList";
 import ScheduleExamModal from "./modals/examSchedule";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const ExamSchedule = () => {
   const [academicSessions, setAcademicSessions] = useState([]);
@@ -28,6 +30,15 @@ const ExamSchedule = () => {
     completedExams: 0,
     roomsUsed: 0,
   });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   // Fetch necessary data on component mount
   useEffect(() => {

@@ -10,6 +10,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const InventoryList = ({ categoryFilter }) => {
   const token = localStorage.getItem("token");
@@ -52,6 +54,20 @@ const InventoryList = ({ categoryFilter }) => {
     supplier: "",
     storage_location: "",
   });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   useEffect(() => {
     fetchInventoryItems();
@@ -929,13 +945,15 @@ const InventoryList = ({ categoryFilter }) => {
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full"
           />
         </div>
-        <button
-          onClick={openNewItemModal}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto justify-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Item
-        </button>
+        {isAdmin && (
+          <button
+            onClick={openNewItemModal}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto justify-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Item
+          </button>
+        )}
       </div>
 
       {/* Inventory Table */}
@@ -985,12 +1003,14 @@ const InventoryList = ({ categoryFilter }) => {
               >
                 Last Restocked
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
+              {isAdmin && (
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -1037,43 +1057,45 @@ const InventoryList = ({ categoryFilter }) => {
                       ? new Date(item.last_restocked).toLocaleDateString()
                       : "Never"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openStockModal(item, "increase")}
-                        className="text-green-600 hover:text-green-900"
-                        title="Add Stock"
-                      >
-                        <Plus className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => openStockModal(item, "decrease")}
-                        className="text-red-600 hover:text-red-900"
-                        disabled={item.current_quantity <= 0}
-                        title="Remove Stock"
-                      >
-                        <Minus
-                          className={`w-5 h-5 ${
-                            item.current_quantity <= 0 ? "opacity-50" : ""
-                          }`}
-                        />
-                      </button>
-                      <button
-                        onClick={() => openEditModal(item)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit Item"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(item)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete Item"
-                      >
-                        <Trash className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => openStockModal(item, "increase")}
+                          className="text-green-600 hover:text-green-900"
+                          title="Add Stock"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openStockModal(item, "decrease")}
+                          className="text-red-600 hover:text-red-900"
+                          disabled={item.current_quantity <= 0}
+                          title="Remove Stock"
+                        >
+                          <Minus
+                            className={`w-5 h-5 ${
+                              item.current_quantity <= 0 ? "opacity-50" : ""
+                            }`}
+                          />
+                        </button>
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Edit Item"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(item)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete Item"
+                        >
+                          <Trash className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (

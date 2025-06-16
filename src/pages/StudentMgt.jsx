@@ -562,14 +562,14 @@ const StudentManagement = () => {
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <button
-                className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700  transform hover:scale-105 transition-transform duration-200 ease-in-out"
                 onClick={() => setShowAddModal(true)}
               >
                 <UserPlus className="h-5 w-5" />
                 <span>Add Student</span>
               </button>
               <button
-                className="flex items-center space-x-2 px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-lg hover:bg-blue-700  transform hover:scale-105 transition-transform duration-200 ease-in-out"
                 onClick={() => setShowAttendanceModal(true)}
               >
                 <Cctv className="h-5 w-5" />

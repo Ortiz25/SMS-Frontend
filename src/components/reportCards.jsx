@@ -13,6 +13,8 @@ import {
 import axios from "axios";
 import LoadingSpinner from "../util/loaderSpinner";
 import BatchReportGenerator from "../util/batchGenerator";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const ReportCards = () => {
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,17 @@ const ReportCards = () => {
   
   // Student report cards
   const [reportCards, setReportCards] = useState([]);
+
+  const navigate = useNavigate(); 
+
+  useEffect(() => {
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
+
   
   // Load academic sessions
   useEffect(() => {

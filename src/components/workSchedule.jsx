@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Calendar, Clock, Plus, X, Users, BookOpen, CheckCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Plus,
+  X,
+  Users,
+  BookOpen,
+  CheckCircle,
+} from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const WorkloadSchedule = ({ teachers, updateTeachers }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -25,11 +35,24 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
     teacherLoad: { avgHoursPerWeek: 0 },
     classes: { total: 0 },
     subjects: { total: 0 },
-    utilization: { percentage: 0 }
+    utilization: { percentage: 0 },
   });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const navigate = useNavigate();
 
-  const fetchTeachers = async () =>{
-    try{
+  useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
+
+  const fetchTeachers = async () => {
+    try {
       const apiUrl = `/backend/api/teachers`;
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -40,34 +63,39 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
       });
       // Parse the response data
       const data = await response.json();
-      updateTeachers(data.data)
-    }catch(error){
-      console.log(error)
+      updateTeachers(data.data);
+    } catch (error) {
+      console.log(error);
     }
-  
-  }
+  };
 
   useEffect(() => {
     const fetchAcademicStats = async () => {
       try {
         setLoading(true);
-        
+
         // Get token from localStorage or your auth context
-        const token = localStorage.getItem('token');
-        
-        const response = await axios.get('/backend/api/dashboard/workschedule', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        const token = localStorage.getItem("token");
+
+        const response = await axios.get(
+          "/backend/api/dashboard/workschedule",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        })
+        );
         if (response.data.success) {
           setStats(response.data.data);
         } else {
-          setError(response.data.message || 'Failed to fetch stats');
+          setError(response.data.message || "Failed to fetch stats");
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'An error occurred while fetching stats');
-        console.error('Academic stats error:', err);
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while fetching stats"
+        );
+        console.error("Academic stats error:", err);
       } finally {
         setLoading(false);
       }
@@ -298,7 +326,10 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
         "/backend/api/subjects/teacher-subjects",
         {
           method: "POST",
-          headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             teacher_id: selectedTeacher.id,
             subject_id: formData.subject_id,
@@ -307,7 +338,7 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
           }),
         }
       );
-      console.log(teacherSubjectResponse)
+      console.log(teacherSubjectResponse);
 
       if (!teacherSubjectResponse.ok) {
         throw new Error("Failed to assign teacher to subject");
@@ -318,7 +349,10 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
         "/backend/api/timetable/entry",
         {
           method: "POST",
-          headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             class_id: formData.class_id,
             subject_id: formData.subject_id,
@@ -348,7 +382,7 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
       });
 
       // Refresh teacher data - this would typically be handled by your app's state management
-      fetchTeachers()
+      fetchTeachers();
       // For this example, we'll just show a success message
       alert("Class successfully assigned to teacher");
     } catch (err) {
@@ -358,49 +392,54 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
     }
   };
 
-
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600">Average Load</h3>
-          <Clock className="h-5 w-5 text-blue-600" />
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Average Load</h3>
+            <Clock className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold">
+            {stats.teacherLoad.avgHoursPerWeek} hrs/week
+          </div>
+          <p className="text-xs text-gray-600">Per teacher</p>
         </div>
-        <div className="text-2xl font-bold">{stats.teacherLoad.avgHoursPerWeek} hrs/week</div>
-        <p className="text-xs text-gray-600">Per teacher</p>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600">Total Classes</h3>
-          <Users className="h-5 w-5 text-blue-600" />
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Total Classes</h3>
+            <Users className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold">{stats.classes.total}</div>
+          <p className="text-xs text-gray-600">Active classes</p>
         </div>
-        <div className="text-2xl font-bold">{stats.classes.total}</div>
-        <p className="text-xs text-gray-600">Active classes</p>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600">Subjects</h3>
-          <BookOpen className="h-5 w-5 text-blue-600" />
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Subjects</h3>
+            <BookOpen className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold">{stats.subjects.total}</div>
+          <p className="text-xs text-gray-600">Teaching subjects</p>
         </div>
-        <div className="text-2xl font-bold">{stats.subjects.total}</div>
-        <p className="text-xs text-gray-600">Teaching subjects</p>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600">Utilization</h3>
-          <Calendar className="h-5 w-5 text-blue-600" />
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Utilization</h3>
+            <Calendar className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold">
+            {stats.utilization.percentage}%
+          </div>
+          <p className="text-xs text-green-600">
+            {stats.utilization.percentage >= 80
+              ? "Optimal load"
+              : "Below optimal"}
+          </p>
         </div>
-        <div className="text-2xl font-bold">{stats.utilization.percentage}%</div>
-        <p className="text-xs text-green-600">
-          {stats.utilization.percentage >= 80 ? 'Optimal load' : 'Below optimal'}
-        </p>
       </div>
-    </div>
       {/* Workload Table */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="overflow-x-auto">
@@ -419,9 +458,13 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Schedule
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                {isAdmin ? (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                ) : (
+                  <></>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -475,7 +518,8 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
                         ></div>
                       </div>
                       <span className="text-sm text-gray-600">
-                        {Number.parseInt(teacher.currentLoad)}/{teacher.maxLoad} hrs
+                        {Number.parseInt(teacher.currentLoad)}/{teacher.maxLoad}{" "}
+                        hrs
                       </span>
                     </div>
                   </td>
@@ -490,18 +534,22 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
                       View Schedule
                     </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => {
-                        setSelectedTeacher(teacher);
-                        setShowAssignModal(true);
-                      }}
-                      className="flex items-center cursor-pointer space-x-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Assign</span>
-                    </button>
-                  </td>
+                  {isAdmin ? (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setSelectedTeacher(teacher);
+                          setShowAssignModal(true);
+                        }}
+                        className="flex items-center cursor-pointer space-x-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200  transform hover:scale-105 transition-transform duration-200 ease-in-out"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Assign</span>
+                      </button>
+                    </td>
+                  ) : (
+                    <></>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -520,8 +568,8 @@ const WorkloadSchedule = ({ teachers, updateTeachers }) => {
                     {selectedTeacher.name}'s Schedule
                   </h2>
                   <p className="text-sm text-gray-600">
-                    Current Load: {Number.parseInt(selectedTeacher.currentLoad)}/
-                    {selectedTeacher.maxLoad} hours
+                    Current Load: {Number.parseInt(selectedTeacher.currentLoad)}
+                    /{selectedTeacher.maxLoad} hours
                   </p>
                 </div>
                 <button

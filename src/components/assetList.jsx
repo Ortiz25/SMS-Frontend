@@ -11,6 +11,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { checkTokenAuth } from "../util/helperFunctions";
 
 const AssetsList = ({ categoryFilter }) => {
   const token = localStorage.getItem("token");
@@ -60,6 +62,19 @@ const AssetsList = ({ categoryFilter }) => {
     room_id: "",
     notes: "",
   });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
+    async function validate() {
+      const { valid } = await checkTokenAuth();
+      if (!valid) navigate("/");
+    }
+    validate();
+  }, []);
 
   useEffect(() => {
     fetchAssets();
@@ -425,17 +440,16 @@ const AssetsList = ({ categoryFilter }) => {
       setActionLoading(false);
     }
   };
-  const NewAssetModal = useMemo(
-    () => {
-      if (modalType !== "new") return null;
-      return (
+  const NewAssetModal = useMemo(() => {
+    if (modalType !== "new") return null;
+    return (
       <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
         <div
           className="fixed inset-0 bg-black opacity-75 transition-opacity"
           aria-hidden="true"
         ></div>
         <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full my-8">
-          <div className="flex justify-between items-center  mb-4">
+          <div className="flex justify-between items-center  mb-4 ">
             <h3 className="text-lg font-medium">Add New Asset</h3>
             <button
               onClick={closeModal}
@@ -661,14 +675,12 @@ const AssetsList = ({ categoryFilter }) => {
           </form>
         </div>
       </div>
-    );},
-    [newAssetData, categories, departments, rooms, actionLoading]
-  );
+    );
+  }, [newAssetData, categories, departments, rooms, actionLoading]);
 
-  const StatusModal = useMemo(
-    () => {
-      if (modalType !== "status") return null;
-      return (
+  const StatusModal = useMemo(() => {
+    if (modalType !== "status") return null;
+    return (
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div
           className="fixed inset-0 bg-black opacity-75 transition-opacity"
@@ -720,14 +732,12 @@ const AssetsList = ({ categoryFilter }) => {
           </div>
         </div>
       </div>
-    );},
-    [selectedAsset, newStatus, actionLoading]
-  );
+    );
+  }, [selectedAsset, newStatus, actionLoading]);
 
-  const EditModal = useMemo(
-    () =>{
-      if (modalType !== "edit") return null;
-       return (
+  const EditModal = useMemo(() => {
+    if (modalType !== "edit") return null;
+    return (
       <div className="fixed inset-0 flex items-center justify-center z-50 overflow-y-auto">
         <div
           className="fixed inset-0 bg-black opacity-75 transition-opacity"
@@ -835,14 +845,12 @@ const AssetsList = ({ categoryFilter }) => {
           </form>
         </div>
       </div>
-    );},
-    [editFormData, selectedAsset, categories, departments, actionLoading]
-  );
+    );
+  }, [editFormData, selectedAsset, categories, departments, actionLoading]);
 
-  const DeleteModal = useMemo(
-    () => { 
-      if (modalType !== "delete") return null;
-      return (
+  const DeleteModal = useMemo(() => {
+    if (modalType !== "delete") return null;
+    return (
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div
           className="fixed inset-0 bg-black opacity-75 transition-opacity"
@@ -886,9 +894,8 @@ const AssetsList = ({ categoryFilter }) => {
           </div>
         </div>
       </div>
-    );},
-    [selectedAsset, actionLoading]
-  );
+    );
+  }, [selectedAsset, actionLoading]);
 
   if (loading) {
     return (
@@ -919,13 +926,15 @@ const AssetsList = ({ categoryFilter }) => {
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full"
           />
         </div>
-        <button
-          onClick={openNewAssetModal}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto justify-center"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Asset
-        </button>
+        {isAdmin && (
+          <button
+            onClick={openNewAssetModal}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto justify-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Asset
+          </button>
+        )}
       </div>
 
       {/* Assets Table */}
@@ -975,12 +984,14 @@ const AssetsList = ({ categoryFilter }) => {
               >
                 Assigned To
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Actions
-              </th>
+              {isAdmin && (
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -1025,48 +1036,50 @@ const AssetsList = ({ categoryFilter }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {asset.assigned_to || "Not assigned"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openStatusModal(asset, "active")}
-                        className="text-green-600 hover:text-green-900"
-                        disabled={asset.status === "active"}
-                        title="Mark as Active"
-                      >
-                        <FileCheck
-                          className={`w-5 h-5 ${
-                            asset.status === "active" ? "opacity-50" : ""
-                          }`}
-                        />
-                      </button>
-                      <button
-                        onClick={() => openStatusModal(asset, "maintenance")}
-                        className="text-yellow-600 hover:text-yellow-900"
-                        disabled={asset.status === "maintenance"}
-                        title="Mark for Maintenance"
-                      >
-                        <AlertTriangle
-                          className={`w-5 h-5 ${
-                            asset.status === "maintenance" ? "opacity-50" : ""
-                          }`}
-                        />
-                      </button>
-                      <button
-                        onClick={() => openEditModal(asset)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit Asset"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(asset)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete Asset"
-                      >
-                        <Trash className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => openStatusModal(asset, "active")}
+                          className="text-green-600 hover:text-green-900"
+                          disabled={asset.status === "active"}
+                          title="Mark as Active"
+                        >
+                          <FileCheck
+                            className={`w-5 h-5 ${
+                              asset.status === "active" ? "opacity-50" : ""
+                            }`}
+                          />
+                        </button>
+                        <button
+                          onClick={() => openStatusModal(asset, "maintenance")}
+                          className="text-yellow-600 hover:text-yellow-900"
+                          disabled={asset.status === "maintenance"}
+                          title="Mark for Maintenance"
+                        >
+                          <AlertTriangle
+                            className={`w-5 h-5 ${
+                              asset.status === "maintenance" ? "opacity-50" : ""
+                            }`}
+                          />
+                        </button>
+                        <button
+                          onClick={() => openEditModal(asset)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Edit Asset"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(asset)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete Asset"
+                        >
+                          <Trash className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (

@@ -95,7 +95,7 @@ const LeaveRequestsTable = ({
                   {isAdmin && (
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {!request.teacher_photo ? (
+                        {request.teacher_photo ? (
                           <img
                             className="h-8 w-8 rounded-full object-cover"
                             src={request.teacher_photo}

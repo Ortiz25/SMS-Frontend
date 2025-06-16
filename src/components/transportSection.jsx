@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Bus, Users, MapPin, Plus, Search, Edit, Trash, Eye, Filter, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Bus,
+  Users,
+  MapPin,
+  Plus,
+  Search,
+  Edit,
+  Trash,
+  Eye,
+  Filter,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import ViewModal from "../components/modals/viewHostelModal";
 import EditModal from "../components/modals/editHostelModal";
 import AddModal from "../components/modals/addModal";
@@ -13,32 +26,40 @@ const TransportSection = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [stops, setStops] = useState([]);
   const [allocations, setAllocations] = useState([]);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
   const [paginatedData, setPaginatedData] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   // Modal states
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+
   useEffect(() => {
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
     const fetchRoutes = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/routes', {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "/backend/api/hostel-transport/routes",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
         const data = await response.json();
-        
+
         if (data.success) {
           setRoutes(data.routes);
           setFilteredData(data.routes);
@@ -53,15 +74,18 @@ const TransportSection = () => {
     const fetchStops = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/stops', {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "/backend/api/hostel-transport/stops",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
         const data = await response.json();
-        
+
         if (data.success) {
           setStops(data.stops);
           setFilteredData(data.stops);
@@ -76,15 +100,18 @@ const TransportSection = () => {
     const fetchAllocations = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/backend/api/hostel-transport/transport-allocations', {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "/backend/api/hostel-transport/transport-allocations",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
         const data = await response.json();
-        console.log(data)
+        console.log(data);
         if (data.success) {
           setAllocations(data.allocations);
           setFilteredData(data.allocations);
@@ -103,7 +130,7 @@ const TransportSection = () => {
     } else if (activeView === "allocations") {
       fetchAllocations();
     }
-    
+
     // Reset to first page when switching views
     setCurrentPage(1);
   }, [activeView, token]);
@@ -111,38 +138,44 @@ const TransportSection = () => {
   useEffect(() => {
     // Filter based on search term
     if (activeView === "routes") {
-      const filtered = routes.filter(route => 
+      const filtered = routes.filter((route) =>
         route.route_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredData(filtered);
     } else if (activeView === "stops") {
-      const filtered = stops.filter(stop => 
-        stop.stop_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        stop.route_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = stops.filter(
+        (stop) =>
+          stop.stop_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          stop.route_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredData(filtered);
     } else if (activeView === "allocations") {
-      const filtered = allocations.filter(allocation => 
-        allocation.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        allocation.route_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        allocation.stop_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = allocations.filter(
+        (allocation) =>
+          allocation.student_name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          allocation.route_name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          allocation.stop_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredData(filtered);
     }
-    
+
     // Reset to first page when filtering changes
     setCurrentPage(1);
   }, [searchTerm, routes, stops, allocations, activeView]);
-  
+
   // Calculate pagination whenever filtered data changes
   useEffect(() => {
     const totalPagesCount = Math.ceil(filteredData.length / recordsPerPage);
     setTotalPages(totalPagesCount);
-    
+
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
     setPaginatedData(filteredData.slice(indexOfFirstRecord, indexOfLastRecord));
-    
+
     // Reset to first page if current page is now invalid
     if (currentPage > totalPagesCount && totalPagesCount > 0) {
       setCurrentPage(1);
@@ -155,17 +188,17 @@ const TransportSection = () => {
       setCurrentPage(currentPage - 1);
     }
   };
-  
+
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
-  
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-  
+
   const handleRecordsPerPageChange = (e) => {
     setRecordsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to first page
@@ -189,30 +222,30 @@ const TransportSection = () => {
   const handleAddItem = (newItem) => {
     // Add the new item to the appropriate state based on active view
     if (activeView === "routes") {
-      setRoutes(prev => [...prev, newItem]);
+      setRoutes((prev) => [...prev, newItem]);
     } else if (activeView === "stops") {
-      setStops(prev => [...prev, newItem]);
+      setStops((prev) => [...prev, newItem]);
     } else if (activeView === "allocations") {
-      setAllocations(prev => [...prev, newItem]);
+      setAllocations((prev) => [...prev, newItem]);
     }
   };
 
   const handleUpdate = (updatedItem) => {
     // Update the corresponding data state based on active view
     if (activeView === "routes") {
-      setRoutes(prev => 
-        prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      setRoutes((prev) =>
+        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
       );
     } else if (activeView === "stops") {
-      setStops(prev => 
-        prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      setStops((prev) =>
+        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
       );
     } else if (activeView === "allocations") {
-      setAllocations(prev => 
-        prev.map(item => item.id === updatedItem.id ? updatedItem : item)
+      setAllocations((prev) =>
+        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
       );
     }
-  };// Pagination component
+  }; // Pagination component
   const PaginationControls = () => {
     return (
       <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
@@ -221,9 +254,9 @@ const TransportSection = () => {
             onClick={handlePrevPage}
             disabled={currentPage === 1}
             className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === 1 
-                ? 'text-gray-300 cursor-not-allowed' 
-                : 'text-gray-700 hover:bg-gray-50'
+              currentPage === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
           >
             Previous
@@ -232,9 +265,9 @@ const TransportSection = () => {
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
             className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === totalPages 
-                ? 'text-gray-300 cursor-not-allowed' 
-                : 'text-gray-700 hover:bg-gray-50'
+              currentPage === totalPages
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
           >
             Next
@@ -255,35 +288,41 @@ const TransportSection = () => {
                 <option value={50}>50</option>
               </select>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{paginatedData.length}</span> of{' '}
-                <span className="font-medium">{filteredData.length}</span> results
+                Showing{" "}
+                <span className="font-medium">{paginatedData.length}</span> of{" "}
+                <span className="font-medium">{filteredData.length}</span>{" "}
+                results
               </p>
             </div>
           </div>
           <div>
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <nav
+              className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+              aria-label="Pagination"
+            >
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
                 className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 ${
-                  currentPage === 1 
-                    ? 'text-gray-300 cursor-not-allowed' 
-                    : 'text-gray-500 hover:bg-gray-50'
+                  currentPage === 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-500 hover:bg-gray-50"
                 }`}
               >
                 <span className="sr-only">Previous</span>
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              
+
               {/* Page numbers */}
               {[...Array(totalPages)].map((_, index) => {
                 const pageNumber = index + 1;
-                
+
                 // Always show first, last, current page and pages around current
                 if (
-                  pageNumber === 1 || 
-                  pageNumber === totalPages || 
-                  (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  pageNumber === 1 ||
+                  pageNumber === totalPages ||
+                  (pageNumber >= currentPage - 1 &&
+                    pageNumber <= currentPage + 1)
                 ) {
                   return (
                     <button
@@ -291,17 +330,21 @@ const TransportSection = () => {
                       onClick={() => handlePageChange(pageNumber)}
                       className={`relative inline-flex items-center px-4 py-2 border ${
                         currentPage === pageNumber
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                          : "border-gray-300 text-gray-500 hover:bg-gray-50"
                       }`}
                     >
                       {pageNumber}
                     </button>
                   );
                 }
-                
+
                 // Show ellipsis when needed (but only once per gap)
-                if ((pageNumber === 2 && currentPage > 3) || (pageNumber === totalPages - 1 && currentPage < totalPages - 2)) {
+                if (
+                  (pageNumber === 2 && currentPage > 3) ||
+                  (pageNumber === totalPages - 1 &&
+                    currentPage < totalPages - 2)
+                ) {
                   return (
                     <span
                       key={pageNumber}
@@ -311,17 +354,17 @@ const TransportSection = () => {
                     </span>
                   );
                 }
-                
+
                 return null;
               })}
-              
+
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
                 className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 ${
-                  currentPage === totalPages 
-                    ? 'text-gray-300 cursor-not-allowed' 
-                    : 'text-gray-500 hover:bg-gray-50'
+                  currentPage === totalPages
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-500 hover:bg-gray-50"
                 }`}
               >
                 <span className="sr-only">Next</span>
@@ -335,7 +378,11 @@ const TransportSection = () => {
   };
   const renderRoutes = () => {
     if (loading) {
-      return <div className="flex justify-center items-center py-8">Loading routes...</div>;
+      return (
+        <div className="flex justify-center items-center py-8">
+          Loading routes...
+        </div>
+      );
     }
 
     return (
@@ -344,13 +391,48 @@ const TransportSection = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route Name</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departure Time</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Time</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee Per Term</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stops</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Route Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Departure Time
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Return Time
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Fee Per Term
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stops
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -362,15 +444,21 @@ const TransportSection = () => {
                         <Bus className="h-5 w-5 text-green-500" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{route.route_name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {route.route_name}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{route.departure_time}</div>
+                    <div className="text-sm text-gray-900">
+                      {route.departure_time}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{route.return_time}</div>
+                    <div className="text-sm text-gray-900">
+                      {route.return_time}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     KES {route.fee_per_term?.toLocaleString() || 0}
@@ -379,33 +467,45 @@ const TransportSection = () => {
                     {route.stops_count || 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${route.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${
+                        route.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {route.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         className="text-blue-600 hover:text-blue-900"
                         onClick={() => handleView(route)}
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button 
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(route)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900"
+                          onClick={() => handleEdit(route)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
               {paginatedData.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
-                    No routes found. Please adjust your search or add new routes.
+                  <td
+                    colSpan="7"
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No routes found. Please adjust your search or add new
+                    routes.
                   </td>
                 </tr>
               )}
@@ -419,7 +519,11 @@ const TransportSection = () => {
 
   const renderStops = () => {
     if (loading) {
-      return <div className="flex justify-center items-center py-8">Loading stops...</div>;
+      return (
+        <div className="flex justify-center items-center py-8">
+          Loading stops...
+        </div>
+      );
     }
 
     return (
@@ -428,12 +532,42 @@ const TransportSection = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stop Name</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Morning Pickup</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evening Dropoff</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stop Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Route
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Order
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Morning Pickup
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Evening Dropoff
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -445,12 +579,16 @@ const TransportSection = () => {
                         <MapPin className="h-5 w-5 text-amber-500" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{stop.stop_name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {stop.stop_name}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{stop.route_name}</div>
+                    <div className="text-sm text-gray-900">
+                      {stop.route_name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {stop.stop_order}
@@ -463,28 +601,35 @@ const TransportSection = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         className="text-blue-600 hover:text-blue-900"
                         onClick={() => handleView(stop)}
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button 
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(stop)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            className="text-indigo-600 hover:text-indigo-900"
+                            onClick={() => handleEdit(stop)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button className="text-red-600 hover:text-red-900">
+                            <Trash className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
               {paginatedData.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td
+                    colSpan="6"
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
                     No stops found. Please adjust your search or add new stops.
                   </td>
                 </tr>
@@ -498,7 +643,11 @@ const TransportSection = () => {
   };
   const renderAllocations = () => {
     if (loading) {
-      return <div className="flex justify-center items-center py-8">Loading allocations...</div>;
+      return (
+        <div className="flex justify-center items-center py-8">
+          Loading allocations...
+        </div>
+      );
     }
 
     return (
@@ -507,12 +656,42 @@ const TransportSection = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pickup Stop</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Student
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Route
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Pickup Stop
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Start Date
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -522,7 +701,11 @@ const TransportSection = () => {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {allocation.photo_url ? (
-                          <img className="h-10 w-10 rounded-full" src={allocation.photo_url} alt={allocation.student_name} />
+                          <img
+                            className="h-10 w-10 rounded-full"
+                            src={allocation.photo_url}
+                            alt={allocation.student_name}
+                          />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                             <Users className="h-6 w-6 text-gray-400" />
@@ -530,48 +713,68 @@ const TransportSection = () => {
                         )}
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{allocation.student_name}</div>
-                        <div className="text-sm text-gray-500">{allocation.admission_number}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {allocation.student_name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {allocation.admission_number}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{allocation.route_name}</div>
+                    <div className="text-sm text-gray-900">
+                      {allocation.route_name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{allocation.stop_name}</div>
+                    <div className="text-sm text-gray-900">
+                      {allocation.stop_name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(allocation.allocation_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${allocation.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${
+                        allocation.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {allocation.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         className="text-blue-600 hover:text-blue-900"
                         onClick={() => handleView(allocation)}
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button 
-                        className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleEdit(allocation)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
+                      {isAdmin && (
+                        <button
+                          className="text-indigo-600 hover:text-indigo-900"
+                          onClick={() => handleEdit(allocation)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
               {paginatedData.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                    No allocations found. Please adjust your search or add new allocations.
+                  <td
+                    colSpan="6"
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No allocations found. Please adjust your search or add new
+                    allocations.
                   </td>
                 </tr>
               )}
@@ -600,31 +803,31 @@ const TransportSection = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between mb-4">
         <div className="flex space-x-2 mb-2 sm:mb-0">
-          <button 
+          <button
             onClick={() => setActiveView("routes")}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
-              activeView === "routes" 
-                ? "bg-blue-100 text-blue-700" 
+              activeView === "routes"
+                ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Routes
           </button>
-          <button 
+          <button
             onClick={() => setActiveView("stops")}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
-              activeView === "stops" 
-                ? "bg-blue-100 text-blue-700" 
+              activeView === "stops"
+                ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Stops
           </button>
-          <button 
+          <button
             onClick={() => setActiveView("allocations")}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
-              activeView === "allocations" 
-                ? "bg-blue-100 text-blue-700" 
+              activeView === "allocations"
+                ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
@@ -644,13 +847,15 @@ const TransportSection = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button 
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={handleAdd}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New
-          </button>
+          {isAdmin && (
+            <button
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={handleAdd}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New
+            </button>
+          )}
         </div>
       </div>
 
@@ -661,18 +866,18 @@ const TransportSection = () => {
 
       {/* View Modal */}
       {showViewModal && (
-        <ViewModal 
-          item={selectedItem} 
-          viewType={activeView} 
-          onClose={() => setShowViewModal(false)} 
+        <ViewModal
+          item={selectedItem}
+          viewType={activeView}
+          onClose={() => setShowViewModal(false)}
         />
       )}
 
       {/* Edit Modal */}
       {showEditModal && (
-        <EditModal 
-          item={selectedItem} 
-          editType={activeView} 
+        <EditModal
+          item={selectedItem}
+          editType={activeView}
           onClose={() => setShowEditModal(false)}
           onUpdate={handleUpdate}
           token={token}
@@ -681,8 +886,8 @@ const TransportSection = () => {
 
       {/* Add Modal */}
       {showAddModal && (
-        <AddModal 
-          addType={getAddType()} 
+        <AddModal
+          addType={getAddType()}
           onClose={() => setShowAddModal(false)}
           onAdd={handleAddItem}
           token={token}
@@ -693,4 +898,3 @@ const TransportSection = () => {
 };
 
 export default TransportSection;
-
