@@ -109,6 +109,9 @@ const StudentManagement = () => {
     performance: { currentGrade: "", previousGrade: "" },
   });
 
+    const [isAdmin, setIsAdmin] = useState(false);
+    const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+
   const fetchStudents = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -162,6 +165,8 @@ const StudentManagement = () => {
 
  
   useEffect(() => { 
+    const adminRights = userInfo.role === "admin";
+    setIsAdmin(adminRights);
     fetchStudents()
     fetchStudentStats();
   }, []);
@@ -710,12 +715,13 @@ const StudentManagement = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button
+                          {isAdmin &&  <button
                             onClick={() => handleDelete(student)}
                             className="text-gray-400 hover:text-red-600"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </button>}
+                          
                         </div>
                       </td>
                     </tr>
