@@ -21,6 +21,9 @@ import {
   MapPin,
   Layers,
   CalendarClock,
+  BookOpenCheck,
+  BookOpenText,
+  BookCheckIcon
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
@@ -69,6 +72,8 @@ const Dashboard = () => {
   const [academicSessions, setAcademicSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [sessionDropdownOpen, setSessionDropdownOpen] = useState(false);
+
+  console.log(data)
 
   useEffect(() => {
     // Initialize with default values, then update if data exists
@@ -583,7 +588,16 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <BookCheck className="h-4 w-4 text-blue-500" />
+                  <Layers className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm text-gray-600">Total Copies</span>
+                </div>
+                <span className="text-lg font-bold text-indigo-600">
+                  {libraryData?.total_copies || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BookOpenCheck className="h-4 w-4 text-blue-500" />
                   <span className="text-sm text-gray-600">
                     Available Copies
                   </span>
@@ -603,13 +617,14 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Layers className="h-4 w-4 text-indigo-500" />
-                  <span className="text-sm text-gray-600">Total Copies</span>
+                  <BookOpenText className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm text-gray-600">Borrowed Copies</span>
                 </div>
-                <span className="text-lg font-bold text-indigo-600">
-                  {libraryData?.total_copies || 0}
+                <span className="text-lg font-bold text-orange-600">
+                  {libraryData?.borrowed_copies || 0}
                 </span>
               </div>
+              
             </div>
           </div>
         </div>

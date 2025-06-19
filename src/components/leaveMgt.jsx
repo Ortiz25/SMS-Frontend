@@ -586,7 +586,7 @@ const LeaveManagement = () => {
             <h3 className="font-medium text-gray-800">
               Leaves Ending Today ({leavesEndingToday.length})
             </h3>
-            <button
+            {/* <button
               onClick={handleUpdateTeacherStatuses}
               disabled={statusUpdateLoading}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -602,7 +602,7 @@ const LeaveManagement = () => {
                   <span>Update Teacher Statuses</span>
                 </>
               )}
-            </button>
+            </button> */}
           </div>
 
           <div className="overflow-x-auto">
