@@ -122,7 +122,7 @@ const LoginPage = () => {
             </div>
           </Form>
           <p className="text-center text-gray-500 text-md">
-            &copy;2025 Livecrib. All rights reserved.
+            &copy;2025 Stratlix. All rights reserved.
           </p>
         </div>
       </div>

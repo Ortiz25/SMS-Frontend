@@ -154,7 +154,7 @@ const PasswordRecovery = () => {
           </Form>
           <Outlet />
           <p className="text-center text-gray-500 text-md">
-            &copy;2025 Teqova. All rights reserved.
+            &copy;2025 Stratlix. All rights reserved.
           </p>
         </div>
       </div>
