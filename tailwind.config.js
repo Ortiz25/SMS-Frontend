@@ -14,7 +14,10 @@ export default {
         },
         animation: {
           slideDown: 'slideDown 0.2s ease-out forwards'
-        }
+        },
+        fontFamily: {
+          inter: ['Inter', 'sans-serif'],
+        },
       },
     },
     plugins: [],

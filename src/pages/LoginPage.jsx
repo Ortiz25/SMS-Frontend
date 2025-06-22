@@ -39,7 +39,7 @@ const LoginPage = () => {
       <div className="flex items-center justify-center min-h-screen bg-gray-100 ">
         <div className="absolute top-10 lg:left-20 flex items-center justify-center  bg-gray-100">
           <Building2 className="mr-2 size-12" />
-          <h1 className="text-4xl font-bold">Shule SMS</h1>
+          <h1 className="text-4xl font-bold font-inter">Shule SMS</h1>
         </div>
 
         <div className="w-full max-w-sm md:max-w-lg ">
@@ -47,7 +47,7 @@ const LoginPage = () => {
             method="post"
             className="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4 shadow-2xl "
           >
-            <h1 className="text-center p-4 text-4xl font-semibold">Login</h1>
+            <h1 className="text-center p-4 text-4xl font-semibold font-inter">Login</h1>
             <div className="mb-4">
               <label
                 className="block text-gray-700 text-lg font-bold mb-2"
