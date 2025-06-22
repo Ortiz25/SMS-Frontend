@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Calendar,
@@ -25,16 +25,37 @@ import { useStore } from "../store/store";
 const Navbar = ({ children }) => {
   const { activeModule } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedModule, setSelectedModule] = useState("overview");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  // Handle screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      // Reset collapse state on mobile screens
+      if (window.innerWidth < 1024) {
+        setSidebarCollapsed(false);
+        setSidebarOpen(false);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+
+    // Remove event listener on cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   const logout = () => {
     // Clear the token and user data from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/")
+    navigate("/");
   };
- 
 
   const navigationItems = [
     { id: "overview", name: "Overview", icon: BarChart, route: "/dashboard" },
@@ -55,96 +76,148 @@ const Navbar = ({ children }) => {
     { id: "library", name: "Library", icon: BookOpen, route: "/library" },
     { id: "disciplinary", name: "Disciplinary", icon: Scale, route: "/disciplinary"},
     { id: "finance", name: "Finance", icon: CircleDollarSign, route: "/finance"},
-    { id: "inventory", name: "Inventory & Asset Management", icon: Layers,route: "/inventory" },
-    { id: "communications", name: "Communication & Notifications", icon: Send, route: "/communications"  },
-    { id: "transport", name: "Hostel & Transport", icon: BusIcon,route: "/transport" },
-     //{ id: "alumni", name: "Alumni", icon: GraduationCap, route: "/alumni" },
-    // { id: "health", name: "Health Records", icon: Heart, route: "/" },
+    { id: "inventory", name: "Inventory & Asset Management", icon: Layers, route: "/inventory" },
+    { id: "communications", name: "Communication & Notifications", icon: Send, route: "/communications" },
+    { id: "transport", name: "Hostel & Transport", icon: BusIcon, route: "/transport" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
-    {/* Sidebar */}
-    <div
-      className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0`}
-    >
-      <div className="h-full w-64 bg-white border-r border-gray-200 px-3 py-4">
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between mb-6 px-2">
-          <div className="flex items-center space-x-3">
-            <Building2 className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold">Shule SMS</span>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-500 hover:text-gray-700"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-  
-        {/* Navigation Items */}
-        <nav className="space-y-1">
-          {navigationItems.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.route}
-              onClick={() => setSelectedModule(item.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-sm rounded-lg transition-colors ${
-                activeModule === item.id
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.name}</span>
-            </NavLink>
-          ))}
-        </nav>
-  
-        {/* Bottom Actions */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <div className="space-y-2">
-            <NavLink to={"/settings"} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 rounded-lg">
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
-            </NavLink>
-            <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 rounded-lg cursor-pointer" onClick={logout}>
-              <LogOut className="h-5 w-5" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  
-    {/* Main Content */}
-    <div className="lg:pl-64">
-      <div className="min-h-screen">
-        {/* Top Navigation */}
-        <nav className="bg-white shadow-sm px-6 py-4">
-          <div className="flex items-center justify-between lg:justify-end">
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div
+        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        <div className={`h-full ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 px-3 py-4 transition-all duration-300 shadow-lg`}>
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between mb-6 px-2">
+            <div className={`flex items-center space-x-3 ${sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''}`}>
+              <Building2 className="h-8 w-8 text-blue-600" />
+              {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="text-xl font-bold text-gray-800">Shule SMS</span>}
+            </div>
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
             >
-              <Menu className="h-9 w-9" />
+              <X className="h-6 w-6" />
             </button>
-            <div className="flex items-center space-x-4">
-              {/* <Bell className="h-6 w-6 text-gray-600 cursor-pointer" /> */}
-              <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                {user.teacher? user.teacher.first_name.charAt(0).toUpperCase() : user.role.charAt(0).toUpperCase() }
-              </div>
+          </div>
+
+        
+
+          {/* Navigation Items */}
+          <nav className="space-y-2 flex-1">
+            {navigationItems.map((item) => (
+              <NavLink
+                key={item.id}
+                to={item.route}
+                //onClick={() => setSelectedModule(item.id)}
+                className={`w-full flex items-center ${
+                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                } py-3 text-sm rounded-xl transition-all duration-200 group ${
+                  activeModule === item.id
+                    ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+                title={sidebarCollapsed && window.innerWidth >= 1024 ? item.name : undefined}
+              >
+                <item.icon className={`h-5 w-5 ${activeModule === item.id ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-800'}`} />
+                {!(sidebarCollapsed && window.innerWidth >= 1024) && (
+                  <span className="font-medium transition-all duration-200">
+                    {item.name}
+                  </span>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Bottom Actions */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+            <div className="space-y-2">
+              <NavLink 
+                to={"/settings"} 
+                className={`w-full flex items-center ${
+                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                } py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all duration-200 group`}
+                title={sidebarCollapsed && window.innerWidth >= 1024 ? "Settings" : undefined}
+              >
+                <Settings className="h-5 w-5 text-gray-600 group-hover:text-gray-800" />
+                {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Settings</span>}
+              </NavLink>
+              <button 
+                className={`w-full flex items-center ${
+                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                } py-3 text-sm text-red-700 hover:bg-red-50 hover:text-red-800 rounded-xl transition-all duration-200 group cursor-pointer`} 
+                onClick={logout}
+                title={sidebarCollapsed && window.innerWidth >= 1024 ? "Logout" : undefined}
+              >
+                <LogOut className="h-5 w-5 text-red-600 group-hover:text-red-700" />
+                {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Logout</span>}
+              </button>
             </div>
           </div>
-        </nav>
-  
-        {children}
+        </div>
       </div>
+
+      {/* Main Content */}
+      <div className={`${sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:pl-16' : 'lg:pl-64'} transition-all duration-300`}>
+        <div className="min-h-screen">
+          {/* Top Navigation */}
+          <nav className="bg-white/90 backdrop-blur-md shadow-sm px-6 py-4 border-b border-gray-200/50 sticky top-0 z-30">
+            <div className="flex items-center justify-between ">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+                {/* Collapse Toggle for Desktop */}
+         
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="hidden lg:flex p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          
+              <div className="flex items-center space-x-4">
+                {/* <div className="relative">
+                  <Bell className="h-6 w-6 text-gray-600 cursor-pointer hover:text-gray-800 transition-colors" />
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+                </div> */}
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center font-semibold shadow-md">
+                    {user.teacher ? user.teacher.first_name.charAt(0).toUpperCase() : user.role.charAt(0).toUpperCase()}
+                  </div>
+                  {!(sidebarCollapsed && window.innerWidth >= 1024) && (
+                    <div className="hidden md:block">
+                      <p className="text-sm font-semibold text-gray-800">
+                        {user.teacher ? `${user.teacher.first_name} ${user.teacher.last_name}` : user.role}
+                      </p>
+                      <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          {/* Page Content */}
+          <main className="p-6">
+            {children}
+          </main>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black opacity-50 lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
-  </div>
   );
 };
 
