@@ -89,7 +89,7 @@ const Navbar = ({ children }) => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className={`h-full ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 px-3 py-4 transition-all duration-300 shadow-lg`}>
+        <div className={`h-full ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 px-3 py-4 transition-all duration-300 shadow-lg overflow-y-auto`}>
           {/* Sidebar Header */}
           <div className="flex items-center justify-between mb-6 px-2">
             <div className={`flex items-center space-x-3 ${sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''}`}>
@@ -107,7 +107,7 @@ const Navbar = ({ children }) => {
         
 
           {/* Navigation Items */}
-          <nav className="space-y-2 flex-1">
+          <nav className="space-y-2 flex-1 overflow-y-auto max-h-[calc(100vh-200px)]">
             {navigationItems.map((item) => (
               <NavLink
                 key={item.id}
