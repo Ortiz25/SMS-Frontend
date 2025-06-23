@@ -17,7 +17,7 @@ import {
   Menu,
   X,
   Settings,
-  LogOut,
+  LogOut,PanelLeftOpen,PanelLeftClose
 } from "lucide-react";
 import { NavLink, redirect, useNavigate } from "react-router-dom";
 import { useStore } from "../store/store";
@@ -166,13 +166,18 @@ const Navbar = ({ children }) => {
                 <Menu className="h-6 w-6" />
               </button>
                 {/* Collapse Toggle for Desktop */}
-         
-            <button
+            {isSidebarCollapsed ?  <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               className="hidden lg:flex p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200"
             >
-              <Menu className="h-5 w-5" />
-            </button>
+              <PanelLeftOpen className="h-8 w-8 text-gray-600" />
+            </button>:  <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="hidden lg:flex p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200"
+            >
+              <PanelLeftClose className="h-8 w-8 text-gray-600" />
+            </button> }
+           
           
               <div className="flex items-center space-x-4">
                 {/* <div className="relative">
