@@ -38,7 +38,7 @@ const LoginPage = () => {
     <>
       <div className="flex items-center justify-center min-h-screen bg-gray-100 ">
         <div className="absolute top-10 lg:left-20 flex items-center justify-center  bg-gray-100">
-          <Building2 className="mr-2 size-12" />
+          <Building2 className="mr-2 size-12 text-red" />
           <h1 className="text-4xl font-bold font-inter">Shule SMS</h1>
         </div>
 

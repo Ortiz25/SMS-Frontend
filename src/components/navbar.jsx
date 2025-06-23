@@ -23,32 +23,25 @@ import { NavLink, redirect, useNavigate } from "react-router-dom";
 import { useStore } from "../store/store";
 
 const Navbar = ({ children }) => {
-  const { activeModule } = useStore();
+  const { activeModule, isSidebarCollapsed, setIsSidebarCollapsed } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedModule, setSelectedModule] = useState("overview");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const navigate = useNavigate();
 
-  // Handle screen size changes
   useEffect(() => {
     const handleResize = () => {
       // Reset collapse state on mobile screens
       if (window.innerWidth < 1024) {
-        setSidebarCollapsed(false);
+        setIsSidebarCollapsed(false);
         setSidebarOpen(false);
       }
     };
-
-    // Add event listener
+  
     window.addEventListener('resize', handleResize);
-    
-    // Call handler right away so state gets updated with initial window size
     handleResize();
-
-    // Remove event listener on cleanup
+  
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [setIsSidebarCollapsed]);
   
   const logout = () => {
     // Clear the token and user data from localStorage
@@ -85,16 +78,16 @@ const Navbar = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
+        className={`fixed left-0 top-0 z-40 h-screen transition-transform  ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className={`h-full ${sidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 px-3 py-4 transition-all duration-300 shadow-lg overflow-y-auto`}>
+        <div className={`h-full ${isSidebarCollapsed && window.innerWidth >= 1024 ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 px-3 py-4 transition-all duration-300 shadow-lg overflow-y-auto`}>
           {/* Sidebar Header */}
           <div className="flex items-center justify-between mb-6 px-2">
-            <div className={`flex items-center space-x-3 ${sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''}`}>
+            <div className={`flex items-center space-x-3 ${isSidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''}`}>
               <Building2 className="h-8 w-8 text-blue-600" />
-              {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="text-xl font-bold text-gray-800">Shule SMS</span>}
+              {!(isSidebarCollapsed && window.innerWidth >= 1024) && <span className="text-xl font-bold text-gray-800">Shule SMS</span>}
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -114,16 +107,16 @@ const Navbar = ({ children }) => {
                 to={item.route}
                 //onClick={() => setSelectedModule(item.id)}
                 className={`w-full flex items-center ${
-                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                  isSidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
                 } py-3 text-sm rounded-xl transition-all duration-200 group ${
                   activeModule === item.id
                     ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm"
                     : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                 }`}
-                title={sidebarCollapsed && window.innerWidth >= 1024 ? item.name : undefined}
+                title={isSidebarCollapsed && window.innerWidth >= 1024 ? item.name : undefined}
               >
                 <item.icon className={`h-5 w-5 ${activeModule === item.id ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-800'}`} />
-                {!(sidebarCollapsed && window.innerWidth >= 1024) && (
+                {!(isSidebarCollapsed && window.innerWidth >= 1024) && (
                   <span className="font-medium transition-all duration-200">
                     {item.name}
                   </span>
@@ -138,22 +131,22 @@ const Navbar = ({ children }) => {
               <NavLink 
                 to={"/settings"} 
                 className={`w-full flex items-center ${
-                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                  isSidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
                 } py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all duration-200 group`}
-                title={sidebarCollapsed && window.innerWidth >= 1024 ? "Settings" : undefined}
+                title={isSidebarCollapsed && window.innerWidth >= 1024 ? "Settings" : undefined}
               >
                 <Settings className="h-5 w-5 text-gray-600 group-hover:text-gray-800" />
-                {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Settings</span>}
+                {!(isSidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Settings</span>}
               </NavLink>
               <button 
                 className={`w-full flex items-center ${
-                  sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
+                  isSidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-2' : 'space-x-3 px-4'
                 } py-3 text-sm text-red-700 hover:bg-red-50 hover:text-red-800 rounded-xl transition-all duration-200 group cursor-pointer`} 
                 onClick={logout}
-                title={sidebarCollapsed && window.innerWidth >= 1024 ? "Logout" : undefined}
+                title={isSidebarCollapsed && window.innerWidth >= 1024 ? "Logout" : undefined}
               >
                 <LogOut className="h-5 w-5 text-red-600 group-hover:text-red-700" />
-                {!(sidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Logout</span>}
+                {!(isSidebarCollapsed && window.innerWidth >= 1024) && <span className="font-medium">Logout</span>}
               </button>
             </div>
           </div>
@@ -161,7 +154,7 @@ const Navbar = ({ children }) => {
       </div>
 
       {/* Main Content */}
-      <div className={`${sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:pl-16' : 'lg:pl-64'} transition-all duration-300`}>
+      <div className={`${isSidebarCollapsed && window.innerWidth >= 1024 ? 'lg:pl-16' : 'lg:pl-64'} transition-all duration-300`}>
         <div className="min-h-screen">
           {/* Top Navigation */}
           <nav className="bg-white/90 backdrop-blur-md shadow-sm px-6 py-4 border-b border-gray-200/50 sticky top-0 z-30">
@@ -175,7 +168,7 @@ const Navbar = ({ children }) => {
                 {/* Collapse Toggle for Desktop */}
          
             <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               className="hidden lg:flex p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200"
             >
               <Menu className="h-5 w-5" />
@@ -190,7 +183,7 @@ const Navbar = ({ children }) => {
                   <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center font-semibold shadow-md">
                     {user.teacher ? user.teacher.first_name.charAt(0).toUpperCase() : user.role.charAt(0).toUpperCase()}
                   </div>
-                  {!(sidebarCollapsed && window.innerWidth >= 1024) && (
+                  {!(isSidebarCollapsed && window.innerWidth >= 1024) && (
                     <div className="hidden md:block">
                       <p className="text-sm font-semibold text-gray-800">
                         {user.teacher ? `${user.teacher.first_name} ${user.teacher.last_name}` : user.role}
