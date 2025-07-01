@@ -477,22 +477,22 @@ const StudentManagement = () => {
 
   return (
     <Navbar>
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-8">
         {/* Header Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2 dark:text-gray-200">
             Student Management
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Manage student information, attendance, and academic records
           </p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg  p-6  dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-200">
                 Total Students
               </h3>
               <Users className="h-5 w-5 text-blue-600" />
@@ -504,9 +504,9 @@ const StudentManagement = () => {
           </div>
 
           {/* Attendance Rate */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-200">
                 Attendance Rate
               </h3>
               <Calendar className="h-5 w-5 text-blue-600" />
@@ -525,9 +525,9 @@ const StudentManagement = () => {
           </div>
 
           {/* Average Performance */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-200">
                 Average Performance
               </h3>
               <Activity className="h-5 w-5 text-blue-600" />
@@ -547,7 +547,7 @@ const StudentManagement = () => {
         </div>
 
         {/* Action Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -555,12 +555,12 @@ const StudentManagement = () => {
                 <input
                   type="text"
                   placeholder="Search students..."
-                  className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64"
+                  className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64 dark:text-gray-200"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={handleSearch}
                 />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 dark:text-gray-200" />
               </div>
             </div>
 
@@ -589,7 +589,7 @@ const StudentManagement = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
+        <div className="bg-white rounded-lg shadow-sm mb-6 dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <div className="border-b">
             <div className="flex overflow-x-auto">
               {tabs.map((tab) => (
@@ -599,7 +599,7 @@ const StudentManagement = () => {
                   className={`px-6 py-4 text-sm font-medium cursor-pointer whitespace-nowrap ${
                     activeTab === tab.id
                       ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-gray-500 hover:text-gray-700"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-200"
                   }`}
                 >
                   {tab.label}
@@ -621,37 +621,37 @@ const StudentManagement = () => {
           />
         ) : (
           // Render original student list table
-          <div className="bg-white rounded-lg shadow-sm">
+          <div className="bg-white rounded-lg shadow-sm dark:text-gray-200 border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-gray-50 border-b dark:bg-gray-500/50 ">
                   <tr>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Student Name
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Admission No.
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Class
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Attendance
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Performance
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Status
                     </th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500">
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-500 dark:text-gray-200">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {displayedData?.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
+                    <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-500/50">
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -659,18 +659,18 @@ const StudentManagement = () => {
                               {student.first_name.charAt(0)}
                             </span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-200">
                             {student.first_name + " " + student.last_name}
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
+                      <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-200">
                         {student.admissionNo}
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
+                      <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-200">
                         {student.class} {student.stream}
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
+                      <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-200">
                         <button
                           onClick={() => handleViewAttendance(student)}
                           className="text-blue-600 hover:underline flex items-center"
@@ -734,13 +734,13 @@ const StudentManagement = () => {
             <div className="px-4 py-3 border-t">
               <div className="flex flex-col sm:flex-row items-center justify-between">
                 <div className="flex items-center space-x-4 mb-3 sm:mb-0">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     Showing {filteredData?.length > 0 ? startIndex + 1 : 0} to{" "}
                     {endIndex} of {count} students
                   </span>
 
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Show:</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-200">Show:</span>
                     <div className="flex border rounded-md overflow-hidden">
                       {[10, 20, 50].map((size) => (
                         <button

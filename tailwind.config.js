@@ -5,6 +5,13 @@ export default {
       "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
+      colors: {
+      Sidebar: "#1C1C1C",
+      MainScreen: "#1E1E1E",
+      StatisticBoxesFill: "#292929",
+      StatisticBoxesBorder: "#6E6E6E",
+      darkMode1: "#1e293b",
+      },
       extend: {
         keyframes: {
           slideDown: {

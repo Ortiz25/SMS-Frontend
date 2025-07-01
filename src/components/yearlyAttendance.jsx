@@ -153,25 +153,25 @@ const YearlyAttendanceChart = () => {
 
   return (
     <div className="lg:col-span-2">
-      <div className="bg-white rounded-xl border border-gray-100 shadow-lg p-6">
+      <div className="bg-white rounded-xl border  shadow-lg p-6  rounded-2xl  border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 justify-between items-start sm:items-center mb-4">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-200 ">
               School Attendance {selectedYear}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1 dark:text-gray-300">
               Weekly attendance tracking
             </p>
           </div>
           
           {/* Session selector */}
           <div className="flex items-center">
-            <label htmlFor="session-select" className="mr-2 text-sm font-medium text-gray-700">Academic Session:</label>
+            <label htmlFor="session-select" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-200 ">Academic Session:</label>
             <select 
               id="session-select"
               value={selectedSession || ''}
               onChange={handleSessionChange}
-              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
+              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm dark:text-gray-200 "
             >
               {academicSessions.map(session => (
                 <option key={session.id} value={session.id}>
@@ -182,17 +182,17 @@ const YearlyAttendanceChart = () => {
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-4 bg-gray-50/50 px-4 py-2 rounded-full mb-6">
+        <div className="flex flex-wrap gap-4 bg-gray-50/50 dark:bg-gray-500/50 px-4 py-2 rounded-full mb-6">
           {Object.entries(termConfigs).map(([term, config]) => (
             <div key={term} className="flex items-center">
               <div
                 className="w-2.5 h-2.5 rounded-full mr-2"
                 style={{ backgroundColor: config.color }}
               ></div>
-              <span className="text-xs font-medium text-gray-700">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ">
                 {term}
               </span>
-              <span className="text-xs text-gray-400 ml-1">
+              <span className="text-xs text-gray-400 ml-1 dark:text-gray-200 ">
                 ({config.description})
               </span>
             </div>

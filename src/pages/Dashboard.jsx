@@ -23,7 +23,9 @@ import {
   CalendarClock,
   BookOpenCheck,
   BookOpenText,
-  BookCheckIcon
+  BookCheckIcon,
+  Mars,
+  Venus,
 } from "lucide-react";
 import Navbar from "../components/navbar";
 import { useStore } from "../store/store";
@@ -73,7 +75,7 @@ const Dashboard = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [sessionDropdownOpen, setSessionDropdownOpen] = useState(false);
 
-  console.log(data)
+  console.log(data);
 
   useEffect(() => {
     // Initialize with default values, then update if data exists
@@ -226,7 +228,6 @@ const Dashboard = () => {
         }
 
         const classData = await classesSummaryResponse.json();
-        
 
         // Filter examinations by the selected session if one is selected
         let filteredExaminations = classData.examinations;
@@ -395,11 +396,11 @@ const Dashboard = () => {
           </div>
         )}
         {/* Quick Stats - First Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 dark:text-gray-200 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Students */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-extrabold text-gray-800">
+              <h3 className="text-lg font-extrabold text-gray-800  dark:text-gray-200 ">
                 Student Overview
               </h3>
               <GraduationCap className="h-5 w-5 text-blue-600" />
@@ -408,8 +409,10 @@ const Dashboard = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">Total Students</span>
+                  <Users className="h-4 w-4 text-gray-500  dark:text-gray-200 " />
+                  <span className="text-sm text-gray-600  dark:text-gray-200 ">
+                    Total Students
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {studentData?.total_students || 0}
@@ -418,8 +421,10 @@ const Dashboard = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm text-gray-600">Male Students</span>
+                  <Mars className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-600  dark:text-gray-200 ">
+                    Male Students
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {studentData?.male_students || 0}
@@ -428,8 +433,10 @@ const Dashboard = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-pink-500" />
-                  <span className="text-sm text-gray-600">Female Students</span>
+                  <Venus className="h-4 w-4 text-pink-500" />
+                  <span className="text-sm text-gray-600  dark:text-gray-200 ">
+                    Female Students
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {studentData?.female_students || 0}
@@ -439,7 +446,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Active Students</span>
+                  <span className="text-sm text-gray-600  dark:text-gray-200 ">
+                    Active Students
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {studentData?.active_students || 0}
@@ -449,7 +458,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserX className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600  dark:text-gray-200 ">
                     Inactive Students
                   </span>
                 </div>
@@ -461,19 +470,21 @@ const Dashboard = () => {
           </div>
 
           {/* Total Teachers */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-2xl dark:text-gray-200 border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-extrabold text-gray-800">
+              <h3 className="text-lg font-extrabold text-gray-800 dark:text-gray-200">
                 Teacher Overview
               </h3>
-              <Users className="h-5 w-5 text-blue-600" />
+              <Users className="h-5 w-5 text-blue-600 " />
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">Total Teachers</span>
+                  <Users className="h-4 w-4 text-gray-500 dark:text-gray-200" />
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Total Teachers
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {teacherData?.total_teachers || 0}
@@ -481,8 +492,10 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <UserCheck className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm text-gray-600">Male Teachers</span>
+                  <Mars className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Male Teachers
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {teacherData?.male_teachers || 0}
@@ -490,8 +503,10 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <UserCheck className="h-4 w-4 text-pink-500" />
-                  <span className="text-sm text-gray-600">Female Teachers</span>
+                  <Venus className="h-4 w-4 text-pink-500" />
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Female Teachers
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {teacherData?.female_teachers || 0}
@@ -501,7 +516,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Active Teachers</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Active Teachers
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {teacherData?.active_teachers || 0}
@@ -511,7 +528,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <UserX className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     Inactive Teachers
                   </span>
                 </div>
@@ -569,10 +586,10 @@ const Dashboard = () => {
           </div>
 
           {/* Library Book Inventory */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-extrabold text-gray-800">
-                Library Book Inventory
+              <h3 className="text-lg font-extrabold text-gray-800 dark:text-gray-200">
+                Library Inventory Overview
               </h3>
               <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
@@ -580,7 +597,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookmarkPlus className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-gray-600">Total Titles</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Total Titles
+                  </span>
                 </div>
                 <span className="text-lg font-bold">
                   {libraryData?.total_books || 0}
@@ -589,7 +608,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Layers className="h-4 w-4 text-indigo-500" />
-                  <span className="text-sm text-gray-600">Total Copies</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Total Copies
+                  </span>
                 </div>
                 <span className="text-lg font-bold text-indigo-600">
                   {libraryData?.total_copies || 0}
@@ -598,7 +619,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookOpenCheck className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     Available Copies
                   </span>
                 </div>
@@ -609,7 +630,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookMinus className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm text-gray-600">Borrowed Titles</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Borrowed Titles
+                  </span>
                 </div>
                 <span className="text-lg font-bold text-orange-600">
                   {libraryData?.borrowed_titles || 0}
@@ -618,32 +641,34 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <BookOpenText className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm text-gray-600">Borrowed Copies</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    Borrowed Copies
+                  </span>
                 </div>
                 <span className="text-lg font-bold text-orange-600">
                   {libraryData?.borrowed_copies || 0}
                 </span>
               </div>
-              
             </div>
           </div>
         </div>
 
         {/* Classes Performance Overview - Dedicated Row */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 bg-white rounded-2xl border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-extrabold text-gray-800">
+              <h3 className="text-lg font-extrabold text-gray-800 dark:text-gray-200">
                 Classes Performance Overview
               </h3>
+
               {/* Academic Session Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setSessionDropdownOpen(!sessionDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group"
                 >
-                  <Calendar className="h-4 w-4 text-indigo-600 group-hover:text-indigo-700" />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">
+                  <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
                     {selectedSession
                       ? `${selectedSession.year} Term ${selectedSession.term}${
                           selectedSession.is_current ? " (Current)" : ""
@@ -651,7 +676,7 @@ const Dashboard = () => {
                       : "All Sessions"}
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 text-gray-500 group-hover:text-indigo-700 transition-transform duration-200 ${
+                    className={`h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-transform duration-200 ${
                       sessionDropdownOpen ? "transform rotate-180" : ""
                     }`}
                   />
@@ -667,21 +692,20 @@ const Dashboard = () => {
 
                     {/* Session Dropdown menu with animation */}
                     <div
-                      className="absolute z-20 mt-2 w-64 rounded-lg border border-gray-200 shadow-lg bg-white overflow-hidden transition-all duration-200 animate-slideDown"
+                      className="absolute z-20 mt-2 w-64 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg overflow-hidden transition-all duration-200 animate-slideDown"
                       style={{
                         transformOrigin: "top center",
                       }}
                     >
                       <div className="py-1 max-h-72 overflow-y-auto">
-                        (
                         <button
                           onClick={() =>
                             setSessionDropdownOpen(!sessionDropdownOpen)
                           }
-                          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group"
                         >
-                          <Calendar className="h-4 w-4 text-indigo-600 group-hover:text-indigo-700" />
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">
+                          <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300" />
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
                             {selectedSession
                               ? `${selectedSession.year} Term ${
                                   selectedSession.term
@@ -691,7 +715,7 @@ const Dashboard = () => {
                               : "All Sessions"}
                           </span>
                           <ChevronDown
-                            className={`h-4 w-4 text-gray-500 group-hover:text-indigo-700 transition-transform duration-200 ${
+                            className={`h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-transform duration-200 ${
                               sessionDropdownOpen ? "transform rotate-180" : ""
                             }`}
                           />
@@ -700,34 +724,34 @@ const Dashboard = () => {
                           <button
                             key={session.id}
                             onClick={() => handleSessionSelection(session)}
-                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 flex items-center justify-between ${
+                            className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between ${
                               selectedSession &&
                               selectedSession.id === session.id
-                                ? "bg-blue-50/70 border-l-4 border-blue-500"
+                                ? "bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 dark:border-blue-400"
                                 : "border-l-4 border-transparent"
                             }`}
                           >
                             <div className="flex items-center">
-                              <CalendarClock className="h-4 w-4 mr-2 text-gray-400" />
+                              <CalendarClock className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
                               <div className="flex flex-col">
                                 <span
                                   className={`font-medium ${
                                     selectedSession &&
                                     selectedSession.id === session.id
-                                      ? "text-blue-700"
-                                      : "text-gray-700"
+                                      ? "text-blue-700 dark:text-blue-300"
+                                      : "text-gray-700 dark:text-gray-200"
                                   }`}
                                 >
                                   {session.year} Term {session.term}
                                 </span>
-                                <span className="text-xs text-gray-500 mt-0.5">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                   {session.status.charAt(0).toUpperCase() +
                                     session.status.slice(1)}
                                 </span>
                               </div>
                             </div>
                             {session.is_current && (
-                              <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                              <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                                 Current
                               </span>
                             )}
@@ -738,17 +762,18 @@ const Dashboard = () => {
                   </>
                 )}
               </div>
+
               {examinations.length > 0 && (
                 <div className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 group"
                   >
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                       {selectedExam ? selectedExam.name : "Select Examination"}
                     </span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 group-hover:text-blue-600 transition-transform duration-200 ${
+                      className={`h-4 w-4 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-transform duration-200 ${
                         dropdownOpen ? "transform rotate-180" : ""
                       }`}
                     />
@@ -764,7 +789,7 @@ const Dashboard = () => {
 
                       {/* Dropdown menu with animation */}
                       <div
-                        className="absolute z-20 mt-2 w-80 rounded-lg border border-gray-200 shadow-lg bg-white overflow-hidden transition-all duration-200 animate-slideDown"
+                        className="absolute z-20 mt-2 w-80 rounded-lg border border-gray-200 dark:border-gray-600 shadow-lg bg-white dark:bg-gray-800 overflow-hidden transition-all duration-200 animate-slideDown"
                         style={{
                           transformOrigin: "top center",
                         }}
@@ -774,9 +799,9 @@ const Dashboard = () => {
                             <button
                               key={exam.id}
                               onClick={() => handleExamSelection(exam)}
-                              className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 flex items-center justify-between ${
+                              className={`w-full text-left px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between ${
                                 selectedExam && selectedExam.id === exam.id
-                                  ? "bg-blue-50/70 border-l-4 border-blue-500"
+                                  ? "bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 dark:border-blue-400"
                                   : "border-l-4 border-transparent"
                               }`}
                             >
@@ -784,13 +809,13 @@ const Dashboard = () => {
                                 <span
                                   className={`font-medium ${
                                     selectedExam && selectedExam.id === exam.id
-                                      ? "text-blue-700"
-                                      : "text-gray-700"
+                                      ? "text-blue-700 dark:text-blue-300"
+                                      : "text-gray-700 dark:text-gray-200"
                                   }`}
                                 >
                                   {exam.name}
                                 </span>
-                                <span className="text-xs text-gray-500 mt-0.5">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                   {exam.status === "completed"
                                     ? "Completed"
                                     : "In Progress"}
@@ -799,8 +824,8 @@ const Dashboard = () => {
                               <span
                                 className={`text-xs px-2 py-1 rounded-full flex items-center ${
                                   exam.status === "completed"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-amber-100 text-amber-700"
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                                    : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                                 }`}
                               >
                                 {exam.status === "completed" ? (
@@ -846,7 +871,7 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-            <Activity className="h-5 w-5 text-blue-600" />
+            <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           {/* Add this right after the title section in the performance overview section */}
           {isLoading ? (
@@ -1060,13 +1085,13 @@ const Dashboard = () => {
         {/* Charts and Activity Feed - Last Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Weekly Attendance Chart */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 rounded-2xl border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
             <YearlyAttendanceChart />
           </div>
 
           {/* Recent Activities */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-lg shadow-lg p-6 dark:text-gray-200 border border-gray-200 shadow-md p-4 dark:bg-gray-800 dark:border-gray-700">
               <h3 className="text-lg font-extrabold mb-4">Recent Activities</h3>
               {activities && activities.length > 0 ? (
                 <div className="space-y-4">
@@ -1082,13 +1107,13 @@ const Dashboard = () => {
                           <ActivityIcon className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm text-gray-900">
+                          <p className="text-sm text-gray-900 dark:text-gray-200">
                             {activity.activity_type}: {activity.name}
                             {activity.reference
                               ? ` (${activity.reference})`
                               : ""}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {formatDistance(
                               new Date(activity.timestamp),
                               new Date(),
@@ -1122,22 +1147,22 @@ const Dashboard = () => {
 
       {/* Activity Modal */}
       {isOpen && activities && activities.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center ">
           <div
-            className="fixed inset-0 bg-black opacity-50 z-40"
+            className="fixed inset-0 bg-black opacity-50 z-40 dark:opacity-80"
             onClick={() => setIsOpen(false)}
           ></div>
-          <div className="relative z-50 bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="relative z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-lg font-bold text-gray-800">
+            <div className="flex justify-between items-center p-4 border-b dark:border-gray-200">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">
                 All Activities
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-200 dark:hover:text-gray-500"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 " />
               </button>
             </div>
 
@@ -1153,11 +1178,11 @@ const Dashboard = () => {
                       <ActivityIcon className="h-4 w-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-gray-200">
                         {activity.activity_type}: {activity.name}
                         {activity.reference ? ` (${activity.reference})` : ""}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-300">
                         {formatDistance(
                           new Date(activity.timestamp),
                           new Date(),
@@ -1171,8 +1196,8 @@ const Dashboard = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t text-center">
-              <p className="text-xs text-gray-500">
+            <div className="p-4 border-t text-center dark:border-gray-200">
+              <p className="text-xs text-gray-500 dark:text-gray-300">
                 {activities.length} total activities
               </p>
             </div>
